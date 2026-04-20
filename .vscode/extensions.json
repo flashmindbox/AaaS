@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig",
+    "ms-azuretools.vscode-docker",
+    "bradlc.vscode-tailwindcss",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "golang.go",
+    "deque-systems.vscode-axe-linter",
+    "yzhang.markdown-all-in-one"
+  ]
+}

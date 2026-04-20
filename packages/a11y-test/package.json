@@ -1,0 +1,51 @@
+{
+  "name": "@aaas/a11y-test",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WCAG 2.2 AA automated test harness for AaaS. Wraps @axe-core/playwright with sensible defaults, JSON and JUnit reports, and a CLI.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./checklist": {
+      "types": "./dist/checklist.d.ts",
+      "import": "./dist/checklist.js",
+      "require": "./dist/checklist.cjs"
+    }
+  },
+  "bin": {
+    "aaas-a11y": "./dist/cli.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist .turbo",
+    "lint": "eslint \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "a11y": "echo '(self-test via vitest)' && vitest run"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "axe-core": "^4.10.2",
+    "commander": "^12.1.0",
+    "kleur": "^4.1.5",
+    "playwright": "^1.49.1"
+  },
+  "devDependencies": {
+    "@aaas/config": "workspace:*",
+    "@types/node": "^22.10.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,13 @@
+# Default owners for everything in the repo.
+*                       @subarnarekha/maintainers
+
+# Infrastructure / security-sensitive
+/infra/                 @subarnarekha/platform
+/.github/workflows/     @subarnarekha/platform
+/docs/threat-model.md   @subarnarekha/security
+/docs/dpdp-data-flow.md @subarnarekha/security
+
+# Accessibility
+/packages/ui/           @subarnarekha/design-systems
+/packages/a11y-test/    @subarnarekha/accessibility
+/docs/wcag-acceptance-checklist.md @subarnarekha/accessibility

@@ -1,0 +1,162 @@
+# AaaS dev stack. Boots in < 60s on a laptop.
+#
+#   pnpm infra:up       # start
+#   pnpm infra:logs     # tail logs
+#   pnpm infra:down     # stop (keeps volumes)
+#   pnpm infra:reset    # stop + wipe volumes
+#
+# Ports exposed (host -> container):
+#   5432  Postgres
+#   6379  Redis
+#   9000  MinIO S3 API
+#   9001  MinIO Console
+#   8080  Keycloak
+#   8025  MailHog web UI
+#   1025  MailHog SMTP
+#  16686  Jaeger UI
+#   4317  OTel gRPC
+#   4318  OTel HTTP
+#
+# NEVER use this file in production — passwords are in plaintext and
+# every service is wide open on localhost.
+
+name: aaas-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aaas-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aaas}
+      POSTGRES_USER: ${POSTGRES_USER:-aaas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-dev}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C'
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-aaas} -d ${POSTGRES_DB:-aaas}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: aaas-redis
+    restart: unless-stopped
+    command: ['redis-server', '--save', '60', '1000', '--loglevel', 'warning']
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: aaas-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-aaas-dev}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-aaas-dev-secret}
+      MINIO_REGION: ${S3_REGION:-ap-south-1}
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:9000/minio/health/ready']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot MinIO client that creates our default buckets.
+  minio-init:
+    image: minio/mc:latest
+    container_name: aaas-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+        mc mb --ignore-existing local/aaas-audio &&
+        mc mb --ignore-existing local/aaas-docs  &&
+        mc mb --ignore-existing local/aaas-models &&
+        mc anonymous set none local/aaas-audio   &&
+        mc anonymous set none local/aaas-docs    &&
+        mc anonymous set none local/aaas-models  &&
+        echo "MinIO buckets provisioned."
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-aaas-dev}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-aaas-dev-secret}
+    restart: 'no'
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: aaas-keycloak
+    restart: unless-stopped
+    command: ['start-dev', '--import-realm']
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HTTP_ENABLED: 'true'
+      KC_HEALTH_ENABLED: 'true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./keycloak/realm-aaas.json:/opt/keycloak/data/import/realm-aaas.json:ro
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && head -1 <&3 | grep 200",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: aaas-mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # Web UI
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62
+    container_name: aaas-jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: 'true'
+    ports:
+      - '16686:16686' # UI
+      - '4317:4317' # OTLP gRPC
+      - '4318:4318' # OTLP HTTP
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:

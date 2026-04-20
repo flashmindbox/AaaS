@@ -1,0 +1,218 @@
+/**
+ * AaaS design-system base styles.
+ *
+ * Apps should import this once at the root. The file exposes CSS custom
+ * properties for each semantic token, and supports three themes via
+ * `[data-theme="light" | "dark" | "hc"]` on any ancestor element.
+ *
+ * The dyslexia-friendly mode is an orthogonal override: add
+ * `[data-reading="dyslexia"]` to the same ancestor to swap font, letter
+ * spacing, and line height.
+ */
+
+:root,
+[data-theme='light'] {
+  --aaas-bg: #ffffff;
+  --aaas-bg-subtle: #f8fafc;
+  --aaas-bg-muted: #f1f5f9;
+  --aaas-bg-inverse: #050f29;
+
+  --aaas-text: #0f172a;
+  --aaas-text-muted: #334155;
+  --aaas-text-inverse: #ffffff;
+  --aaas-text-link: #075985;
+  --aaas-text-link-visited: #0b2447;
+
+  --aaas-border: #cbd5e1;
+  --aaas-border-strong: #334155;
+
+  --aaas-accent: #0b2447;
+  --aaas-accent-fg: #ffffff;
+
+  --aaas-success: #14532d;
+  --aaas-warning: #7a4508;
+  --aaas-error: #991b1b;
+  --aaas-info: #075985;
+
+  --aaas-focus-ring: #ffbf00;
+
+  --aaas-font-sans:
+    'Inter', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil',
+    'Noto Sans Bengali', 'Noto Sans Oriya', system-ui, -apple-system, 'Segoe UI',
+    Roboto, sans-serif;
+  --aaas-font-odia:
+    'Noto Sans Oriya', 'Lohit Odia', Shrikhand, 'Inter', system-ui, sans-serif;
+  --aaas-font-mono:
+    ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
+  --aaas-font-dyslexic:
+    'OpenDyslexic', 'Atkinson Hyperlegible', var(--aaas-font-sans);
+
+  --aaas-line-height: 1.5;
+  --aaas-letter-spacing: 0;
+  --aaas-word-spacing: normal;
+
+  --aaas-radius-md: 0.375rem;
+  --aaas-target-min: 44px;
+}
+
+[data-theme='dark'] {
+  --aaas-bg: #020617;
+  --aaas-bg-subtle: #0f172a;
+  --aaas-bg-muted: #1e293b;
+  --aaas-bg-inverse: #ffffff;
+
+  --aaas-text: #f8fafc;
+  --aaas-text-muted: #cbd5e1;
+  --aaas-text-inverse: #0f172a;
+  --aaas-text-link: #93c5fd;
+  --aaas-text-link-visited: #c7d2fe;
+
+  --aaas-border: #334155;
+  --aaas-border-strong: #cbd5e1;
+
+  --aaas-accent: #93c5fd;
+  --aaas-accent-fg: #0f172a;
+
+  --aaas-success: #86efac;
+  --aaas-warning: #fcd34d;
+  --aaas-error: #fca5a5;
+  --aaas-info: #93c5fd;
+}
+
+[data-theme='hc'] {
+  --aaas-bg: #ffffff;
+  --aaas-bg-subtle: #ffffff;
+  --aaas-bg-muted: #f5f5f5;
+  --aaas-bg-inverse: #000000;
+
+  --aaas-text: #000000;
+  --aaas-text-muted: #000000;
+  --aaas-text-inverse: #ffffff;
+  --aaas-text-link: #0000ee;
+  --aaas-text-link-visited: #551a8b;
+
+  --aaas-border: #000000;
+  --aaas-border-strong: #000000;
+
+  --aaas-accent: #000000;
+  --aaas-accent-fg: #ffffff;
+
+  --aaas-focus-ring: #ffbf00;
+}
+
+[data-reading='dyslexia'] {
+  --aaas-font-sans: var(--aaas-font-dyslexic);
+  --aaas-letter-spacing: 0.12em;
+  --aaas-line-height: 1.75;
+}
+
+/*
+ * Odia script overrides.
+ *
+ * Odia needs more vertical room than Latin (matras above and below the
+ * baseline, plus conjuncts), and its dyslexia variant must NOT use positive
+ * letter-spacing — that breaks conjuncts like ନ୍ତ, କ୍ଷ, ଜ୍ଞ. Use word-spacing
+ * instead. See docs/odia-language-strategy.md §3.
+ */
+:root[lang='or'],
+[lang='or'] {
+  --aaas-font-sans: var(--aaas-font-odia);
+  --aaas-line-height: 1.7;
+}
+
+[data-reading='dyslexia'][lang='or'],
+[data-reading='dyslexia'] [lang='or'] {
+  --aaas-font-sans: var(--aaas-font-odia);
+  --aaas-letter-spacing: 0;
+  --aaas-word-spacing: 0.2em;
+  --aaas-line-height: 1.9;
+}
+
+/* Base element styles */
+html {
+  color-scheme: light dark;
+}
+body {
+  margin: 0;
+  font-family: var(--aaas-font-sans);
+  font-size: 1rem;
+  line-height: var(--aaas-line-height);
+  letter-spacing: var(--aaas-letter-spacing);
+  word-spacing: var(--aaas-word-spacing);
+  color: var(--aaas-text);
+  background: var(--aaas-bg);
+}
+
+/* Focus ring — always visible, never removed. */
+:focus-visible {
+  outline: 3px solid var(--aaas-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Respect user motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Button */
+.aaas-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--aaas-target-min);
+  min-width: var(--aaas-target-min);
+  padding: 0 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--aaas-radius-md);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    background-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    color 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.aaas-btn[aria-disabled='true'],
+.aaas-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.aaas-btn--primary {
+  background: var(--aaas-accent);
+  color: var(--aaas-accent-fg);
+}
+.aaas-btn--primary:hover:not([aria-disabled='true']) {
+  filter: brightness(1.1);
+}
+.aaas-btn--secondary {
+  background: var(--aaas-bg);
+  color: var(--aaas-text);
+  border-color: var(--aaas-border-strong);
+}
+.aaas-btn--ghost {
+  background: transparent;
+  color: var(--aaas-text);
+}
+.aaas-btn--danger {
+  background: var(--aaas-error);
+  color: #ffffff;
+}
+
+.aaas-btn--sm {
+  min-height: 36px;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+}
+.aaas-btn--lg {
+  min-height: 52px;
+  padding: 0 1.5rem;
+  font-size: 1.125rem;
+}

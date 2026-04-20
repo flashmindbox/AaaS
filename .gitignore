@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.npm/
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+.turbo/
+.cache/
+*.tsbuildinfo
+*.log
+
+# Test / coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+
+# Docker persistent volumes
+infra/volumes/
+infra/.data/
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+
+# Claude Code local state (developer-local)
+.claude/
+
+# Generated PDFs (keep source PDF only)
+WHAT_WE_ARE_BUILDING.pdf
+PLAN.pdf
+
+# Artifacts / SBOMs
+sbom.json
+sbom.xml
+*.spdx.json

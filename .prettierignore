@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+out/
+.next/
+.turbo/
+coverage/
+playwright-report/
+test-results/
+pnpm-lock.yaml
+poetry.lock
+*.pdf
+infra/volumes/
+Aas.txt

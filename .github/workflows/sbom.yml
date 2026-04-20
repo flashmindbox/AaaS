@@ -1,0 +1,46 @@
+name: SBOM
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  sbom:
+    name: Generate CycloneDX SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate SBOM (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cyclonedx.json
+          retention-days: 90
+
+      - name: Vulnerability scan (Grype)
+        uses: anchore/scan-action@v5
+        with:
+          sbom: sbom.cyclonedx.json
+          severity-cutoff: high
+          fail-build: false
+          output-format: sarif
+
+      - name: Upload SARIF to Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif

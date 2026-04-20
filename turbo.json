@@ -1,0 +1,73 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": [
+    "tsconfig.base.json",
+    ".env",
+    ".env.example"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "CI"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.*.json"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        ".eslintrc*",
+        "eslint.config.*",
+        "package.json"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "tsconfig.*.json"
+      ]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "test/**",
+        "tests/**",
+        "*.test.*",
+        "*.spec.*"
+      ],
+      "outputs": ["coverage/**"]
+    },
+    "a11y": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "a11y/**",
+        "*.a11y.*"
+      ],
+      "outputs": ["a11y-report/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

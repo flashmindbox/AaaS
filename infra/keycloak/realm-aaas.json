@@ -1,0 +1,79 @@
+{
+  "realm": "aaas",
+  "enabled": true,
+  "displayName": "AaaS (dev)",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "defaultSignatureAlgorithm": "RS256",
+  "roles": {
+    "realm": [
+      { "name": "platform-admin", "description": "AaaS operator" },
+      { "name": "tenant-admin", "description": "Institution admin" },
+      { "name": "tenant-user", "description": "Institution staff" }
+    ]
+  },
+  "groups": [
+    {
+      "name": "demo-university",
+      "path": "/demo-university",
+      "attributes": {
+        "tenant_slug": ["demo-university"]
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "dev",
+      "email": "dev@aaas.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Dev",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "dev", "temporary": false }],
+      "realmRoles": ["tenant-admin"],
+      "groups": ["/demo-university"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "aaas-gateway",
+      "name": "AaaS API Gateway (confidential)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "change-me-in-dev",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "redirectUris": [
+        "http://localhost:8000/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8000",
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "access.token.lifespan": "300"
+      }
+    },
+    {
+      "clientId": "aaas-web",
+      "name": "AaaS Web (public SPA)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+Accessibility as a Service (AaaS) Infrastructure for
+                        Public Institutions
+
+            Problem Statement Title- Lack  PS Category- Software
+of Inclusive Digital Accessibility          Team ID-
+Infrastructure in Public Institutions
+                                           Team Name- SUBARNAREKHA
+          Idea Title- Accessibility as a
+Service (AaaS) Infrastructure for
+Public Institutions
+
+                          Theme-
+Accessibility,Ecommerce & Cyber
+
+                     Security
+Accessibility as a Service (AaaS) Infrastructure for Public Institutions
+
+  Accessibility as a Service (AaaS) is a centralized, cloud-based infrastructure designed to make public institutions digitally inclusive for
+    persons with disabilities and diverse linguistic backgrounds. The system provides essential accessibility services such as speech-to-text,
+    text-to-speech with screen readers, learning-disability­friendly content formats, accessible examination systems, and multi-language
+    including local language support. Instead of each institution developing separate accessibility solutions, this platform offers plug-and-
+    play accessibility APIs and interfaces that can be integrated into websites, applications, kiosks, classrooms, and examination systems,
+    ensuring equal access to information and services for all citizens.
+
+  How it addresses the problem-
+
+Despite digitalization in public institutions such as schools, universities, government offices, and examination boards, accessibility
+
+remains severely inadequate.
+
+Key problems include:1.Lack of support for visually, hearing, and learning-impaired users 2.Absence of screen readers and assistive
+
+interfaces on official portals 3.Inaccessible digital examinations and learning materials
+
+4.Limited availability of local and regional language support
+
+5.High cost and complexity of implementing accessibility solutions individually
+
+As a result, millions of people are excluded from education, employment, and public services.
+
+Innovation and uniqueness of the solution
+
+  Centralized Accessibility as a Service model (not institution-specific)
+
+  Reusable and scalable APIs instead of custom implementations
+
+  Supports learning disabilities, which are often ignored
+
+  Integrates accessible exams (extra time, audio support, dyslexia-friendly fonts)
+
+  Emphasizes local Indian languages, not just English
+
+  Cost-effective and easy to deploy for public institutions
+
+  Works across web, mobile, and physical kiosks
+
+This approach reduces duplication, cost, and technical barriers while ensuring nationwide accessibility compliance.
+    TECHNICAL APPROACH
+
+  Software Components:
+                   Speech-to-Text Module
+                   Text-to-Speech & Screen Reader Engine
+                   Accessibility API Gateway
+                   Language Translation Engine
+                   Accessible Examination Module
+                   Admin Dashboard
+
+Hardware (Optional):
+                   Microphone and speakers
+                   Accessibility kiosks (touch + voice enabled)
+                   Low-cost tablets for classrooms
+                   Methodology and process for implementation (Flow Charts/Images/ working prototype)
+
+Implementation-
+
+ Requirement Analysis from public institutions
+Accessibility standards mapping (WCAG)
+Development of core accessibility services
+API-based integration with institutional platforms
+Testing with real users (PwDs & educators)
+Deployment & training
+    FEASIBILITY AND VIABILITY
+
+ Technically feasible using existing AI and cloud technologies
+ Economically viable due to shared infrastructure
+ Socially relevant and aligned with Digital India & Inclusive India goals
+ Can be scaled gradually from pilot institutions to nationwide adoption
+
+         Potential Challenges and Risks
+
+   Accuracy in speech recognition for local languages
+
+   Resistance to adoption in traditional institutions
+
+   Data privacy and security concerns
+
+   Accessibility awareness among staff
+         Strategies for Overcoming These Challenges
+
+   Training AI models using local language datasets
+   Awareness and training programs for institutions
+   Strong encryption and compliance with data protection laws
+   Government policy alignment and incentives
+    IMPACT AND BENEFITS
+
+Potential Impact on the Target Audience
+
+   Equal access to education and government services
+   Increased participation of persons with disabilities
+   Improved learning outcomes
+   Reduced digital divide
+   Empowerment through inclusive technology
+
+Beneficiary          Benefit
+
+Students with disabilities Inclusive learning & exams
+
+Public institutions  Cost-effective accessibility
+
+Government           Compliance & social inclusion
+
+Citizens             Equal digital access
+THANK YOU
+

@@ -1,0 +1,45 @@
+{
+  "name": "@aaas/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared ESLint, TypeScript, and Prettier configs for the AaaS monorepo.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    "./eslint-preset": "./eslint-preset.cjs",
+    "./prettier": "./prettier.config.cjs",
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/library.json": "./tsconfig/library.json",
+    "./tsconfig/node.json": "./tsconfig/node.json",
+    "./tsconfig/react.json": "./tsconfig/react.json"
+  },
+  "files": [
+    "eslint-preset.cjs",
+    "prettier.config.cjs",
+    "tsconfig/*.json"
+  ],
+  "scripts": {
+    "lint": "eslint --no-error-on-unmatched-pattern \"*.cjs\"",
+    "typecheck": "echo '(no TS sources)'",
+    "test": "echo '(no tests)'",
+    "build": "echo '(no build step)'"
+  },
+  "peerDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.7.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1"
+  }
+}
