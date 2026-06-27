@@ -1,0 +1,77 @@
+# Caddy reverse-proxy config for the AaaS cloud demo.
+#
+# A single virtual host fronts the whole platform. Caddy terminates
+# TLS on port 443 (automatic with Let's Encrypt when AAAS_DOMAIN is a
+# real hostname) and proxies everything to the gateway at :8000. The
+# gateway itself serves the widget, demo sites, exam module, and admin
+# dashboard as same-origin static files (see _mount_demo_assets in
+# services/gateway/app/main.py) — a single origin keeps CORS,
+# cookies, and MediaRecorder permissions all simple.
+#
+# For local dev (`docker compose up`), AAAS_DOMAIN defaults to
+# "localhost" and Caddy serves plain HTTP on :80 without trying to
+# provision a cert. For a real deploy, set AAAS_DOMAIN=demo.aaas.cloud
+# (or whatever) in .env and Caddy will auto-provision.
+
+{
+	# Trust proxy headers when behind a load balancer. Harmless in single-
+	# node deployments, essential when someone front-ends with AWS ALB.
+	servers {
+		trusted_proxies static private_ranges
+	}
+	# Uncomment and point at a real email address to get certificate
+	# expiry warnings from Let's Encrypt.
+	# email admin@subarnarekha.example
+}
+
+{$AAAS_DOMAIN:localhost}, :80 {
+	# Route everything at this host to the gateway. The gateway is the
+	# only service anyone outside the compose network should ever reach.
+	encode zstd gzip
+
+	# Browser-origin anti-abuse headers. The gateway sets its own
+	# Content-Security-Policy; we only set the ones that don't depend
+	# on per-request context here.
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "SAMEORIGIN"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# Don't let callers see that Caddy is Caddy.
+		-Server
+	}
+
+	# Tell browsers microphone-origin permissions are OK from this
+	# site so the widget's 🎙 Record flow doesn't hit a popup storm.
+	header Permissions-Policy "microphone=(self), autoplay=(self), clipboard-write=(self)"
+
+	# Caching: static assets served by the gateway (widget.js, demo
+	# HTML, exam JS, admin CSS) get a short cache to keep judges' view
+	# current after a rebuild. The widget itself is no-store so hot
+	# fixes land immediately.
+	@widget path /widget.js
+	header @widget Cache-Control "no-store"
+
+	@staticAssets path /demo/* /exam/* /admin/* /admin
+	header @staticAssets Cache-Control "public, max-age=60"
+
+	# All paths: let the gateway handle auth, rate-limiting, audit
+	# logging, and tenant resolution.
+	reverse_proxy gateway:8000 {
+		# Preserve original host for logging.
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		# /stt/transcribe accepts up to 30 seconds of audio, so we
+		# raise the proxy read timeout to 60s (vs Caddy's default
+		# of none, but we keep it explicit in case CDN defaults differ).
+		transport http {
+			read_timeout 60s
+		}
+	}
+
+	# Structured access log to stdout — picked up by `docker logs caddy`.
+	log {
+		output stdout
+		format json
+	}
+}

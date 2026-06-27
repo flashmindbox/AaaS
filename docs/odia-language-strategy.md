@@ -125,6 +125,8 @@ New primitive: `<OdiaNumberInput>` that accepts both `୫୦୦` and `500`, inte
 
 **Decision:** Indic-TTS for Odia. For other Indic languages where Piper has voices, prefer Piper (smaller, faster). Route by language at the `/tts` edge.
 
+**Implementation (2026-04-22):** Meta **MMS-TTS** is the sole backend — one `TTSEngine` Protocol, three VITS checkpoints (`facebook/mms-tts-ory|hin|eng`) routed by the request's `lang` field. 150 MB per language, sub-second on CPU, fits the USB judge bundle. The engine NFC-normalises input, strips zero-width joiners, and chunks long paragraphs on sentence terminators (`.!?।॥`) to keep VITS attention stable. Heavier options (Indic-Parler, AI4Bharat IndicTTS) were evaluated and removed — their 4 GB / 1.5 GB footprints and 5-10 s CPU latency blow the demo budget.
+
 ### 4.3 Translation
 
 IndicTrans2 covers Odia↔English (BLEU ~27) and Odia↔Hindi (BLEU ~32). No change to current plan — it is already the right choice. Odia-specific gain: build a **govt-term glossary** (ଜିଲ୍ଲା for District, ତହସିଲ for Tehsil, ପଞ୍ଚାୟତ for Panchayat, etc.) to override freestyle translation.

@@ -57,7 +57,7 @@ separate, granular consent with a clear withdrawal flow.
 End user -> Widget (browser)
          -> Gateway (TLS)
          -> TTS service
-         -> [Piper/IndicTTS model]
+         -> [Meta MMS-TTS model]
          <- Audio bytes
          <- Audio streamed back
 ```
