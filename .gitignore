@@ -49,6 +49,7 @@ venv/
 *.key
 *.crt
 secrets/
+.bhashini-creds
 
 # Docker persistent volumes
 infra/volumes/
