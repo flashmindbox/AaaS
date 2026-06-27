@@ -1,0 +1,125 @@
+"""FastAPI factory for the Translation service."""
+
+from __future__ import annotations
+
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+import structlog
+from fastapi import FastAPI
+
+from app import __version__
+from app.config import Settings, get_settings
+from app.engine.base import TranslateEngine
+from app.routes import health, translate
+
+logger = structlog.get_logger(__name__)
+
+
+def _configure_logging(level: str) -> None:
+    logging.basicConfig(level=level, format="%(message)s")
+    structlog.configure(
+        processors=[
+            structlog.contextvars.merge_contextvars,
+            structlog.processors.add_log_level,
+            structlog.processors.TimeStamper(fmt="iso", utc=True),
+            structlog.processors.JSONRenderer(),
+        ],
+        wrapper_class=structlog.make_filtering_bound_logger(
+            logging.getLevelName(level)
+        ),
+    )
+
+
+def _build_default_engine(settings: Settings) -> TranslateEngine:
+    if settings.engine == "google":
+        from app.engine.google import GoogleTranslateEngine
+
+        return GoogleTranslateEngine()
+    if settings.engine == "nllb":
+        from app.engine.nllb import NllbEngine
+
+        return NllbEngine(cache_dir=settings.model_cache_dir)
+    if settings.engine == "indictrans2":
+        from app.engine.indictrans2 import IndicTrans2Engine
+
+        return IndicTrans2Engine(cache_dir=settings.model_cache_dir)
+    from app.engine.mock import MockTranslateEngine
+
+    return MockTranslateEngine()
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    settings: Settings = app.state.settings
+    engine: TranslateEngine = app.state.engine
+    app.state.ready = False
+    app.state.load_error = None
+    if hasattr(engine, "load"):
+        try:
+            await engine.load()
+        except Exception as exc:  # noqa: BLE001
+            # Do NOT silently swap in the mock engine — that hides the
+            # failure from the widget, which can only see /readyz and
+            # the /translate response. The service stays unready, the
+            # gateway's 503 surfaces in the widget as
+            # "Translation unavailable", and the operator fixes the
+            # actual cause (missing [indic] extras, missing weights,
+            # out-of-memory, etc.) instead of getting a broken demo
+            # that looks fine.
+            logger.error(
+                "translate.engine_load_failed",
+                engine=type(engine).__name__,
+                error=str(exc),
+                hint=(
+                    "install `.[indic]` extras and prefetch models with "
+                    "`python services/translate/bundle/prefetch_model.py`, "
+                    "or set AAAS_TRANSLATE_ENGINE=mock to force the mock corpus"
+                ),
+            )
+            app.state.load_error = str(exc)
+            try:
+                yield
+            finally:
+                logger.info("translate.stop")
+            return
+    app.state.ready = True
+    logger.info(
+        "translate.start",
+        version=__version__,
+        env=settings.aaas_env,
+        port=settings.translate_port,
+        engine=type(app.state.engine).__name__,
+    )
+    try:
+        yield
+    finally:
+        logger.info("translate.stop")
+
+
+def create_app(
+    settings: Settings | None = None,
+    engine: TranslateEngine | None = None,
+) -> FastAPI:
+    settings = settings or get_settings()
+    _configure_logging(settings.log_level)
+
+    app = FastAPI(
+        title="AaaS Translation",
+        version=__version__,
+        description=(
+            "Indic↔English translation for the AaaS gateway. Defaults to "
+            "AI4Bharat IndicTrans2 distilled-200M; falls back to a curated "
+            "mock corpus if the [indic] extras aren't installed."
+        ),
+        lifespan=_lifespan,
+    )
+    app.state.settings = settings
+    app.state.engine = engine if engine is not None else _build_default_engine(settings)
+    app.include_router(health.router)
+    app.include_router(translate.router)
+    return app
+
+
+app = create_app()

@@ -6,7 +6,7 @@ Backend microservices. Each service is independently deployable.
 | ------------------- | ----- | ------------------------------------- |
 | `gateway/`          | 1     | Go — API gateway (auth, routing)      |
 | `stt/`              | 1     | Python FastAPI — Whisper / IndicWhisper |
-| `tts/`              | 1     | Python FastAPI — Piper / IndicTTS     |
+| `tts/`              | 1     | Python FastAPI — Meta MMS-TTS         |
 | `translate/`        | 2     | Python FastAPI — IndicTrans2          |
 | `screen-reader/`    | 2     | Python FastAPI — VLM alt-text, ARIA   |
 | `exam-engine/`      | 3     | Go — exam delivery + accommodations   |
