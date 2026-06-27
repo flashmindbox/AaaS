@@ -689,64 +689,6 @@
     }
   `;
 
-  /* ---------- text extraction ---------- */
-
-  function extractReadableText(root) {
-    const SKIP_TAGS = new Set([
-      "SCRIPT", "STYLE", "NOSCRIPT", "NAV", "FOOTER",
-      "IFRAME", "SVG", "CANVAS", "AUDIO", "VIDEO",
-    ]);
-    const parts = [];
-    const walker = document.createTreeWalker(
-      root, NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-          const p = node.parentElement;
-          if (!p) return NodeFilter.FILTER_REJECT;
-          if (SKIP_TAGS.has(p.tagName)) return NodeFilter.FILTER_REJECT;
-          if (p.closest("[data-aaas-widget]"))
-            return NodeFilter.FILTER_REJECT;
-          if (p.getAttribute("aria-hidden") === "true")
-            return NodeFilter.FILTER_REJECT;
-          const style = getComputedStyle(p);
-          if (style.display === "none" || style.visibility === "hidden")
-            return NodeFilter.FILTER_REJECT;
-          const text = node.nodeValue.trim();
-          if (!text) return NodeFilter.FILTER_REJECT;
-          return NodeFilter.FILTER_ACCEPT;
-        },
-      }
-    );
-    let current;
-    while ((current = walker.nextNode())) {
-      parts.push(current.nodeValue.trim());
-    }
-    return parts.join(" ").replace(/\s+/g, " ").trim();
-  }
-
-  function chunkText(text, maxChars) {
-    const sentences = text
-      .split(/(?<=[।?!])\s+|(?<=[.])\s+(?=[A-Z])/g)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!sentences.length) return [text.slice(0, maxChars)];
-    const chunks = [];
-    let buf = "";
-    for (const s of sentences) {
-      if ((buf + " " + s).length > maxChars && buf) {
-        chunks.push(buf);
-        buf = s;
-      } else {
-        buf = buf ? buf + " " + s : s;
-      }
-      if (buf.length >= maxChars) {
-        chunks.push(buf.slice(0, maxChars));
-        buf = buf.slice(maxChars);
-      }
-    }
-    if (buf) chunks.push(buf);
-    return chunks;
-  }
-
   /* ---------- structure-aware DOM walker ----------
    * Emits "atoms" in reading order: headings, links, buttons, form
    * fields, images-with-alt, and prose runs between them. Each atom
