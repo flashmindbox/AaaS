@@ -1,0 +1,140 @@
+======================================================================
+  AaaS  -  Accessibility as a Service   (hackathon demo bundle)
+  Team SUBARNAREKHA   |   Smart Odisha Hackathon 2025
+
+  Third-party software and model notices
+======================================================================
+
+This bundle contains compiled copies of several open-source projects
+and one research model. Their licences are reproduced (or summarised
+with the full text pointer) below. The AaaS team is only the author
+of the code under  apps/widget,  services/gateway,  services/tts
+(excluding the model weights), and the scripts under  scripts/.
+
+----------------------------------------------------------------------
+  IMPORTANT  -  non-commercial clause on the TTS model
+----------------------------------------------------------------------
+The Odia voice is provided by Meta AI's MMS-TTS-ory checkpoint
+(facebook/mms-tts-ory) which is released under CC-BY-NC 4.0.
+That licence permits research, teaching and hackathon demos like
+this one, but DISALLOWS commercial use without a separate agreement
+with Meta. Any production deployment of AaaS must obtain a
+commercial licence from Meta for the MMS-TTS weights before
+redistribution.
+
+----------------------------------------------------------------------
+  Python runtime
+----------------------------------------------------------------------
+  Python Software Foundation License (PSF-2.0)
+  Copyright (c) 2001-2025 Python Software Foundation. All rights
+  reserved.
+  Full text: https://docs.python.org/3/license.html
+
+----------------------------------------------------------------------
+  PyTorch
+----------------------------------------------------------------------
+  BSD-3-Clause
+  Copyright (c) 2016-2025 Facebook, Inc. and its affiliates.
+  All rights reserved.
+  Full text: https://github.com/pytorch/pytorch/blob/main/LICENSE
+
+----------------------------------------------------------------------
+  Hugging Face transformers
+----------------------------------------------------------------------
+  Apache License 2.0
+  Copyright 2018- The Hugging Face team. All rights reserved.
+  Full text: https://github.com/huggingface/transformers/blob/main/LICENSE
+
+----------------------------------------------------------------------
+  Hugging Face tokenizers, huggingface_hub, safetensors
+----------------------------------------------------------------------
+  Apache License 2.0
+  Copyright 2018- The Hugging Face team.
+
+----------------------------------------------------------------------
+  MMS-TTS-ory model weights
+----------------------------------------------------------------------
+  Creative Commons Attribution-NonCommercial 4.0 International
+  (CC-BY-NC-4.0)
+  Copyright (c) Meta Platforms, Inc.
+  Model card:  https://huggingface.co/facebook/mms-tts-ory
+  Paper:       Pratap et al., "Scaling Speech Technology to 1000+
+               Languages" (2023),  arXiv:2305.13516
+  Licence:     https://creativecommons.org/licenses/by-nc/4.0/
+
+  NOTE: Hackathon demo use is compliant. Commercial redistribution
+  of this bundle is not. See the non-commercial notice above.
+
+----------------------------------------------------------------------
+  FastAPI
+----------------------------------------------------------------------
+  MIT License
+  Copyright (c) 2018 Sebastian Ramirez.
+  Full text: https://github.com/fastapi/fastapi/blob/master/LICENSE
+
+----------------------------------------------------------------------
+  Starlette
+----------------------------------------------------------------------
+  BSD-3-Clause
+  Copyright (c) 2018, Encode OSS Ltd.
+
+----------------------------------------------------------------------
+  Uvicorn
+----------------------------------------------------------------------
+  BSD-3-Clause
+  Copyright (c) 2017-2025, Encode OSS Ltd.
+
+----------------------------------------------------------------------
+  httpx, httpcore, anyio, h11, sniffio
+----------------------------------------------------------------------
+  BSD-3-Clause
+  Copyright (c) Encode OSS Ltd. / the httpx, anyio, h11 authors.
+
+----------------------------------------------------------------------
+  pydantic, pydantic-core, pydantic-settings
+----------------------------------------------------------------------
+  MIT License
+  Copyright (c) 2017 to present Pydantic Services Inc. and individual
+  contributors.
+
+----------------------------------------------------------------------
+  NumPy
+----------------------------------------------------------------------
+  BSD-3-Clause
+  Copyright (c) 2005-2025, NumPy Developers. All rights reserved.
+
+----------------------------------------------------------------------
+  SciPy
+----------------------------------------------------------------------
+  BSD-3-Clause
+  Copyright (c) 2001-2025 SciPy Developers. All rights reserved.
+
+----------------------------------------------------------------------
+  PyInstaller  (build-time only; runtime bootloader ships with exe)
+----------------------------------------------------------------------
+  GPL-2.0-or-later  WITH  PyInstaller runtime exception, which
+  explicitly permits distributing bundled applications under any
+  licence the bundled application chooses.
+  Full text: https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt
+
+----------------------------------------------------------------------
+  Microsoft Visual C++ Runtime DLLs  (api-ms-win-*, VCRUNTIME140.dll)
+----------------------------------------------------------------------
+  Redistributed under the Microsoft Visual Studio redistributable
+  licence. See https://visualstudio.microsoft.com/license-terms/
+  for the full terms.
+
+----------------------------------------------------------------------
+  Fonts, icons, demo content
+----------------------------------------------------------------------
+  The demo site at  apps/demo-sites/jajpur-collectorate  uses only
+  locally-authored HTML/CSS written by Team SUBARNAREKHA. No
+  proprietary fonts, icons, or images are redistributed.
+
+----------------------------------------------------------------------
+  Questions, corrections, takedown requests
+----------------------------------------------------------------------
+  Team SUBARNAREKHA   (Smart Odisha Hackathon 2025 participants)
+  Please open an issue on the project repository or contact the
+  team lead listed on the pitch deck.
+======================================================================
