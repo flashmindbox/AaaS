@@ -1166,9 +1166,15 @@
     }
   }
 
-  // Translate one chunk. Strategy: Google Translate first (works on any
-  // website with no local services), then the AaaS gateway as a fallback.
+  // Translate one chunk. Strategy: prefer the AaaS gateway (IndicTrans2 — the
+  // clearest, most formal Odia) whenever it's reachable, and fall back to
+  // Google Translate so a plain standalone embed still works on any site with
+  // no local services. Reachability is cached so a no-services embed pays at
+  // most one failed gateway probe, then goes straight to Google.
   // Cache-first at both the in-memory and cross-reload (IndexedDB) layers.
+  //
+  // null = gateway not yet probed; true/false = last known reachability.
+  let _gatewayTranslateReachable = null;
   async function translateChunk(text, srcLang, tgtLang, { signal, timeoutMs = 6000 } = {}) {
     if (srcLang === tgtLang) return text;
     const k = translateKey(srcLang, tgtLang, text);
@@ -1186,20 +1192,38 @@
       return out;
     };
 
-    // Primary: Google Translate.
-    try {
+    const googleStep = async () => {
       const out = EXT_BRIDGE
         ? await googleTranslateViaBridge(text, srcLang, tgtLang, timeoutMs)
         : await googleTranslateDirect(text, srcLang, tgtLang, signal, timeoutMs);
       if (typeof out === "string" && out.trim()) return store(out);
-    } catch (err) {
-      if (signal && signal.aborted) throw new TranslateError(text, tgtLang, err);
-      console.warn("[AaaS] Google translate failed, trying gateway:", err?.message || err);
+      throw new Error("empty translation");
+    };
+
+    // Primary: AaaS gateway (IndicTrans2), whenever it's reachable.
+    if (_gatewayTranslateReachable !== false) {
+      try {
+        const out = store(
+          await gatewayTranslate(text, srcLang, tgtLang, { signal, timeoutMs }),
+        );
+        _gatewayTranslateReachable = true;
+        return out;
+      } catch (err) {
+        if (signal && signal.aborted) throw new TranslateError(text, tgtLang, err);
+        // Gateway down/unreachable — remember it so we don't retry on every
+        // chunk, and fall through to Google for this and subsequent calls.
+        _gatewayTranslateReachable = false;
+        console.warn(
+          "[AaaS] gateway translate unavailable, using Google:",
+          err?.message || err,
+        );
+      }
     }
 
-    // Fallback: AaaS gateway (NLLB).
+    // Fallback: Google Translate (also the primary once the gateway is known
+    // unreachable — e.g. a standalone extension with no services running).
     try {
-      return store(await gatewayTranslate(text, srcLang, tgtLang, { signal, timeoutMs }));
+      return await googleStep();
     } catch (err) {
       if (err instanceof TranslateError) throw err;
       throw new TranslateError(text, tgtLang, err);
