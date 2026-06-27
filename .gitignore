@@ -3,6 +3,8 @@ node_modules/
 .pnpm-store/
 .yarn/
 .npm/
+.pip-cache/
+.venv-portable/
 
 # Build output
 dist/
