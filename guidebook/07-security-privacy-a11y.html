@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>07 · Security, Privacy &amp; Accessibility</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 07</span><span>Security, Privacy &amp; Accessibility</span></div>
+
+  <p class="kicker">Chapter 07</p>
+  <h1 class="title">Security, Privacy &amp; Accessibility</h1>
+  <p class="lead">Accessibility tools touch sensitive data — voices, disability records, exam papers. Government won’t adopt a
+  black box. So trust is designed in: minimal data, Indian residency, and accessibility treated as correctness.</p>
+
+  <h2>Privacy under the DPDP Act 2023</h2>
+  <p>India’s data-protection law shapes our defaults. The guiding rule is simple: <strong>collect the least, keep it the shortest
+  time, and never let it leave the country.</strong></p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 200" class="dgm" role="img" aria-label="DPDP data flow">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <rect class="box" x="20" y="74" width="120" height="50"></rect><text class="t b" x="80" y="96" text-anchor="middle">Citizen</text><text class="t sm" x="80" y="112" text-anchor="middle">speaks / types</text>
+      <path class="arrow" d="M140 99 H210" marker-end="url(#ah)"></path>
+      <text class="t sm" x="175" y="92" text-anchor="middle">consent first</text>
+
+      <rect class="zone" x="210" y="20" width="300" height="160"></rect>
+      <text class="t sm" x="360" y="40" text-anchor="middle" style="fill:#46505f">INSIDE INDIAN DATA CENTRE</text>
+      <rect class="box solid" x="230" y="58" width="120" height="44"></rect><text class="t b white" x="290" y="84" text-anchor="middle">Gateway</text>
+      <rect class="box saff" x="230" y="116" width="120" height="44"></rect><text class="t b" x="290" y="138" text-anchor="middle">AI model</text><text class="t sm" x="290" y="152" text-anchor="middle">processes in memory</text>
+      <path class="arrow" d="M290 102 V116" marker-end="url(#ah)"></path>
+
+      <rect class="box grey" x="372" y="86" width="120" height="44"></rect>
+      <text class="t b" x="432" y="104" text-anchor="middle">Result back</text>
+      <text class="t sm" x="432" y="120" text-anchor="middle">audio / text</text>
+      <path class="arrow" d="M350 80 H372" marker-end="url(#ah)"></path>
+
+      <path class="arrow" d="M510 108 H560" marker-end="url(#ah)"></path>
+      <rect class="box green" x="560" y="86" width="120" height="44"></rect><text class="t b" x="620" y="104" text-anchor="middle">Citizen hears</text><text class="t sm" x="620" y="120" text-anchor="middle">nothing stored*</text>
+      <text class="t sm" x="360" y="176" text-anchor="middle" style="fill:#c0392b">✗ data never crosses India’s borders</text>
+    </svg>
+    <figcaption>By default the voice clip is processed in memory and discarded — *unless the user explicitly opts in to help improve models.</figcaption>
+  </figure>
+
+  <div class="grid c2">
+    <div class="card"><h4>Consent-first</h4><p>The microphone is never on by default. Access is explicit, per session, and visible.</p></div>
+    <div class="card"><h4>Minimal &amp; short-lived</h4><p>Audio isn’t stored beyond answering the request. Sensitive records have strict retention limits.</p></div>
+    <div class="card"><h4>Data stays in India</h4><p>All processing runs in Indian data centres — designed for an on-prem install at OCAC, Bhubaneswar.</p></div>
+    <div class="card"><h4>User control</h4><p>A citizen can export or delete everything the platform knows about them, from one page.</p></div>
+  </div>
+
+  <h2>Security model (STRIDE) — the highlights</h2>
+  <ul class="tight">
+    <li><strong>Encrypted everywhere.</strong> TLS from browser to gateway; secrets live in a key store, never in plain files in production.</li>
+    <li><strong>API keys are hashed.</strong> We store only a one-way fingerprint of each key, never the key itself, and show it only once when minted.</li>
+    <li><strong>Locked-down services.</strong> Each AI service runs as an unprivileged user; audio is deleted within the hour.</li>
+    <li><strong>Supply-chain checks.</strong> Automated dependency scanning and a software bill-of-materials on every build.</li>
+  </ul>
+
+  <div class="callout note">
+    <span class="h">Honest scope for the hackathon build</span>
+    <p>The demo uses simple in-memory tenants and a seed key — production would add full sign-in (Keycloak/DigiLocker), a
+    database, and rate-limits. We document this gap rather than hide it.</p>
+  </div>
+
+  <h2>Accessibility as correctness, not decoration</h2>
+  <p>Our own surfaces are held to <strong>WCAG 2.2 AA</strong> (the recognised standard), and we go beyond it where it matters:
+  body-text contrast at the stricter <strong>AAA</strong> level, touch targets of at least 44×44&nbsp;pixels, and full
+  respect for a user’s “reduce motion” setting.</p>
+
+  <div class="callout good">
+    <span class="h">We measure it, live</span>
+    <p>The admin dashboard runs <strong>axe-core</strong> — the same engine professional auditors use — against any page and
+    returns a pass/violation report in seconds. In testing it scored the Jajpur demo site at <strong>20 passes, 0 violations.</strong>
+    Accessibility you can put a number on.</p>
+  </div>
+
+  <p class="small">A code change that breaks accessibility fails the automated checks and is blocked from merging — the same way
+  a broken test would be. That is what “accessibility is a correctness concern” means in practice.</p>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 07 · Security, Privacy &amp; Accessibility</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="06-odia-first-design.html">← Chapter 06</a><a href="08-running-the-demo.html">Chapter 08: Running &amp; Demoing It →</a></nav>
+</body>
+</html>

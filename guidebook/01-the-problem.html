@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 · The Problem &amp; The Big Idea</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 01</span><span>The Problem &amp; The Big Idea</span></div>
+
+  <p class="kicker">Chapter 01</p>
+  <h1 class="title">The Problem &amp; The Big Idea</h1>
+  <p class="lead">Millions of citizens cannot use their own government’s websites. Today every
+  institution is expected to fix this alone — and almost none do. We fix it once, centrally, in Odia first.</p>
+
+  <h2>Three real people in Odisha today</h2>
+  <p>The clearest way to explain the problem is through the people it shuts out. These three personas drive our entire demo.</p>
+  <div class="grid c3">
+    <div class="card">
+      <h4><span class="ico" style="background:var(--red-tint);color:var(--red)">P</span> Priyanka</h4>
+      <p><strong>Blind, speaks only Odia.</strong> She wants her exam hall-ticket from a university portal. The page is English-only, the “Download” button is an unlabelled image. She asks her brother — every time.</p>
+    </div>
+    <div class="card">
+      <h4><span class="ico" style="background:var(--saffron-tint);color:var(--saffron)">A</span> Arun</h4>
+      <p><strong>A clerk with a learning difficulty.</strong> The dense Odia text on the new e-district portal overwhelms him. He prints everything and fills it by hand, then has someone key it in.</p>
+    </div>
+    <div class="card">
+      <h4><span class="ico" style="background:var(--blue-tint);color:var(--blue-deep)">M</span> Meera</h4>
+      <p><strong>A Class-10 student with dyslexia.</strong> The exam’s Odia text is small and crammed, the conjuncts hard to read, with no read-aloud option. She gives up halfway.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="h">Why it stays broken</span>
+    <p>Each institution that wants to help these citizens must hire developers, buy screen-reader licences,
+    record Odia voices, and test with disabled users. It is expensive, inconsistent, and almost never done well —
+    so the same people keep getting left out, portal after portal.</p>
+  </div>
+
+  <h2>The big idea: accessibility as shared infrastructure</h2>
+  <p>India built one payments network (UPI) instead of every bank inventing its own. We apply the same idea to
+  accessibility. Build the hard parts — Odia speech, reading, translation, accessible exams — <strong>once,
+  centrally</strong>, and let any institution “plug in,” the way they plug in payments or SMS today.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 200" class="dgm" role="img" aria-label="Shared grid analogy">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <text class="t sm" x="20" y="22">Today — everyone builds their own (and fails)</text>
+      <rect class="box grey" x="20"  y="34" width="120" height="40"></rect><text class="t" x="80"  y="58" text-anchor="middle">University</text>
+      <rect class="box grey" x="150" y="34" width="120" height="40"></rect><text class="t" x="210" y="58" text-anchor="middle">Exam board</text>
+      <rect class="box grey" x="280" y="34" width="120" height="40"></rect><text class="t" x="340" y="58" text-anchor="middle">District portal</text>
+      <text class="t sm" x="80"  y="92" text-anchor="middle" style="fill:#c0392b">✗ broken</text>
+      <text class="t sm" x="210" y="92" text-anchor="middle" style="fill:#c0392b">✗ broken</text>
+      <text class="t sm" x="340" y="92" text-anchor="middle" style="fill:#c0392b">✗ broken</text>
+
+      <text class="t sm" x="20" y="128">With AaaS — one shared accessibility grid</text>
+      <rect class="box" x="20"  y="140" width="120" height="34"></rect><text class="t" x="80"  y="161" text-anchor="middle">University</text>
+      <rect class="box" x="150" y="140" width="120" height="34"></rect><text class="t" x="210" y="161" text-anchor="middle">Exam board</text>
+      <rect class="box" x="280" y="140" width="120" height="34"></rect><text class="t" x="340" y="161" text-anchor="middle">District portal</text>
+      <path class="arrow blue" d="M80 140 C 80 120, 540 120, 540 110" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M210 140 C 210 122, 540 122, 540 112" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M340 140 C 340 124, 540 124, 540 114" marker-end="url(#ah)"></path>
+      <rect class="box solid" x="470" y="92" width="210" height="56"></rect>
+      <text class="t b white" x="575" y="116" text-anchor="middle">AaaS accessibility grid</text>
+      <text class="t sm white" x="575" y="134" text-anchor="middle" style="fill:#cfe0ff">Odia voice · translation · reading · exams</text>
+    </svg>
+    <figcaption>“Electricity for accessibility”: every institution plugs into the same grid. The grid starts in Odisha and grows outward.</figcaption>
+  </figure>
+
+  <h2>Why Odisha, why Odia, why now</h2>
+  <div class="stats">
+    <div class="stat"><b>42M+</b><span>Odia speakers</span></div>
+    <div class="stat"><b>21L+</b><span>persons with disabilities in Odisha</span></div>
+    <div class="stat"><b>200+</b><span>BPUT-affiliated colleges</span></div>
+    <div class="stat"><b>5T</b><span>state governance mandate</span></div>
+  </div>
+  <p>Odisha has an active digital-governance push (the <strong>5T</strong> and <strong>Mo Sarkar</strong> programmes), a large
+  population poorly served by English-first tooling, and Odia is genuinely under-served by global AI. Solving it here is both
+  high-impact and winnable — and the policy environment (Digital India, the RPwD Act 2016, the DPDP Act 2023) rewards it.</p>
+
+  <h2>Who actually uses it</h2>
+  <ul class="tight">
+    <li><strong>End users</strong> — blind, deaf, dyslexic, motor-impaired, elderly, and non-English speakers. They never “log in”; they just see a small accessibility button on their institution’s site.</li>
+    <li><strong>Institution staff</strong> — registrars, exam controllers, e-governance officers. They sign up, get a key, and switch features on.</li>
+    <li><strong>Government &amp; regulators</strong> — who get compliance dashboards and adoption numbers.</li>
+  </ul>
+
+  <div class="callout key">
+    <span class="h">The one-line summary</span>
+    <p>A single, trustworthy, <strong>Odia-first accessibility layer</strong> — built for Odisha, designed for every Indian
+    public institution — that any government body can switch on in a day. <span class="odia">ଓଡ଼ିଶା ପାଇଁ, ଓଡ଼ିଶା ଠାରୁ।</span> (For Odisha, from Odisha.)</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 01 · The Problem &amp; The Big Idea</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="index.html">← Cover</a><a href="02-architecture.html">Chapter 02: Architecture →</a></nav>
+</body>
+</html>

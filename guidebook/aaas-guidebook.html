@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AaaS — Accessibility as a Service · Complete Guidebook</title>
+<link rel="stylesheet" href="assets/guide.css">
+<style>
+  /* each chapter starts on a fresh A4 page */
+  .sheet { break-before: page; page-break-before: always; }
+  .sheet:first-of-type { break-before: auto; page-break-before: avoid; }
+  /* chapter-specific styles collected from the source files */
+.typo { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+  .typo .box2 { border:1px solid var(--line); border-radius:6px; padding:10px 12px; break-inside:avoid; }
+  .typo .tag2 { font-size:8pt; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+  .od-bad  { font-family:"Noto Sans Oriya","Kalinga","Nirmala UI",serif; font-size:13pt; letter-spacing:.12em; line-height:1.4; color:#333; }
+  .od-good { font-family:"Noto Sans Oriya","Kalinga","Nirmala UI",serif; font-size:13pt; letter-spacing:0; word-spacing:.14em; line-height:1.95; color:#1a2230; }
+</style>
+</head>
+<body>
+<!-- index.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Accessibility as a Service</span><span>Team SUBARNAREKHA</span></div>
+
+  <p class="kicker" style="margin-top:18mm">Smart Odisha Hackathon ’25 · Technical Guidebook</p>
+  <h1 class="title" style="font-size:34pt;line-height:1.05">Accessibility<br>as a Service</h1>
+  <p class="lead" style="font-size:13pt;max-width:150mm">
+    A single, Odia-first accessibility layer that any public institution can
+    switch on in a day — so no citizen is shut out of their own government.
+    This book explains, in plain language and with diagrams, <strong>what we
+    built and exactly how it works.</strong>
+  </p>
+
+  <p class="quote" style="margin-top:14px">“The UPI of accessibility — Odisha first, India next.”</p>
+
+  <!-- hero architecture thumbnail -->
+  <figure class="diagram" style="margin-top:16px">
+    <svg viewBox="0 0 720 220" class="dgm" role="img" aria-label="System overview">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"></path>
+        </marker>
+      </defs>
+      <!-- clients -->
+      <rect class="box blue" x="20" y="20" width="180" height="180"></rect>
+      <text class="t b blue" x="110" y="42" text-anchor="middle">Any website</text>
+      <rect class="box" x="38" y="56" width="144" height="26"></rect><text class="t" x="110" y="73" text-anchor="middle">Accessibility widget</text>
+      <rect class="box" x="38" y="90" width="144" height="26"></rect><text class="t" x="110" y="107" text-anchor="middle">Browser extension</text>
+      <rect class="box" x="38" y="124" width="144" height="26"></rect><text class="t" x="110" y="141" text-anchor="middle">Accessible exam</text>
+      <rect class="box" x="38" y="158" width="144" height="26"></rect><text class="t" x="110" y="175" text-anchor="middle">Admin dashboard</text>
+      <!-- gateway -->
+      <path class="arrow" d="M200 110 H300" marker-end="url(#ah)"></path>
+      <rect class="box solid" x="300" y="78" width="120" height="64"></rect>
+      <text class="t b white" x="360" y="104" text-anchor="middle">API Gateway</text>
+      <text class="t sm white" x="360" y="122" text-anchor="middle" style="fill:#cfe0ff">auth · route · audit</text>
+      <!-- services -->
+      <path class="arrow blue" d="M420 96 H520" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M420 110 H520" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M420 124 H520" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="520" y="40" width="180" height="40"></rect><text class="t b" x="610" y="58" text-anchor="middle">Text → Speech</text><text class="t sm" x="610" y="72" text-anchor="middle">Meta MMS-TTS</text>
+      <rect class="box saff" x="520" y="100" width="180" height="40"></rect><text class="t b" x="610" y="118" text-anchor="middle">Speech → Text</text><text class="t sm" x="610" y="132" text-anchor="middle">IndicWav2Vec / Whisper</text>
+      <rect class="box saff" x="520" y="160" width="180" height="40"></rect><text class="t b" x="610" y="178" text-anchor="middle">Translation</text><text class="t sm" x="610" y="192" text-anchor="middle">Meta NLLB-200</text>
+    </svg>
+    <figcaption>The whole platform on one page: clients talk to one gateway; the gateway routes to three AI services.</figcaption>
+  </figure>
+
+  <h2>What this guidebook covers</h2>
+  <table>
+    <thead><tr><th style="width:14mm">#</th><th>Chapter</th><th>What you’ll understand</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td><a href="01-the-problem.html"><strong>The Problem &amp; The Big Idea</strong></a></td><td>Who we serve and why accessibility should be shared infrastructure.</td></tr>
+      <tr><td>02</td><td><a href="02-architecture.html"><strong>System Architecture</strong></a></td><td>The gateway, the request lifecycle, and the “mock-first” safety net.</td></tr>
+      <tr><td>03</td><td><a href="03-the-six-components.html"><strong>The Six Components</strong></a></td><td>TTS, STT, Translation, Gateway, Exam, and Admin — what each does.</td></tr>
+      <tr><td>04</td><td><a href="04-reaching-real-websites.html"><strong>Reaching Real Websites</strong></a></td><td>How the widget &amp; extension put accessibility on any site.</td></tr>
+      <tr><td>05</td><td><a href="05-how-the-ai-works.html"><strong>How the AI Works</strong></a></td><td>Speech and translation explained simply, with the real models.</td></tr>
+      <tr><td>06</td><td><a href="06-odia-first-design.html"><strong>Odia-First Design</strong></a></td><td>Typography, dyslexia rules, and why Odia is the reference language.</td></tr>
+      <tr><td>07</td><td><a href="07-security-privacy-a11y.html"><strong>Security, Privacy &amp; Accessibility</strong></a></td><td>DPDP data-flow, the threat model, and WCAG compliance.</td></tr>
+      <tr><td>08</td><td><a href="08-running-the-demo.html"><strong>Running &amp; Demoing It</strong></a></td><td>Two ways to run it and the two-minute judge walkthrough.</td></tr>
+      <tr><td>09</td><td><a href="09-pitch-and-judge-qa.html"><strong>Pitch, Q&amp;A &amp; Roadmap</strong></a></td><td>The pitch, hard questions answered honestly, and what’s next.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <span class="h">How to print &amp; assemble this book</span>
+    <p>Open each <code>.html</code> file in <strong>Chrome or Edge</strong> and press <strong>Ctrl&nbsp;+&nbsp;P</strong>.
+    In the print dialog set <strong>Paper&nbsp;=&nbsp;A4</strong>, <strong>Margins&nbsp;=&nbsp;Default</strong>, and turn
+    <strong>“Background graphics”&nbsp;ON</strong> (so diagrams and colour boxes print). Print chapters
+    <code>01</code>→<code>09</code> in order and clip them together behind this cover.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service · Apache-2.0</span><span>Cover · June 2026</span></div>
+</section>
+
+<!-- 01-the-problem.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 01</span><span>The Problem &amp; The Big Idea</span></div>
+
+  <p class="kicker">Chapter 01</p>
+  <h1 class="title">The Problem &amp; The Big Idea</h1>
+  <p class="lead">Millions of citizens cannot use their own government’s websites. Today every
+  institution is expected to fix this alone — and almost none do. We fix it once, centrally, in Odia first.</p>
+
+  <h2>Three real people in Odisha today</h2>
+  <p>The clearest way to explain the problem is through the people it shuts out. These three personas drive our entire demo.</p>
+  <div class="grid c3">
+    <div class="card">
+      <h4><span class="ico" style="background:var(--red-tint);color:var(--red)">P</span> Priyanka</h4>
+      <p><strong>Blind, speaks only Odia.</strong> She wants her exam hall-ticket from a university portal. The page is English-only, the “Download” button is an unlabelled image. She asks her brother — every time.</p>
+    </div>
+    <div class="card">
+      <h4><span class="ico" style="background:var(--saffron-tint);color:var(--saffron)">A</span> Arun</h4>
+      <p><strong>A clerk with a learning difficulty.</strong> The dense Odia text on the new e-district portal overwhelms him. He prints everything and fills it by hand, then has someone key it in.</p>
+    </div>
+    <div class="card">
+      <h4><span class="ico" style="background:var(--blue-tint);color:var(--blue-deep)">M</span> Meera</h4>
+      <p><strong>A Class-10 student with dyslexia.</strong> The exam’s Odia text is small and crammed, the conjuncts hard to read, with no read-aloud option. She gives up halfway.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <span class="h">Why it stays broken</span>
+    <p>Each institution that wants to help these citizens must hire developers, buy screen-reader licences,
+    record Odia voices, and test with disabled users. It is expensive, inconsistent, and almost never done well —
+    so the same people keep getting left out, portal after portal.</p>
+  </div>
+
+  <h2>The big idea: accessibility as shared infrastructure</h2>
+  <p>India built one payments network (UPI) instead of every bank inventing its own. We apply the same idea to
+  accessibility. Build the hard parts — Odia speech, reading, translation, accessible exams — <strong>once,
+  centrally</strong>, and let any institution “plug in,” the way they plug in payments or SMS today.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 200" class="dgm" role="img" aria-label="Shared grid analogy">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <text class="t sm" x="20" y="22">Today — everyone builds their own (and fails)</text>
+      <rect class="box grey" x="20"  y="34" width="120" height="40"></rect><text class="t" x="80"  y="58" text-anchor="middle">University</text>
+      <rect class="box grey" x="150" y="34" width="120" height="40"></rect><text class="t" x="210" y="58" text-anchor="middle">Exam board</text>
+      <rect class="box grey" x="280" y="34" width="120" height="40"></rect><text class="t" x="340" y="58" text-anchor="middle">District portal</text>
+      <text class="t sm" x="80"  y="92" text-anchor="middle" style="fill:#c0392b">✗ broken</text>
+      <text class="t sm" x="210" y="92" text-anchor="middle" style="fill:#c0392b">✗ broken</text>
+      <text class="t sm" x="340" y="92" text-anchor="middle" style="fill:#c0392b">✗ broken</text>
+
+      <text class="t sm" x="20" y="128">With AaaS — one shared accessibility grid</text>
+      <rect class="box" x="20"  y="140" width="120" height="34"></rect><text class="t" x="80"  y="161" text-anchor="middle">University</text>
+      <rect class="box" x="150" y="140" width="120" height="34"></rect><text class="t" x="210" y="161" text-anchor="middle">Exam board</text>
+      <rect class="box" x="280" y="140" width="120" height="34"></rect><text class="t" x="340" y="161" text-anchor="middle">District portal</text>
+      <path class="arrow blue" d="M80 140 C 80 120, 540 120, 540 110" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M210 140 C 210 122, 540 122, 540 112" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M340 140 C 340 124, 540 124, 540 114" marker-end="url(#ah)"></path>
+      <rect class="box solid" x="470" y="92" width="210" height="56"></rect>
+      <text class="t b white" x="575" y="116" text-anchor="middle">AaaS accessibility grid</text>
+      <text class="t sm white" x="575" y="134" text-anchor="middle" style="fill:#cfe0ff">Odia voice · translation · reading · exams</text>
+    </svg>
+    <figcaption>“Electricity for accessibility”: every institution plugs into the same grid. The grid starts in Odisha and grows outward.</figcaption>
+  </figure>
+
+  <h2>Why Odisha, why Odia, why now</h2>
+  <div class="stats">
+    <div class="stat"><b>42M+</b><span>Odia speakers</span></div>
+    <div class="stat"><b>21L+</b><span>persons with disabilities in Odisha</span></div>
+    <div class="stat"><b>200+</b><span>BPUT-affiliated colleges</span></div>
+    <div class="stat"><b>5T</b><span>state governance mandate</span></div>
+  </div>
+  <p>Odisha has an active digital-governance push (the <strong>5T</strong> and <strong>Mo Sarkar</strong> programmes), a large
+  population poorly served by English-first tooling, and Odia is genuinely under-served by global AI. Solving it here is both
+  high-impact and winnable — and the policy environment (Digital India, the RPwD Act 2016, the DPDP Act 2023) rewards it.</p>
+
+  <h2>Who actually uses it</h2>
+  <ul class="tight">
+    <li><strong>End users</strong> — blind, deaf, dyslexic, motor-impaired, elderly, and non-English speakers. They never “log in”; they just see a small accessibility button on their institution’s site.</li>
+    <li><strong>Institution staff</strong> — registrars, exam controllers, e-governance officers. They sign up, get a key, and switch features on.</li>
+    <li><strong>Government &amp; regulators</strong> — who get compliance dashboards and adoption numbers.</li>
+  </ul>
+
+  <div class="callout key">
+    <span class="h">The one-line summary</span>
+    <p>A single, trustworthy, <strong>Odia-first accessibility layer</strong> — built for Odisha, designed for every Indian
+    public institution — that any government body can switch on in a day. <span class="odia">ଓଡ଼ିଶା ପାଇଁ, ଓଡ଼ିଶା ଠାରୁ।</span> (For Odisha, from Odisha.)</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 01 · The Problem &amp; The Big Idea</span></div>
+</section>
+
+<!-- 02-architecture.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 02</span><span>System Architecture</span></div>
+
+  <p class="kicker">Chapter 02</p>
+  <h1 class="title">System Architecture</h1>
+  <p class="lead">One front door, three workers behind it, and a safety net that means the demo
+  never goes dark. Here is how the pieces fit and how a single click becomes spoken Odia.</p>
+
+  <h2>The whole system at a glance</h2>
+  <p>Everything a user touches (the widget, the browser extension, the exam, the admin dashboard) talks to a single
+  <strong>API Gateway</strong>. The gateway checks the request, then forwards it to whichever AI service can answer:
+  text-to-speech, speech-to-text, or translation. Nothing else is exposed to the internet.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 320" class="dgm" role="img" aria-label="Full architecture">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker>
+        <marker id="ahb" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1657c8"/></marker></defs>
+
+      <!-- clients zone -->
+      <rect class="zone" x="14" y="14" width="180" height="292"></rect>
+      <text class="t sm" x="104" y="32" text-anchor="middle" style="fill:#46505f">CLIENTS (any browser)</text>
+      <rect class="box blue" x="30" y="44"  width="148" height="34"></rect><text class="t" x="104" y="65" text-anchor="middle">Widget on a website</text>
+      <rect class="box blue" x="30" y="86"  width="148" height="34"></rect><text class="t" x="104" y="107" text-anchor="middle">Browser extension</text>
+      <rect class="box blue" x="30" y="128" width="148" height="34"></rect><text class="t" x="104" y="149" text-anchor="middle">Accessible exam</text>
+      <rect class="box blue" x="30" y="170" width="148" height="34"></rect><text class="t" x="104" y="191" text-anchor="middle">Admin dashboard</text>
+      <rect class="box blue" x="30" y="212" width="148" height="34"></rect><text class="t" x="104" y="233" text-anchor="middle">Demo sites</text>
+
+      <!-- gateway -->
+      <path class="arrow blue" d="M194 130 H266" marker-end="url(#ahb)"></path>
+      <text class="t sm" x="230" y="122" text-anchor="middle" style="fill:#1657c8">HTTPS</text>
+      <rect class="box solid" x="266" y="92" width="140" height="92"></rect>
+      <text class="t b white" x="336" y="118" text-anchor="middle">API GATEWAY</text>
+      <text class="t sm white" x="336" y="138" text-anchor="middle" style="fill:#cfe0ff">API-key check</text>
+      <text class="t sm white" x="336" y="152" text-anchor="middle" style="fill:#cfe0ff">routing + proxy</text>
+      <text class="t sm white" x="336" y="166" text-anchor="middle" style="fill:#cfe0ff">audit log · CORS</text>
+
+      <!-- services -->
+      <path class="arrow" d="M406 118 H470" marker-end="url(#ah)"></path>
+      <path class="arrow" d="M406 138 H470" marker-end="url(#ah)"></path>
+      <path class="arrow" d="M406 158 H470" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="470" y="70"  width="210" height="40"></rect><text class="t b" x="575" y="88" text-anchor="middle">TTS service · port 8001</text><text class="t sm" x="575" y="102" text-anchor="middle">text → Odia/Hindi/English voice</text>
+      <rect class="box saff" x="470" y="122" width="210" height="40"></rect><text class="t b" x="575" y="140" text-anchor="middle">STT service · port 8002</text><text class="t sm" x="575" y="154" text-anchor="middle">voice → text</text>
+      <rect class="box saff" x="470" y="174" width="210" height="40"></rect><text class="t b" x="575" y="192" text-anchor="middle">Translate · port 8003</text><text class="t sm" x="575" y="206" text-anchor="middle">Indic ↔ English</text>
+
+      <!-- static serving note -->
+      <path class="arrow dash" d="M336 184 V230 H194" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="266" y="232" width="140" height="60"></rect>
+      <text class="t b" x="336" y="254" text-anchor="middle">Static files</text>
+      <text class="t sm" x="336" y="270" text-anchor="middle">widget.js, demo,</text>
+      <text class="t sm" x="336" y="283" text-anchor="middle">exam, admin pages</text>
+      <text class="t sm" x="575" y="238" text-anchor="middle" style="fill:#46505f">Gateway default port: 8000</text>
+    </svg>
+    <figcaption>One gateway is the public entry point; the three AI services sit behind it and are never exposed directly.</figcaption>
+  </figure>
+
+  <div class="callout note">
+    <span class="h">Why a gateway?</span>
+    <p>It gives us one place to check the institution’s <strong>API key</strong>, attach the <strong>tenant</strong> (which
+    institution is calling), <strong>record every request</strong> for the usage dashboard, and allow cross-site calls (CORS).
+    Each AI service stays simple and does exactly one job.</p>
+  </div>
+
+  <h2>What happens when Priyanka taps “Read this page”</h2>
+  <p>Follow one real request end to end. Each numbered step is a real network call you can watch in the browser’s dev tools.</p>
+  <ol class="steps">
+    <li><b>Widget reads the page.</b> It walks the visible text, skipping menus and decoration, and splits it into sentences.<span class="small">Runs entirely in the browser — no server needed yet.</span></li>
+    <li><b>(If needed) translate.</b> If the reading language differs from the page, each sentence is sent to the gateway’s translation service first.</li>
+    <li><b>Ask for speech.</b> The widget POSTs each sentence to <code>/tts/synthesise</code> on the gateway with the institution’s API key.</li>
+    <li><b>Gateway checks &amp; forwards.</b> It validates the key, tags the tenant, records the call, and proxies it to the TTS service on port 8001.</li>
+    <li><b>The model speaks.</b> Meta MMS-TTS turns the sentence into a <code>.wav</code> audio clip and streams it back.</li>
+    <li><b>Play, sentence by sentence.</b> The widget plays clips as they arrive, so audio starts in about a second instead of waiting for the whole page.</li>
+  </ol>
+
+  <h2>The safety net: “mock-first” engines</h2>
+  <p>Every AI service is built around a swappable <strong>engine</strong>. By default a lightweight <strong>mock</strong> returns
+  sensible canned answers; a single environment-variable flip swaps in the real model. If a real model fails to load (missing
+  weights, no internet, a driver issue), the service keeps serving with the mock — <strong>so a live demo never crashes.</strong></p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 150" class="dgm" role="img" aria-label="Mock-first engine pattern">
+      <defs><marker id="ah2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <rect class="box" x="20" y="55" width="150" height="40"></rect><text class="t" x="95" y="79" text-anchor="middle">request arrives</text>
+      <path class="arrow" d="M170 75 H250" marker-end="url(#ah2)"></path>
+      <rect class="box blue" x="250" y="48" width="150" height="54"></rect>
+      <text class="t b blue" x="325" y="70" text-anchor="middle">Engine selector</text>
+      <text class="t sm" x="325" y="86" text-anchor="middle">env var picks one</text>
+      <path class="arrow" d="M400 62 H500" marker-end="url(#ah2)"></path>
+      <path class="arrow dash" d="M400 90 H500" marker-end="url(#ah2)"></path>
+      <rect class="box green" x="500" y="30" width="180" height="40"></rect><text class="t b" x="590" y="48" text-anchor="middle">Real model</text><text class="t sm" x="590" y="62" text-anchor="middle">MMS-TTS · NLLB · Wav2Vec</text>
+      <rect class="box grey" x="500" y="82" width="180" height="40"></rect><text class="t b" x="590" y="100" text-anchor="middle">Mock engine</text><text class="t sm" x="590" y="114" text-anchor="middle">canned, deterministic, instant</text>
+      <text class="t sm" x="450" y="58" text-anchor="middle" style="fill:#1f8a4c">preferred</text>
+      <text class="t sm" x="448" y="104" text-anchor="middle" style="fill:#8a94a6">fallback</text>
+    </svg>
+    <figcaption>One Protocol, two backends. The demo UI comes together on mocks; real models drop in when ready.</figcaption>
+  </figure>
+
+  <div class="callout good">
+    <span class="h">What this buys us</span>
+    <p>The full user story works on day one; every feature is testable before a heavyweight model download; and on stage,
+    killing a model gives a clean “unavailable” message instead of a white screen. <strong>Predictable degradation is a feature.</strong></p>
+  </div>
+
+  <p class="small">Engines are chosen per service: <code>AAAS_STT_ENGINE</code>, <code>AAAS_TRANSLATE_ENGINE</code>. The TTS service always runs the real Meta MMS-TTS voice because it is small and fast on a plain CPU.</p>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 02 · System Architecture</span></div>
+</section>
+
+<!-- 03-the-six-components.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 03</span><span>The Six Components</span></div>
+
+  <p class="kicker">Chapter 03</p>
+  <h1 class="title">The Six Components</h1>
+  <p class="lead">The platform is six cooperating parts. Three are backend AI services; three are things people see and use.
+  Each has one clear job, so any one can be improved or replaced without disturbing the others.</p>
+
+  <div class="legend">
+    <span><i style="background:var(--green)"></i> real engine working today</span>
+    <span><i style="background:var(--muted)"></i> mock by default, real on a flag</span>
+    <span><i style="background:var(--blue)"></i> user-facing surface</span>
+  </div>
+
+  <h2>1 · Text-to-Speech (TTS) <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> turns any text into a clear human voice in Odia, Hindi, or English.
+  <strong>How:</strong> Meta’s open <em>MMS-TTS</em> model (one voice per language). It normalises the text, splits long
+  passages into sentences, runs each through the model, and returns a <code>.wav</code> clip. The Odia voice is loaded
+  at start-up; Hindi and English load on first use. Runs comfortably on a normal CPU.</p>
+
+  <h2>2 · Speech-to-Text (STT) <span class="pill mock">mock → real</span></h2>
+  <p><strong>What it does:</strong> turns a short voice recording into text so people can fill forms or answer exams by speaking.
+  <strong>How:</strong> the browser records up to ten seconds and sends the audio to the gateway. The real Odia engine is
+  AI4Bharat’s <em>IndicWav2Vec</em>; <em>Whisper</em> is the fallback for English and code-mixed speech. If the (access-gated)
+  Odia model or its libraries aren’t present, the service automatically serves a deterministic mock instead.</p>
+
+  <h2>3 · Translation <span class="pill mock">mock → real</span></h2>
+  <p><strong>What it does:</strong> converts content between Indian languages and English — so an English circular can be read in Odia.
+  <strong>How:</strong> Meta’s <em>NLLB-200</em> model (200 languages, runs on CPU) is the default real engine; AI4Bharat’s
+  <em>IndicTrans2</em> is an optional swap. A small built-in phrase table covers the demo if no model is loaded.</p>
+
+  <div class="callout note">
+    <span class="h">All three speak the same simple language</span>
+    <p>Every service exposes <code>/healthz</code> (am I up?), <code>/readyz</code> (is the model loaded?), and one work
+    endpoint. They all run model inference off the main thread so the service stays responsive, and all log what they did
+    for the audit trail.</p>
+  </div>
+
+  <h2>4 · The API Gateway <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> the single front door. <strong>How:</strong> it checks the per-institution API key, attaches
+  the <em>tenant</em> (Utkal University, Jajpur Collectorate, BSE Odisha…), records every request into a rolling usage log,
+  forwards the call to the right service, and also serves the widget file and the web pages — all from one place, which keeps
+  cross-site security simple.</p>
+
+  <h2>5 · The Accessible Exam <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> a mock board-exam built for disability from the ground up. <strong>How:</strong> Odia questions,
+  a “read this question aloud” button, answer-by-voice, a dyslexia-friendly font toggle, high-contrast and large-text modes,
+  and a <em>+50% extra-time</em> timer per the RPwD Act. It reuses the same TTS and STT services through the gateway.</p>
+
+  <h2>6 · The Admin Dashboard <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> the operator’s control room. <strong>How:</strong> it lists tenants and their API keys, shows
+  live usage (requests, errors, latency) as a chart, and runs a one-click <strong>WCAG accessibility scan</strong> of any demo
+  page using the industry-standard <em>axe-core</em> engine — producing a pass/violation report on the spot.</p>
+
+  <table>
+    <caption>The endpoints each surface actually calls (all via the gateway)</caption>
+    <thead><tr><th>Component</th><th>Endpoint</th><th>In → Out</th></tr></thead>
+    <tbody>
+      <tr><td>Read-aloud</td><td><code>POST /tts/synthesise</code></td><td>text → <code>.wav</code> audio</td></tr>
+      <tr><td>Dictation</td><td><code>POST /stt/transcribe</code></td><td>audio → text</td></tr>
+      <tr><td>Translate</td><td><code>POST /translate/translate</code></td><td>text + languages → text</td></tr>
+      <tr><td>Admin · tenants</td><td><code>GET /admin/api/tenants</code></td><td>→ tenant + key list</td></tr>
+      <tr><td>Admin · usage</td><td><code>GET /admin/api/usage</code></td><td>→ request/error/latency stats</td></tr>
+      <tr><td>Admin · WCAG</td><td>axe-core (in browser)</td><td>page → pass/violation report</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout good">
+    <span class="h">One integration surface, six wins</span>
+    <p>An institution drops in <strong>one line of code</strong> and gets read-aloud, dictation, translation, dyslexia
+    support, accessible exams, and WCAG monitoring — without building any of it themselves.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 03 · The Six Components</span></div>
+</section>
+
+<!-- 04-reaching-real-websites.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 04</span><span>Reaching Real Websites</span></div>
+
+  <p class="kicker">Chapter 04</p>
+  <h1 class="title">Reaching Real Websites</h1>
+  <p class="lead">Accessibility is useless if it can’t get onto the pages people actually use. We offer two routes:
+  the institution adds one line of code, or the citizen installs a browser extension that works <em>everywhere.</em></p>
+
+  <h2>Route A — the one-line widget (institution opts in)</h2>
+  <p>An institution pastes a single tag into its site. The widget then loads itself and adds the floating
+  <span class="odia">ଅ</span> accessibility button.</p>
+  <div class="code"><span class="c">&lt;!-- one line in the page's HTML --&gt;</span>
+&lt;script src="https://your-gateway/widget.js" <span class="s">data-key="aaas_live_…"</span> defer&gt;&lt;/script&gt;</div>
+
+  <h2>Route B — the browser extension (citizen opts in)</h2>
+  <p>This is the “wow” path: install once, and the same accessibility button appears on <strong>every</strong> website you
+  visit — no cooperation needed from the site owner. This matters because most government sites will never add the tag themselves.</p>
+
+  <h2>The trick that makes it safe on any page: the Shadow DOM</h2>
+  <p>The widget builds its panel inside a <strong>Shadow DOM</strong> — a sealed bubble. The host page’s styles can’t leak in
+  and break the widget, and the widget’s styles can’t leak out and break the page. It can sit on a bank, a news site, or a
+  government portal without conflict.</p>
+
+  <h2>How the extension injects the widget</h2>
+  <p>A browser keeps an extension’s scripts in a separate “world” from the page’s scripts for security. We bridge the two
+  using the one thing they share — the page’s HTML — passing the gateway address and key through it.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 250" class="dgm" role="img" aria-label="Extension injection flow">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker>
+      <marker id="ahb" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1657c8"/></marker></defs>
+
+      <rect class="zone" x="14" y="14" width="330" height="222"></rect>
+      <text class="t sm" x="179" y="32" text-anchor="middle" style="fill:#46505f">INSIDE THE PAGE (the browser tab)</text>
+
+      <rect class="box grey" x="30" y="44" width="140" height="48"></rect>
+      <text class="t b" x="100" y="64" text-anchor="middle">Config script</text>
+      <text class="t sm" x="100" y="80" text-anchor="middle">(isolated world)</text>
+
+      <rect class="box" x="190" y="44" width="138" height="48"></rect>
+      <text class="t b" x="259" y="64" text-anchor="middle">Page HTML</text>
+      <text class="t sm" x="259" y="80" text-anchor="middle">carries gateway + key</text>
+      <path class="arrow" d="M170 68 H190" marker-end="url(#ah)"></path>
+      <text class="t sm" x="180" y="40" text-anchor="middle">writes</text>
+
+      <rect class="box blue" x="190" y="118" width="138" height="48"></rect>
+      <text class="t b blue" x="259" y="138" text-anchor="middle">Widget script</text>
+      <text class="t sm" x="259" y="154" text-anchor="middle">(main world)</text>
+      <path class="arrow" d="M259 92 V118" marker-end="url(#ah)"></path>
+      <text class="t sm" x="290" y="108" text-anchor="middle">reads</text>
+
+      <rect class="box blue" x="60" y="118" width="110" height="100"></rect>
+      <text class="t b blue" x="115" y="150" text-anchor="middle">Shadow</text>
+      <text class="t b blue" x="115" y="166" text-anchor="middle">DOM panel</text>
+      <text class="t sm" x="115" y="186" text-anchor="middle">sealed bubble:</text>
+      <text class="t sm" x="115" y="199" text-anchor="middle">the ଅ button</text>
+      <path class="arrow blue" d="M190 150 H170" marker-end="url(#ahb)"></path>
+      <text class="t sm" x="180" y="138" text-anchor="middle">builds</text>
+
+      <!-- gateway -->
+      <path class="arrow blue dash" d="M328 142 H470" marker-end="url(#ahb)"></path>
+      <text class="t sm" x="399" y="134" text-anchor="middle" style="fill:#1657c8">cross-origin HTTPS</text>
+      <rect class="box solid" x="470" y="112" width="210" height="64"></rect>
+      <text class="t b white" x="575" y="138" text-anchor="middle">AaaS Gateway</text>
+      <text class="t sm white" x="575" y="156" text-anchor="middle" style="fill:#cfe0ff">TTS · STT · Translate</text>
+    </svg>
+    <figcaption>The config script writes the address into the page; the widget reads it, builds its sealed panel, and calls the gateway.</figcaption>
+  </figure>
+
+  <h2>The two cross-origin hurdles (and how we cleared them)</h2>
+  <p>When a widget on, say, a real university site calls our gateway, the browser applies extra safety checks. We had to satisfy two:</p>
+  <ul class="tight">
+    <li><strong>CORS</strong> — the gateway explicitly allows calls from any origin (it only accepts an API-key header, never cookies), so a widget on any site is permitted to call it.</li>
+    <li><strong>Private Network Access</strong> — modern Chrome blocks a public website from quietly calling a local address (<code>127.0.0.1</code>) unless the server opts in. We added the <code>Allow-Private-Network</code> response so the local demo works from real pages too.</li>
+  </ul>
+
+  <div class="callout good">
+    <span class="h">Verified on a real site</span>
+    <p>With the local services running, the widget was injected on a live third-party HTTPS page and <strong>read the page
+    aloud in a real Odia voice</strong> — proving the extension path works beyond our own demo sites.</p>
+  </div>
+
+  <h2>Offline option: on-device mode</h2>
+  <p>The extension can run the speech models <strong>entirely inside the browser</strong> using WebAssembly — no server, no
+  internet. It’s slower and uses more memory, so it’s optional, but it’s a powerful answer to “what about poor connectivity?”</p>
+
+  <div class="callout warn">
+    <span class="h">Graceful failure</span>
+    <p>If the gateway can’t be reached, the widget shows a clear status instead of failing silently. The design principle
+    throughout: <strong>never leave the user in confused silence.</strong></p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 04 · Reaching Real Websites</span></div>
+</section>
+
+<!-- 05-how-the-ai-works.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 05</span><span>How the AI Works</span></div>
+
+  <p class="kicker">Chapter 05</p>
+  <h1 class="title">How the AI Works</h1>
+  <p class="lead">No magic — three well-understood pipelines. We do not train new models; we <strong>integrate</strong> the best
+  open ones for Indian languages and wrap them in reliable, swappable services. Here is each, in plain terms.</p>
+
+  <h2>Three pipelines, one shape</h2>
+  <p>Each service is a small assembly line: clean the input, hand it to a neural model, return the output.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 300" class="dgm" role="img" aria-label="Three AI pipelines">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+
+      <!-- TTS -->
+      <text class="t b blue" x="20" y="30">① Text → Speech (read aloud)</text>
+      <rect class="box" x="20" y="40" width="120" height="38"></rect><text class="t" x="80" y="63" text-anchor="middle">Odia text</text>
+      <path class="arrow" d="M140 59 H176" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="176" y="40" width="150" height="38"></rect><text class="t" x="251" y="56" text-anchor="middle">clean + split</text><text class="t sm" x="251" y="70" text-anchor="middle">into sentences</text>
+      <path class="arrow" d="M326 59 H362" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="362" y="40" width="170" height="38"></rect><text class="t b" x="447" y="56" text-anchor="middle">MMS-TTS model</text><text class="t sm" x="447" y="70" text-anchor="middle">predicts a sound wave</text>
+      <path class="arrow" d="M532 59 H568" marker-end="url(#ah)"></path>
+      <rect class="box green" x="568" y="40" width="112" height="38"></rect><text class="t" x="624" y="63" text-anchor="middle">.wav audio</text>
+
+      <!-- STT -->
+      <text class="t b blue" x="20" y="130">② Speech → Text (dictation)</text>
+      <rect class="box" x="20" y="140" width="120" height="38"></rect><text class="t" x="80" y="163" text-anchor="middle">your voice</text>
+      <path class="arrow" d="M140 159 H176" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="176" y="140" width="150" height="38"></rect><text class="t" x="251" y="156" text-anchor="middle">resample to 16 kHz</text><text class="t sm" x="251" y="170" text-anchor="middle">mono audio</text>
+      <path class="arrow" d="M326 159 H362" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="362" y="140" width="170" height="38"></rect><text class="t b" x="447" y="156" text-anchor="middle">IndicWav2Vec / Whisper</text><text class="t sm" x="447" y="170" text-anchor="middle">sound → letters</text>
+      <path class="arrow" d="M532 159 H568" marker-end="url(#ah)"></path>
+      <rect class="box green" x="568" y="140" width="112" height="38"></rect><text class="t" x="624" y="163" text-anchor="middle">Odia text</text>
+
+      <!-- MT -->
+      <text class="t b blue" x="20" y="230">③ Translate (one language → another)</text>
+      <rect class="box" x="20" y="240" width="120" height="38"></rect><text class="t" x="80" y="263" text-anchor="middle">English text</text>
+      <path class="arrow" d="M140 259 H176" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="176" y="240" width="150" height="38"></rect><text class="t" x="251" y="256" text-anchor="middle">tokenise</text><text class="t sm" x="251" y="270" text-anchor="middle">+ tag languages</text>
+      <path class="arrow" d="M326 259 H362" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="362" y="240" width="170" height="38"></rect><text class="t b" x="447" y="256" text-anchor="middle">NLLB-200 model</text><text class="t sm" x="447" y="270" text-anchor="middle">predicts Odia words</text>
+      <path class="arrow" d="M532 259 H568" marker-end="url(#ah)"></path>
+      <rect class="box green" x="568" y="240" width="112" height="38"></rect><text class="t" x="624" y="263" text-anchor="middle">Odia text</text>
+    </svg>
+    <figcaption>Read-aloud, dictation, and translation are the same three-step shape: prepare → model → result.</figcaption>
+  </figure>
+
+  <h2>The models we use, and why</h2>
+  <table>
+    <thead><tr><th>Job</th><th>Model</th><th>Why this one (in one line)</th></tr></thead>
+    <tbody>
+      <tr><td>Odia / Hindi / English voice</td><td><strong>Meta MMS-TTS</strong></td><td>Small, fast on CPU, and already has an Odia voice — most TTS systems have none.</td></tr>
+      <tr><td>Odia dictation</td><td><strong>AI4Bharat IndicWav2Vec</strong></td><td>Best published accuracy for Odia speech; far better than English-centric tools.</td></tr>
+      <tr><td>English / mixed dictation</td><td><strong>Whisper</strong></td><td>A robust, CPU-friendly fallback for English and Odia-English code-mix.</td></tr>
+      <tr><td>Translation</td><td><strong>Meta NLLB-200</strong></td><td>Covers 200 languages incl. Odia, runs on CPU, and needs no sign-in to download.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <span class="h">A simple way to picture a speech model</span>
+    <p>Think of MMS-TTS as someone who has heard thousands of hours of Odia and learned the exact shape of the sound wave for
+    every letter combination. Give it letters, it draws the matching wave; play the wave, you hear Odia. Dictation is the same
+    skill in reverse — wave in, letters out.</p>
+  </div>
+
+  <h2>What the “mock” actually does</h2>
+  <p>The mock isn’t random. It takes a fingerprint (a hash) of the input and always returns the <strong>same</strong> sensible
+  answer for the same input — for example, a fixed set of Odia demo phrases for dictation, or a curated phrase table for
+  translation. That determinism makes automated tests reliable and the demo repeatable, even with no model present.</p>
+
+  <h2>Honest about quality</h2>
+  <div class="callout warn">
+    <span class="h">We say what works and what doesn’t</span>
+    <p>Standard Odia (Bhubaneswar/Cuttack) dictation is good; rural dialects like Sambalpuri and Kosali are not yet benchmarked
+    and are weaker. Translation is solid for common sentences. We publish accuracy rather than pretend — judges trust honesty
+    more than inflated claims.</p>
+  </div>
+
+  <p class="small">Every model here is open and Indic-capable. The one licensing caveat: the MMS-TTS voice is licensed for
+  non-commercial use, so a real pilot would swap to a commercially-cleared Odia voice — a change isolated to one file.</p>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 05 · How the AI Works</span></div>
+</section>
+
+<!-- 06-odia-first-design.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 06</span><span>Odia-First Design</span></div>
+
+  <p class="kicker">Chapter 06</p>
+  <h1 class="title">Odia-First Design</h1>
+  <p class="lead">“Odia-first” is not a slogan. It means Odia is the <strong>reference language</strong> — every feature is built and
+  validated for Odia before any other language ships. That forces decisions most tools get wrong.</p>
+
+  <h2>The font travels with the widget</h2>
+  <p>Many Windows machines render Odia conjuncts poorly (the default “Kalinga” font breaks them). So we <strong>bundle Noto Sans
+  Oriya inside the widget itself</strong> — embedded directly in the code. Wherever the widget loads, Odia renders correctly,
+  even offline, even on a fresh laptop. Odia also gets a more generous default line-height (1.7) than Latin text (1.5).</p>
+
+  <h2>The dyslexia insight everyone else misses</h2>
+  <p>For English, dyslexia tools add <em>letter-spacing</em> and switch to a font like OpenDyslexic. <strong>Doing that to Odia
+  is actively harmful.</strong> Odia letters join into conjuncts — single shapes made of multiple letters. Adding letter-spacing
+  rips those shapes apart, making text <em>harder</em> to read. OpenDyslexic doesn’t even support the script.</p>
+
+  <p>So our Odia dyslexia mode does the opposite: it keeps Noto Sans Oriya, sets letter-spacing to <strong>zero</strong>, and
+  instead increases <strong>word-spacing</strong> and pushes line-height to ~1.9. More breathing room between words and lines,
+  without ever breaking a conjunct.</p>
+
+  <div class="typo">
+    <div class="box2" style="border-color:#e3b4ae;background:var(--red-tint)">
+      <div class="tag2" style="color:var(--red)">✗ Naïve “dyslexia” styling (letter-spaced)</div>
+      <p class="od-bad">ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ</p>
+      <p class="small" style="margin:0">Letter-spacing pulls conjuncts apart — the base letter and its marks drift, harder to read.</p>
+    </div>
+    <div class="box2" style="border-color:#b6e0c6;background:var(--green-tint)">
+      <div class="tag2" style="color:var(--green)">✓ Odia-aware dyslexia mode (ours)</div>
+      <p class="od-good">ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ</p>
+      <p class="small" style="margin:0">Zero letter-spacing, more word-spacing &amp; line-height — calmer, conjuncts intact.</p>
+    </div>
+  </div>
+  <p class="small">(Both lines read “Board of Secondary Education, Odisha.” If your printer lacks an Odia font the shapes may
+  differ, but the spacing principle still shows.)</p>
+
+  <h2>Cultural correctness, not just translation</h2>
+  <ul class="tight">
+    <li><strong>Formal address.</strong> The interface uses the respectful <span class="odia">ଆପଣ</span> (“you”), as a government service should.</li>
+    <li><strong>Odia numerals.</strong> The system understands Odia digits (<span class="odia">୨୦୦୫</span> = 2005), not only Western ones.</li>
+    <li><strong>Real institutions.</strong> Demo sites mirror genuine Odisha bodies — Utkal University, BSE Odisha, Jajpur Collectorate — with real scheme names like the Madhu Babu Pension Yojana.</li>
+  </ul>
+
+  <h2>Language coverage</h2>
+  <div class="grid c3">
+    <div class="card"><h4>Today</h4><p><strong>Odia, Hindi, English</strong> for voice and translation — the three the demo speaks end to end.</p></div>
+    <div class="card"><h4>Next</h4><p>Bengali, Tamil, Telugu and more — the translation model already covers 200 languages.</p></div>
+    <div class="card"><h4>Research</h4><p>Sambalpuri / Kosali / Desia dialect robustness for Odia speech — openly flagged as not-yet-solved.</p></div>
+  </div>
+
+  <div class="callout key">
+    <span class="h">The positioning, in one sentence</span>
+    <p>“Odia as a <strong>reference language</strong>, not a translation target.” We design for Odia first and let the rest
+    follow — the opposite of building in English and bolting Odia on at the end.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 06 · Odia-First Design</span></div>
+</section>
+
+<!-- 07-security-privacy-a11y.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 07</span><span>Security, Privacy &amp; Accessibility</span></div>
+
+  <p class="kicker">Chapter 07</p>
+  <h1 class="title">Security, Privacy &amp; Accessibility</h1>
+  <p class="lead">Accessibility tools touch sensitive data — voices, disability records, exam papers. Government won’t adopt a
+  black box. So trust is designed in: minimal data, Indian residency, and accessibility treated as correctness.</p>
+
+  <h2>Privacy under the DPDP Act 2023</h2>
+  <p>India’s data-protection law shapes our defaults. The guiding rule is simple: <strong>collect the least, keep it the shortest
+  time, and never let it leave the country.</strong></p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 200" class="dgm" role="img" aria-label="DPDP data flow">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <rect class="box" x="20" y="74" width="120" height="50"></rect><text class="t b" x="80" y="96" text-anchor="middle">Citizen</text><text class="t sm" x="80" y="112" text-anchor="middle">speaks / types</text>
+      <path class="arrow" d="M140 99 H210" marker-end="url(#ah)"></path>
+      <text class="t sm" x="175" y="92" text-anchor="middle">consent first</text>
+
+      <rect class="zone" x="210" y="20" width="300" height="160"></rect>
+      <text class="t sm" x="360" y="40" text-anchor="middle" style="fill:#46505f">INSIDE INDIAN DATA CENTRE</text>
+      <rect class="box solid" x="230" y="58" width="120" height="44"></rect><text class="t b white" x="290" y="84" text-anchor="middle">Gateway</text>
+      <rect class="box saff" x="230" y="116" width="120" height="44"></rect><text class="t b" x="290" y="138" text-anchor="middle">AI model</text><text class="t sm" x="290" y="152" text-anchor="middle">processes in memory</text>
+      <path class="arrow" d="M290 102 V116" marker-end="url(#ah)"></path>
+
+      <rect class="box grey" x="372" y="86" width="120" height="44"></rect>
+      <text class="t b" x="432" y="104" text-anchor="middle">Result back</text>
+      <text class="t sm" x="432" y="120" text-anchor="middle">audio / text</text>
+      <path class="arrow" d="M350 80 H372" marker-end="url(#ah)"></path>
+
+      <path class="arrow" d="M510 108 H560" marker-end="url(#ah)"></path>
+      <rect class="box green" x="560" y="86" width="120" height="44"></rect><text class="t b" x="620" y="104" text-anchor="middle">Citizen hears</text><text class="t sm" x="620" y="120" text-anchor="middle">nothing stored*</text>
+      <text class="t sm" x="360" y="176" text-anchor="middle" style="fill:#c0392b">✗ data never crosses India’s borders</text>
+    </svg>
+    <figcaption>By default the voice clip is processed in memory and discarded — *unless the user explicitly opts in to help improve models.</figcaption>
+  </figure>
+
+  <div class="grid c2">
+    <div class="card"><h4>Consent-first</h4><p>The microphone is never on by default. Access is explicit, per session, and visible.</p></div>
+    <div class="card"><h4>Minimal &amp; short-lived</h4><p>Audio isn’t stored beyond answering the request. Sensitive records have strict retention limits.</p></div>
+    <div class="card"><h4>Data stays in India</h4><p>All processing runs in Indian data centres — designed for an on-prem install at OCAC, Bhubaneswar.</p></div>
+    <div class="card"><h4>User control</h4><p>A citizen can export or delete everything the platform knows about them, from one page.</p></div>
+  </div>
+
+  <h2>Security model (STRIDE) — the highlights</h2>
+  <ul class="tight">
+    <li><strong>Encrypted everywhere.</strong> TLS from browser to gateway; secrets live in a key store, never in plain files in production.</li>
+    <li><strong>API keys are hashed.</strong> We store only a one-way fingerprint of each key, never the key itself, and show it only once when minted.</li>
+    <li><strong>Locked-down services.</strong> Each AI service runs as an unprivileged user; audio is deleted within the hour.</li>
+    <li><strong>Supply-chain checks.</strong> Automated dependency scanning and a software bill-of-materials on every build.</li>
+  </ul>
+
+  <div class="callout note">
+    <span class="h">Honest scope for the hackathon build</span>
+    <p>The demo uses simple in-memory tenants and a seed key — production would add full sign-in (Keycloak/DigiLocker), a
+    database, and rate-limits. We document this gap rather than hide it.</p>
+  </div>
+
+  <h2>Accessibility as correctness, not decoration</h2>
+  <p>Our own surfaces are held to <strong>WCAG 2.2 AA</strong> (the recognised standard), and we go beyond it where it matters:
+  body-text contrast at the stricter <strong>AAA</strong> level, touch targets of at least 44×44&nbsp;pixels, and full
+  respect for a user’s “reduce motion” setting.</p>
+
+  <div class="callout good">
+    <span class="h">We measure it, live</span>
+    <p>The admin dashboard runs <strong>axe-core</strong> — the same engine professional auditors use — against any page and
+    returns a pass/violation report in seconds. In testing it scored the Jajpur demo site at <strong>20 passes, 0 violations.</strong>
+    Accessibility you can put a number on.</p>
+  </div>
+
+  <p class="small">A code change that breaks accessibility fails the automated checks and is blocked from merging — the same way
+  a broken test would be. That is what “accessibility is a correctness concern” means in practice.</p>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 07 · Security, Privacy &amp; Accessibility</span></div>
+</section>
+
+<!-- 08-running-the-demo.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 08</span><span>Running &amp; Demoing It</span></div>
+
+  <p class="kicker">Chapter 08</p>
+  <h1 class="title">Running &amp; Demoing It</h1>
+  <p class="lead">Two independent ways to run, so a dead Wi-Fi or a locked-down laptop never kills the demo. Both run the
+  exact same code.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 170" class="dgm" role="img" aria-label="Two demo paths">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <rect class="box blue" x="20" y="64" width="150" height="44"></rect><text class="t b blue" x="95" y="90" text-anchor="middle">Same source code</text>
+      <path class="arrow" d="M170 74 H250" marker-end="url(#ah)"></path>
+      <path class="arrow" d="M170 98 H250" marker-end="url(#ah)"></path>
+      <rect class="box green" x="250" y="24" width="430" height="56"></rect>
+      <text class="t b" x="270" y="46" text-anchor="start">A · Cloud / Docker  (primary)</text>
+      <text class="t sm" x="270" y="64" text-anchor="start">Judges open a URL. One command brings up gateway + 3 services behind HTTPS. No install.</text>
+      <rect class="box amber" x="250" y="90" width="430" height="56"></rect>
+      <text class="t b" x="270" y="112" text-anchor="start">B · Local laptop bundle  (offline backup)</text>
+      <text class="t sm" x="270" y="130" text-anchor="start">Everything pre-loaded, runs on 127.0.0.1. Works with the network unplugged.</text>
+    </svg>
+    <figcaption>Cloud is the smooth primary path; the offline laptop bundle is the insurance policy.</figcaption>
+  </figure>
+
+  <h2>Running it locally (developer / offline)</h2>
+  <p>Four small web services run on four ports. Start them, open the browser, done.</p>
+  <table>
+    <thead><tr><th>Service</th><th>Address</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Gateway</td><td><code>127.0.0.1:8000</code></td><td>Front door + all the web pages</td></tr>
+      <tr><td>TTS</td><td><code>127.0.0.1:8001</code></td><td>Odia / Hindi / English voice</td></tr>
+      <tr><td>STT</td><td><code>127.0.0.1:8002</code></td><td>Voice → text</td></tr>
+      <tr><td>Translate</td><td><code>127.0.0.1:8003</code></td><td>Indic ↔ English</td></tr>
+    </tbody>
+  </table>
+  <div class="code"><span class="c"># one-time setup (downloads the Python libraries + models)</span>
+SETUP-FRIEND.bat
+<span class="c"># every time you want the demo</span>
+RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo/</span></div>
+  <p class="small">Then visit <code>http://127.0.0.1:8000/demo/</code> for the landing page with the three Odisha demo sites,
+  the exam, and the admin dashboard.</p>
+
+  <h2>The two-minute judge walkthrough</h2>
+  <p>“Priya is a blind student in Jajpur applying to Utkal University.” Every step degrades gracefully if something misbehaves.</p>
+  <ol class="steps">
+    <li><b>Open the Utkal University demo.</b> The <span class="odia">ଅ</span> button is in the corner. Press it → “Read this page” → the page reads aloud in Odia.</li>
+    <li><b>Switch to English &amp; translate.</b> Flip the language; the page re-reads in English for her English-speaking helper. Translation runs through our own gateway.</li>
+    <li><b>Fill a field by voice.</b> Tap the mic, speak a name in Odia, watch it become text in the form.</li>
+    <li><b>Open the exam.</b> It loads with a dyslexia-friendly font, high contrast, and a +50% extra-time banner; each question can be read aloud and answered by voice.</li>
+    <li><b>Open the admin dashboard.</b> Show the tenant list, the live usage chart (Priya’s session is visible), and a one-click WCAG scan returning an AA report.</li>
+    <li><b>Land the message.</b> “One integration surface — TTS, dictation, translation, and WCAG monitoring. Six compliance wins from one line of code.”</li>
+  </ol>
+
+  <h2>If something breaks (rehearsed fallbacks)</h2>
+  <table>
+    <thead><tr><th>If…</th><th>Then…</th></tr></thead>
+    <tbody>
+      <tr><td>Venue Wi-Fi dies</td><td>Switch to the offline laptop bundle (127.0.0.1).</td></tr>
+      <tr><td>A model misbehaves</td><td>The mock answers instead — the flow keeps moving.</td></tr>
+      <tr><td>The mic fails</td><td>Type the Odia input; the rest of the story is unaffected.</td></tr>
+      <tr><td>The whole laptop dies</td><td>Hand over this guidebook and give the 60-second pitch (Chapter 09).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <span class="h">Design the demo around what cannot fail</span>
+    <p>The voice, the page-flip to Odia, and the dashboard all work without the riskiest AI being perfect. We lead with the
+    parts that are rock-solid and keep a recorded run ready as the final safety net.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 08 · Running &amp; Demoing It</span></div>
+</section>
+
+<!-- 09-pitch-and-judge-qa.html -->
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 09</span><span>Pitch, Q&amp;A &amp; Roadmap</span></div>
+
+  <p class="kicker">Chapter 09</p>
+  <h1 class="title">Pitch, Q&amp;A &amp; Roadmap</h1>
+  <p class="lead">Everything you need to defend the project in a hallway, at the booth, or in front of the panel —
+  the hooks, the numbers, the hard questions, and an honest map of what’s done versus what’s next.</p>
+
+  <h2>The pitch, two lengths</h2>
+  <div class="callout key">
+    <span class="h">15 seconds</span>
+    <p>“Every government website makes citizens with disabilities ask someone else for help. We built one shared, Odia-first
+    accessibility layer any institution can switch on in a day — the UPI of accessibility.”</p>
+  </div>
+  <div class="callout note">
+    <span class="h">60 seconds</span>
+    <p>“Odisha has 42 million Odia speakers and 21 lakh persons with disabilities, yet government portals are English-first and
+    unusable for them. Today every institution is expected to fix this alone, and almost none do. Our insight: accessibility is
+    <strong>infrastructure</strong>, not 200 separate projects. So we built a single platform — Odia voice, dictation, translation,
+    a dyslexia-aware reading mode, accessible exams, and a WCAG compliance dashboard — behind one API. An institution adds one
+    line of code and its users get all of it. It’s open-source, runs on-prem inside India for DPDP compliance, and it’s working
+    today. We’re asking you to help us pilot it at one Odisha institution.”</p>
+  </div>
+
+  <h2>Numbers to know cold</h2>
+  <div class="stats">
+    <div class="stat"><b>42M+</b><span>Odia speakers</span></div>
+    <div class="stat"><b>21L+</b><span>PwD in Odisha</span></div>
+    <div class="stat"><b>6</b><span>components, 1 API</span></div>
+    <div class="stat"><b>0</b><span>WCAG violations on the demo site</span></div>
+  </div>
+
+  <h2>Hard questions, honest answers</h2>
+  <h3>“Isn’t this just an accessibility overlay like AccessiBe?”</h3>
+  <p>No. Overlays bolt onto broken HTML at run-time and the disability community criticises them. We provide an <em>opt-in
+  assistive layer</em> the user controls <strong>and</strong> a WCAG audit tool that helps the institution fix the root cause.
+  We make sites better, we don’t paper over them.</p>
+
+  <h3>“You didn’t train the AI models — where’s the innovation?”</h3>
+  <p>Correct, and deliberate. The models (MMS-TTS, NLLB, IndicWav2Vec) are open and excellent; reinventing them would be foolish.
+  The hard, valuable work is the <strong>integration</strong>: a reliable multi-tenant platform, the Odia-specific design rules,
+  graceful failure, DPDP controls, and one-line adoption. UPI didn’t invent banks — it connected them.</p>
+
+  <h3>“How do I know it actually works for Odia?”</h3>
+  <p>Watch the demo: it reads real Odia aloud and translates a live page into correct Odia through our own engine. We’re also
+  honest about limits — standard Odia is strong; rural dialects are future work, not a solved claim.</p>
+
+  <h3>“It’s a hackathon project — is the rest vapourware?”</h3>
+  <p>Check the repository: a real threat model, a DPDP data-flow map, a machine-enforced WCAG checklist, CI, and an SBOM are all
+  there. The six components run today. We show what’s built and label what’s roadmap.</p>
+
+  <h2>What’s built today vs what’s next</h2>
+  <ul class="tl">
+    <li class="done"><span class="ph">Done · Foundations &amp; working slice</span><br><span class="small">Design system, CI, threat model, DPDP map, WCAG harness — plus all six components running: TTS, STT, translation, gateway, exam, admin.</span></li>
+    <li class="done"><span class="ph">Done · Real websites</span><br><span class="small">Browser extension + widget verified injecting and reading aloud on live third-party sites; translation routed through our own gateway.</span></li>
+    <li><span class="ph">Next · Pilot hardening</span><br><span class="small">Real sign-in (Keycloak/DigiLocker), a database for tenants &amp; keys, rate-limits, and a commercially-licensed Odia voice.</span></li>
+    <li><span class="ph">Next · Language &amp; assistance breadth</span><br><span class="small">More Indian languages, a screen-reader overlay, sign-language avatar, and a public accuracy benchmark per language.</span></li>
+    <li><span class="ph">Later · Scale &amp; certification</span><br><span class="small">Reference deployment at OCAC Bhubaneswar, ISO 27001 / CERT-In, and a state-wide onboarding playbook.</span></li>
+  </ul>
+
+  <h2>The tech stack, briefly</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Backend services</td><td>Python + FastAPI</td><td>The natural home for AI/ML, fast to build, easy to read.</td></tr>
+      <tr><td>Widget</td><td>Plain JS + Shadow DOM</td><td>Tiny, dependency-free, and conflict-proof on any host page.</td></tr>
+      <tr><td>Voice / Speech / Translate</td><td>MMS-TTS · IndicWav2Vec/Whisper · NLLB-200</td><td>Best open, Indic-capable, CPU-friendly models — no vendor lock-in.</td></tr>
+      <tr><td>Accessibility audit</td><td>axe-core</td><td>The industry-standard WCAG engine; runs client-side, works offline.</td></tr>
+      <tr><td>Packaging</td><td>Docker (cloud) + offline bundle</td><td>Two independent, identical demo paths.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Weaknesses we state up front</h2>
+  <p>Naming these earns more trust than hiding them: no professionally-trained accessibility auditor on the core team yet; no
+  disabled Odia-speaking user testing done so far; no signed pilot institution (targets identified); and rural-dialect speech is
+  unproven. Each is openly sequenced into the roadmap.</p>
+
+  <div class="quote">“Accessibility is not a feature; it is a part of citizenship.”</div>
+  <p class="center small">Team SUBARNAREKHA · Accessibility as a Service · Apache-2.0 · Smart Odisha Hackathon ’25</p>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 09 · Pitch, Q&amp;A &amp; Roadmap</span></div>
+</section>
+</body>
+</html>

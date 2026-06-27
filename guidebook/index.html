@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AaaS Guidebook — Cover &amp; Contents</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print this page</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Accessibility as a Service</span><span>Team SUBARNAREKHA</span></div>
+
+  <p class="kicker" style="margin-top:18mm">Smart Odisha Hackathon ’25 · Technical Guidebook</p>
+  <h1 class="title" style="font-size:34pt;line-height:1.05">Accessibility<br>as a Service</h1>
+  <p class="lead" style="font-size:13pt;max-width:150mm">
+    A single, Odia-first accessibility layer that any public institution can
+    switch on in a day — so no citizen is shut out of their own government.
+    This book explains, in plain language and with diagrams, <strong>what we
+    built and exactly how it works.</strong>
+  </p>
+
+  <p class="quote" style="margin-top:14px">“The UPI of accessibility — Odisha first, India next.”</p>
+
+  <!-- hero architecture thumbnail -->
+  <figure class="diagram" style="margin-top:16px">
+    <svg viewBox="0 0 720 220" class="dgm" role="img" aria-label="System overview">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"></path>
+        </marker>
+      </defs>
+      <!-- clients -->
+      <rect class="box blue" x="20" y="20" width="180" height="180"></rect>
+      <text class="t b blue" x="110" y="42" text-anchor="middle">Any website</text>
+      <rect class="box" x="38" y="56" width="144" height="26"></rect><text class="t" x="110" y="73" text-anchor="middle">Accessibility widget</text>
+      <rect class="box" x="38" y="90" width="144" height="26"></rect><text class="t" x="110" y="107" text-anchor="middle">Browser extension</text>
+      <rect class="box" x="38" y="124" width="144" height="26"></rect><text class="t" x="110" y="141" text-anchor="middle">Accessible exam</text>
+      <rect class="box" x="38" y="158" width="144" height="26"></rect><text class="t" x="110" y="175" text-anchor="middle">Admin dashboard</text>
+      <!-- gateway -->
+      <path class="arrow" d="M200 110 H300" marker-end="url(#ah)"></path>
+      <rect class="box solid" x="300" y="78" width="120" height="64"></rect>
+      <text class="t b white" x="360" y="104" text-anchor="middle">API Gateway</text>
+      <text class="t sm white" x="360" y="122" text-anchor="middle" style="fill:#cfe0ff">auth · route · audit</text>
+      <!-- services -->
+      <path class="arrow blue" d="M420 96 H520" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M420 110 H520" marker-end="url(#ah)"></path>
+      <path class="arrow blue" d="M420 124 H520" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="520" y="40" width="180" height="40"></rect><text class="t b" x="610" y="58" text-anchor="middle">Text → Speech</text><text class="t sm" x="610" y="72" text-anchor="middle">Meta MMS-TTS</text>
+      <rect class="box saff" x="520" y="100" width="180" height="40"></rect><text class="t b" x="610" y="118" text-anchor="middle">Speech → Text</text><text class="t sm" x="610" y="132" text-anchor="middle">IndicWav2Vec / Whisper</text>
+      <rect class="box saff" x="520" y="160" width="180" height="40"></rect><text class="t b" x="610" y="178" text-anchor="middle">Translation</text><text class="t sm" x="610" y="192" text-anchor="middle">Meta NLLB-200</text>
+    </svg>
+    <figcaption>The whole platform on one page: clients talk to one gateway; the gateway routes to three AI services.</figcaption>
+  </figure>
+
+  <h2>What this guidebook covers</h2>
+  <table>
+    <thead><tr><th style="width:14mm">#</th><th>Chapter</th><th>What you’ll understand</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td><a href="01-the-problem.html"><strong>The Problem &amp; The Big Idea</strong></a></td><td>Who we serve and why accessibility should be shared infrastructure.</td></tr>
+      <tr><td>02</td><td><a href="02-architecture.html"><strong>System Architecture</strong></a></td><td>The gateway, the request lifecycle, and the “mock-first” safety net.</td></tr>
+      <tr><td>03</td><td><a href="03-the-six-components.html"><strong>The Six Components</strong></a></td><td>TTS, STT, Translation, Gateway, Exam, and Admin — what each does.</td></tr>
+      <tr><td>04</td><td><a href="04-reaching-real-websites.html"><strong>Reaching Real Websites</strong></a></td><td>How the widget &amp; extension put accessibility on any site.</td></tr>
+      <tr><td>05</td><td><a href="05-how-the-ai-works.html"><strong>How the AI Works</strong></a></td><td>Speech and translation explained simply, with the real models.</td></tr>
+      <tr><td>06</td><td><a href="06-odia-first-design.html"><strong>Odia-First Design</strong></a></td><td>Typography, dyslexia rules, and why Odia is the reference language.</td></tr>
+      <tr><td>07</td><td><a href="07-security-privacy-a11y.html"><strong>Security, Privacy &amp; Accessibility</strong></a></td><td>DPDP data-flow, the threat model, and WCAG compliance.</td></tr>
+      <tr><td>08</td><td><a href="08-running-the-demo.html"><strong>Running &amp; Demoing It</strong></a></td><td>Two ways to run it and the two-minute judge walkthrough.</td></tr>
+      <tr><td>09</td><td><a href="09-pitch-and-judge-qa.html"><strong>Pitch, Q&amp;A &amp; Roadmap</strong></a></td><td>The pitch, hard questions answered honestly, and what’s next.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <span class="h">How to print &amp; assemble this book</span>
+    <p>Open each <code>.html</code> file in <strong>Chrome or Edge</strong> and press <strong>Ctrl&nbsp;+&nbsp;P</strong>.
+    In the print dialog set <strong>Paper&nbsp;=&nbsp;A4</strong>, <strong>Margins&nbsp;=&nbsp;Default</strong>, and turn
+    <strong>“Background graphics”&nbsp;ON</strong> (so diagrams and colour boxes print). Print chapters
+    <code>01</code>→<code>09</code> in order and clip them together behind this cover.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service · Apache-2.0</span><span>Cover · June 2026</span></div>
+</section>
+
+<nav class="booknav noprint"><span></span><a href="01-the-problem.html">Start reading → Chapter 01</a></nav>
+</body>
+</html>

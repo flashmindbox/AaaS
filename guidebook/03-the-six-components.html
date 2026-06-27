@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 · The Six Components</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 03</span><span>The Six Components</span></div>
+
+  <p class="kicker">Chapter 03</p>
+  <h1 class="title">The Six Components</h1>
+  <p class="lead">The platform is six cooperating parts. Three are backend AI services; three are things people see and use.
+  Each has one clear job, so any one can be improved or replaced without disturbing the others.</p>
+
+  <div class="legend">
+    <span><i style="background:var(--green)"></i> real engine working today</span>
+    <span><i style="background:var(--muted)"></i> mock by default, real on a flag</span>
+    <span><i style="background:var(--blue)"></i> user-facing surface</span>
+  </div>
+
+  <h2>1 · Text-to-Speech (TTS) <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> turns any text into a clear human voice in Odia, Hindi, or English.
+  <strong>How:</strong> Meta’s open <em>MMS-TTS</em> model (one voice per language). It normalises the text, splits long
+  passages into sentences, runs each through the model, and returns a <code>.wav</code> clip. The Odia voice is loaded
+  at start-up; Hindi and English load on first use. Runs comfortably on a normal CPU.</p>
+
+  <h2>2 · Speech-to-Text (STT) <span class="pill mock">mock → real</span></h2>
+  <p><strong>What it does:</strong> turns a short voice recording into text so people can fill forms or answer exams by speaking.
+  <strong>How:</strong> the browser records up to ten seconds and sends the audio to the gateway. The real Odia engine is
+  AI4Bharat’s <em>IndicWav2Vec</em>; <em>Whisper</em> is the fallback for English and code-mixed speech. If the (access-gated)
+  Odia model or its libraries aren’t present, the service automatically serves a deterministic mock instead.</p>
+
+  <h2>3 · Translation <span class="pill mock">mock → real</span></h2>
+  <p><strong>What it does:</strong> converts content between Indian languages and English — so an English circular can be read in Odia.
+  <strong>How:</strong> Meta’s <em>NLLB-200</em> model (200 languages, runs on CPU) is the default real engine; AI4Bharat’s
+  <em>IndicTrans2</em> is an optional swap. A small built-in phrase table covers the demo if no model is loaded.</p>
+
+  <div class="callout note">
+    <span class="h">All three speak the same simple language</span>
+    <p>Every service exposes <code>/healthz</code> (am I up?), <code>/readyz</code> (is the model loaded?), and one work
+    endpoint. They all run model inference off the main thread so the service stays responsive, and all log what they did
+    for the audit trail.</p>
+  </div>
+
+  <h2>4 · The API Gateway <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> the single front door. <strong>How:</strong> it checks the per-institution API key, attaches
+  the <em>tenant</em> (Utkal University, Jajpur Collectorate, BSE Odisha…), records every request into a rolling usage log,
+  forwards the call to the right service, and also serves the widget file and the web pages — all from one place, which keeps
+  cross-site security simple.</p>
+
+  <h2>5 · The Accessible Exam <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> a mock board-exam built for disability from the ground up. <strong>How:</strong> Odia questions,
+  a “read this question aloud” button, answer-by-voice, a dyslexia-friendly font toggle, high-contrast and large-text modes,
+  and a <em>+50% extra-time</em> timer per the RPwD Act. It reuses the same TTS and STT services through the gateway.</p>
+
+  <h2>6 · The Admin Dashboard <span class="pill real">real</span></h2>
+  <p><strong>What it does:</strong> the operator’s control room. <strong>How:</strong> it lists tenants and their API keys, shows
+  live usage (requests, errors, latency) as a chart, and runs a one-click <strong>WCAG accessibility scan</strong> of any demo
+  page using the industry-standard <em>axe-core</em> engine — producing a pass/violation report on the spot.</p>
+
+  <table>
+    <caption>The endpoints each surface actually calls (all via the gateway)</caption>
+    <thead><tr><th>Component</th><th>Endpoint</th><th>In → Out</th></tr></thead>
+    <tbody>
+      <tr><td>Read-aloud</td><td><code>POST /tts/synthesise</code></td><td>text → <code>.wav</code> audio</td></tr>
+      <tr><td>Dictation</td><td><code>POST /stt/transcribe</code></td><td>audio → text</td></tr>
+      <tr><td>Translate</td><td><code>POST /translate/translate</code></td><td>text + languages → text</td></tr>
+      <tr><td>Admin · tenants</td><td><code>GET /admin/api/tenants</code></td><td>→ tenant + key list</td></tr>
+      <tr><td>Admin · usage</td><td><code>GET /admin/api/usage</code></td><td>→ request/error/latency stats</td></tr>
+      <tr><td>Admin · WCAG</td><td>axe-core (in browser)</td><td>page → pass/violation report</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout good">
+    <span class="h">One integration surface, six wins</span>
+    <p>An institution drops in <strong>one line of code</strong> and gets read-aloud, dictation, translation, dyslexia
+    support, accessible exams, and WCAG monitoring — without building any of it themselves.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 03 · The Six Components</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="02-architecture.html">← Chapter 02</a><a href="04-reaching-real-websites.html">Chapter 04: Reaching Real Websites →</a></nav>
+</body>
+</html>

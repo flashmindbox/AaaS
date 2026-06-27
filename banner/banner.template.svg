@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="36in" height="24in" viewBox="0 0 3600 2400" fill="#3a2410" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'NotoSansOriyaEmbed'; font-style: normal; font-weight: 400;
+        src: url(data:font/woff2;base64,__ODIA_FONT_B64__) format('woff2');
+      }
+      .odia { font-family: 'NotoSansOriyaEmbed','Noto Sans Oriya',sans-serif; }
+      .mono { font-family: 'Consolas','Courier New',monospace; }
+      .b { font-weight: 700; } .xb { font-weight: 800; }
+      .muted { fill: #7a5a38; } .cream { fill: #fff3da; } .gold { fill: #e6b93f; }
+    </style>
+    <radialGradient id="paper" cx="50%" cy="30%" r="90%">
+      <stop offset="0" stop-color="#fff8ec"/><stop offset="1" stop-color="#f7e6c6"/>
+    </radialGradient>
+    <linearGradient id="maroon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c1428"/><stop offset="1" stop-color="#a8213b"/>
+    </linearGradient>
+    <linearGradient id="saff" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ef7d16"/><stop offset="1" stop-color="#f6a93c"/>
+    </linearGradient>
+    <linearGradient id="hdr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c1428"/><stop offset="0.55" stop-color="#a8213b"/><stop offset="1" stop-color="#ef7d16"/>
+    </linearGradient>
+    <linearGradient id="gwm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6e1322"/><stop offset="1" stop-color="#9c1f37"/>
+    </linearGradient>
+    <marker id="arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b8801f"/>
+    </marker>
+    <!-- Konark chakra (200x200, center 100,100). Recolor via color=. -->
+    <g id="chakra" fill="none" stroke="currentColor">
+      <circle cx="100" cy="100" r="94" stroke-width="4"/>
+      <circle cx="100" cy="100" r="84" stroke-width="9" stroke-dasharray="2.5 9.2" stroke-linecap="round"/>
+      <circle cx="100" cy="100" r="70" stroke-width="3"/>
+      <g stroke-width="4">
+        <line x1="100" y1="100" x2="170" y2="100"/><line x1="100" y1="100" x2="160.6" y2="135"/>
+        <line x1="100" y1="100" x2="135" y2="160.6"/><line x1="100" y1="100" x2="100" y2="170"/>
+        <line x1="100" y1="100" x2="65" y2="160.6"/><line x1="100" y1="100" x2="39.4" y2="135"/>
+        <line x1="100" y1="100" x2="30" y2="100"/><line x1="100" y1="100" x2="39.4" y2="65"/>
+        <line x1="100" y1="100" x2="65" y2="39.4"/><line x1="100" y1="100" x2="100" y2="30"/>
+        <line x1="100" y1="100" x2="135" y2="39.4"/><line x1="100" y1="100" x2="160.6" y2="65"/>
+      </g>
+      <circle cx="100" cy="100" r="20" fill="currentColor" stroke="none"/>
+      <circle cx="100" cy="100" r="10" fill="#7c1428" stroke="none"/>
+    </g>
+    <!-- Odisha rekha-deula temple spire silhouette -->
+    <g id="deula">
+      <path d="M -62,0 L -62,-26 C -52,-200 -24,-320 0,-356 C 24,-320 52,-200 62,-26 L 62,0 Z" fill="currentColor"/>
+      <ellipse cx="0" cy="-368" rx="34" ry="13" fill="currentColor"/>
+      <rect x="-7" y="-392" width="14" height="26" fill="currentColor"/>
+      <circle cx="0" cy="-398" r="11" fill="currentColor"/>
+    </g>
+    <g id="ic-speaker"><path d="M6 18 H16 L28 8 V40 L16 30 H6 Z" fill="currentColor"/><path d="M34 14 a12 12 0 0 1 0 20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M34 22 a5 5 0 0 1 0 4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></g>
+    <g id="ic-globe"><circle cx="24" cy="24" r="18" fill="none" stroke="currentColor" stroke-width="4"/><ellipse cx="24" cy="24" rx="8" ry="18" fill="none" stroke="currentColor" stroke-width="4"/><path d="M7 18 H41 M7 30 H41" stroke="currentColor" stroke-width="4"/></g>
+    <g id="ic-mic"><rect x="18" y="6" width="12" height="22" rx="6" fill="currentColor"/><path d="M12 24 a12 12 0 0 0 24 0" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M24 36 V42 M16 42 H32" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></g>
+    <g id="ic-text"><path d="M8 12 H40 M24 12 V40 M16 40 H32" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/></g>
+    <g id="ic-hand"><path d="M16 26 V12 a4 4 0 0 1 8 0 V24 M24 24 V10 a4 4 0 0 1 8 0 V26 M32 18 a4 4 0 0 1 8 0 V32 a12 12 0 0 1-12 12 H24 a10 10 0 0 1-8-5 l-6-9 a4 4 0 0 1 7-4 l3 4" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/></g>
+    <g id="ic-puzzle"><path d="M10 14 H20 a3 3 0 0 0 6 0 H36 V24 a3 3 0 0 1 0 6 V40 H26 a3 3 0 0 0-6 0 H10 V30 a3 3 0 0 0 0-6 Z" fill="currentColor"/></g>
+    <g id="ic-plug"><path d="M18 6 V18 M30 6 V18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><rect x="12" y="18" width="24" height="14" rx="4" fill="currentColor"/><path d="M24 32 V40 a6 6 0 0 1-6 6" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></g>
+    <g id="ic-ext"><rect x="8" y="14" width="32" height="26" rx="5" fill="currentColor"/><circle cx="24" cy="10" r="6" fill="currentColor"/><rect x="2" y="22" width="10" height="10" rx="3" fill="#fff3da" opacity="0.6"/></g>
+  </defs>
+
+  <!-- paper + ornamental border -->
+  <rect width="3600" height="2400" fill="url(#paper)"/>
+  <rect x="22" y="22" width="3556" height="2356" rx="18" fill="none" stroke="url(#maroon)" stroke-width="30"/>
+  <rect x="54" y="54" width="3492" height="2292" rx="10" fill="none" stroke="#c9952a" stroke-width="6"/>
+  <rect x="64" y="64" width="3472" height="2272" rx="8" fill="none" stroke="#1a7a3c" stroke-width="3"/>
+  <use href="#chakra" transform="translate(60,60) scale(0.42) translate(-100,-100)" color="#c9952a" opacity="0.9"/>
+  <use href="#chakra" transform="translate(3540,60) scale(0.42) translate(-100,-100)" color="#c9952a" opacity="0.9"/>
+  <use href="#chakra" transform="translate(60,2340) scale(0.42) translate(-100,-100)" color="#c9952a" opacity="0.9"/>
+  <use href="#chakra" transform="translate(3540,2340) scale(0.42) translate(-100,-100)" color="#c9952a" opacity="0.9"/>
+
+  <!-- ===================== HEADER ===================== -->
+  <rect x="108" y="100" width="3384" height="356" rx="16" fill="url(#hdr)"/>
+  <rect x="108" y="100" width="3384" height="356" rx="16" fill="none" stroke="#e6b93f" stroke-width="5"/>
+  <!-- chakra emblem left -->
+  <circle cx="300" cy="278" r="138" fill="#fff3da"/>
+  <use href="#chakra" transform="translate(300,278) scale(1.28) translate(-100,-100)" color="#a8213b"/>
+  <text x="300" y="300" class="odia xb" font-size="92" fill="#7c1428" text-anchor="middle" opacity="0">ଅ</text>
+  <!-- title -->
+  <text x="500" y="208" class="xb cream" font-size="104">Accessibility as a Service</text>
+  <text x="504" y="282" class="b" font-size="44" fill="#ffe6bf">Shared accessibility infrastructure for public institutions</text>
+  <text x="504" y="346" class="odia b" font-size="46" fill="#ffe6bf">ସମସ୍ତଙ୍କ ପାଇଁ ସୁଗମ ସେବା &#183; <tspan class="mono" font-size="40" fill="#ffd089">an API &#183; a widget &#183; an extension</tspan></text>
+  <text x="500" y="416" class="xb gold" font-size="40">AaaS</text>
+  <!-- right cartouche -->
+  <rect x="2560" y="146" width="876" height="264" rx="14" fill="#5e0f1f" opacity="0.55"/>
+  <rect x="2560" y="146" width="876" height="264" rx="14" fill="none" stroke="#e6b93f" stroke-width="3"/>
+  <text x="2998" y="216" class="b gold" font-size="42" text-anchor="middle" letter-spacing="2">SMART ODISHA HACKATHON '25</text>
+  <text x="2998" y="296" class="xb cream" font-size="70" text-anchor="middle">Team SUBARNAREKHA</text>
+  <text x="2998" y="350" font-size="31" fill="#ffe6bf" text-anchor="middle">Accessibility &#183; E-commerce &amp; Cyber Security</text>
+  <text x="2998" y="392" font-size="31" fill="#ffd089" text-anchor="middle">Software category &#183; Odiapreneur track</text>
+
+  <!-- tagline ribbon -->
+  <rect x="108" y="476" width="3384" height="74" rx="10" fill="#1a7a3c"/>
+  <rect x="108" y="476" width="3384" height="74" rx="10" fill="none" stroke="#e6b93f" stroke-width="3"/>
+  <text x="1800" y="525" class="b cream" font-size="40" text-anchor="middle">One API &#183; One widget &#183; One extension — accessibility for every citizen in Odia (<tspan class="odia">ଓଡ଼ିଆ</tspan>), Hindi &amp; English</text>
+
+  <!-- ===================== BLOCK A ===================== -->
+  <!-- challenge -->
+  <rect x="108" y="588" width="1668" height="402" rx="14" fill="#fffaf0" stroke="#c9952a" stroke-width="3"/>
+  <rect x="108" y="588" width="1668" height="64" rx="14" fill="url(#maroon)"/>
+  <use href="#chakra" transform="translate(158,620) scale(0.20) translate(-100,-100)" color="#e6b93f"/>
+  <text x="196" y="632" class="xb cream" font-size="40">THE CHALLENGE</text>
+  <g font-size="38" fill="#3a2410">
+    <text x="148" y="726">&#10070;  Govt &amp; education sites are largely unusable for blind,</text>
+    <text x="184" y="774">low-vision &amp; dyslexic users — screen readers struggle.</text>
+    <text x="148" y="838">&#10070;  Content is English-first; Odia-only citizens are shut out.</text>
+    <text x="148" y="902">&#10070;  Every institution rebuilding accessibility from scratch</text>
+    <text x="184" y="950">is slow, costly and inconsistent.</text>
+  </g>
+  <!-- solution -->
+  <rect x="1824" y="588" width="1668" height="402" rx="14" fill="#fffaf0" stroke="#c9952a" stroke-width="3"/>
+  <rect x="1824" y="588" width="1668" height="64" rx="14" fill="#1a7a3c"/>
+  <use href="#chakra" transform="translate(1874,620) scale(0.20) translate(-100,-100)" color="#e6b93f"/>
+  <text x="1912" y="632" class="xb cream" font-size="40">OUR SOLUTION — ONE SHARED PLATFORM</text>
+  <g font-size="38" fill="#3a2410">
+    <text x="1864" y="726">&#10070;  Institutions integrate ONCE — a secure REST API + a</text>
+    <text x="1900" y="774">drop-in widget (a single &lt;script&gt; line).</text>
+    <text x="1864" y="838">&#10070;  A browser extension brings it to ANY site — no integration.</text>
+    <text x="1864" y="902">&#10070;  Neural Odia/Hindi/English voice; on-device &amp; offline-ready;</text>
+    <text x="1900" y="950">WCAG-aligned, DPDP-conscious, India-first.</text>
+  </g>
+
+  <!-- ===================== BLOCK B: ARCHITECTURE ===================== -->
+  <rect x="108" y="1014" width="3384" height="716" rx="14" fill="#fffaf0" stroke="#c9952a" stroke-width="3"/>
+  <rect x="108" y="1014" width="3384" height="64" rx="14" fill="url(#hdr)"/>
+  <use href="#chakra" transform="translate(158,1046) scale(0.20) translate(-100,-100)" color="#e6b93f"/>
+  <text x="196" y="1058" class="xb cream" font-size="40">PLATFORM ARCHITECTURE</text>
+  <text x="800" y="1058" font-size="30" fill="#ffe6bf">two ways in  &#8594;  one Accessibility API Gateway  &#8594;  shared engines (also run on-device, offline)</text>
+  <use href="#chakra" transform="translate(1800,1400) scale(2.9) translate(-100,-100)" color="#a8213b" opacity="0.05"/>
+
+  <text x="490" y="1140" class="b" font-size="27" fill="#9c1f37" text-anchor="middle" letter-spacing="2">CLIENTS</text>
+  <text x="1270" y="1140" class="b" font-size="27" fill="#9c1f37" text-anchor="middle" letter-spacing="2">API GATEWAY (THE PRODUCT)</text>
+  <text x="2740" y="1140" class="b" font-size="27" fill="#9c1f37" text-anchor="middle" letter-spacing="2">ENGINES (MICROSERVICES)</text>
+
+  <!-- clients -->
+  <rect x="150" y="1176" width="680" height="172" rx="14" fill="#fdecd4" stroke="#ef7d16" stroke-width="3"/>
+  <use href="#ic-plug" x="178" y="1198" width="46" height="46" color="#9c1f37"/>
+  <text x="250" y="1230" class="b" font-size="33">Institution site or app</text>
+  <text x="178" y="1276" font-size="27" class="muted">Drop-in widget (1 line) &#183; direct REST API</text>
+  <rect x="178" y="1292" width="624" height="42" rx="8" fill="#fff6e2" stroke="#d9b877" stroke-width="1.5"/>
+  <text x="196" y="1321" class="mono" font-size="22" fill="#7c1428">&lt;script src=".../widget.js" data-key="aaas_live_…"&gt;</text>
+
+  <rect x="150" y="1378" width="680" height="150" rx="14" fill="#fdecd4" stroke="#ef7d16" stroke-width="3"/>
+  <use href="#ic-ext" x="178" y="1408" width="46" height="46" color="#9c1f37"/>
+  <text x="250" y="1440" class="b" font-size="33">Browser extension</text>
+  <text x="178" y="1486" font-size="27" class="muted">Any website &#183; no integration needed</text>
+  <text x="178" y="1518" font-size="26" fill="#1a7a3c" class="b">runs engines on-device / offline</text>
+
+  <path d="M830 1262 H900" fill="none" stroke="#b8801f" stroke-width="4" marker-end="url(#arw)"/>
+  <path d="M830 1453 H868 V1416 H900" fill="none" stroke="#b8801f" stroke-width="4" marker-end="url(#arw)"/>
+
+  <!-- gateway -->
+  <rect x="900" y="1176" width="740" height="372" rx="16" fill="url(#gwm)"/>
+  <rect x="900" y="1176" width="740" height="372" rx="16" fill="none" stroke="#e6b93f" stroke-width="4"/>
+  <text x="1270" y="1242" class="b cream" font-size="36" text-anchor="middle">Accessibility API Gateway</text>
+  <text x="1270" y="1284" font-size="25" fill="#ffd089" text-anchor="middle">X-API-Key auth &#183; multi-tenant &#183; CORS</text>
+  <rect x="942" y="1312" width="330" height="56" rx="12" fill="#fff3da"/><text x="1107" y="1349" class="b mono" font-size="26" fill="#7c1428" text-anchor="middle">POST /tts</text>
+  <rect x="1288" y="1312" width="310" height="56" rx="12" fill="#fff3da"/><text x="1443" y="1349" class="b mono" font-size="26" fill="#7c1428" text-anchor="middle">POST /stt</text>
+  <rect x="942" y="1380" width="330" height="56" rx="12" fill="#fff3da"/><text x="1107" y="1417" class="b mono" font-size="24" fill="#7c1428" text-anchor="middle">POST /translate</text>
+  <rect x="1288" y="1380" width="310" height="56" rx="12" fill="#fff3da"/><text x="1443" y="1417" class="b mono" font-size="24" fill="#7c1428" text-anchor="middle">GET /widget.js</text>
+  <text x="1270" y="1488" font-size="25" fill="#ffd089" text-anchor="middle">usage metering &#183; rate limiting &#183; WCAG logging</text>
+  <line x1="1270" y1="1548" x2="1270" y2="1570" stroke="#b8801f" stroke-width="4"/>
+  <rect x="900" y="1570" width="740" height="86" rx="14" fill="#1b2a66"/>
+  <rect x="900" y="1570" width="740" height="86" rx="14" fill="none" stroke="#e6b93f" stroke-width="3"/>
+  <text x="1270" y="1608" class="b cream" font-size="29" text-anchor="middle">Admin Dashboard</text>
+  <text x="1270" y="1640" font-size="24" fill="#bcd0ff" text-anchor="middle">tenants &#183; API keys &#183; usage &#183; WCAG results</text>
+
+  <path d="M1640 1286 H1684 V1248 H1720" fill="none" stroke="#b8801f" stroke-width="4" marker-end="url(#arw)"/>
+  <path d="M1640 1362 H1720" fill="none" stroke="#b8801f" stroke-width="4" marker-end="url(#arw)"/>
+  <path d="M1640 1438 H1684 V1548 H1720" fill="none" stroke="#b8801f" stroke-width="4" marker-end="url(#arw)"/>
+
+  <!-- engines -->
+  <rect x="1720" y="1183" width="1740" height="130" rx="14" fill="#e9ecfb" stroke="#1b2a66" stroke-width="3"/>
+  <use href="#ic-speaker" x="1752" y="1218" width="52" height="52" color="#1b2a66"/>
+  <text x="1832" y="1243" class="b" font-size="34">Text-to-Speech + Screen Reader</text>
+  <text x="1832" y="1286" font-size="28" class="muted">Meta MMS-TTS — Odia &#183; Hindi &#183; English neural voices</text>
+
+  <rect x="1720" y="1333" width="1740" height="130" rx="14" fill="#fdecd4" stroke="#ef7d16" stroke-width="3"/>
+  <use href="#ic-mic" x="1752" y="1368" width="52" height="52" color="#cf5f12"/>
+  <text x="1832" y="1393" class="b" font-size="34">Speech-to-Text</text>
+  <text x="1832" y="1436" font-size="28" class="muted">Whisper — voice input to fill forms &amp; search</text>
+
+  <rect x="1720" y="1483" width="1740" height="130" rx="14" fill="#e4f4e9" stroke="#1a7a3c" stroke-width="3"/>
+  <use href="#ic-globe" x="1752" y="1518" width="52" height="52" color="#157a37"/>
+  <text x="1832" y="1543" class="b" font-size="34">Translation</text>
+  <text x="1832" y="1586" font-size="28" class="muted">AI4Bharat IndicTrans2 — English &#8596; Odia / Hindi, Indic-tuned</text>
+
+  <text x="148" y="1700" font-size="27" class="muted"><tspan class="b" fill="#1a7a3c">On-device option:</tspan> the extension runs MMS-TTS &#183; Whisper &#183; IndicTrans2 in-browser (offline, works on strict-CSP sites).   <tspan class="b" fill="#cf5f12">Built on the platform:</tspan> Accessible Examination module — extra time, audio support, dyslexia fonts.</text>
+
+  <!-- ===================== BLOCK C ===================== -->
+  <rect x="108" y="1754" width="1668" height="358" rx="14" fill="#fffaf0" stroke="#c9952a" stroke-width="3"/>
+  <rect x="108" y="1754" width="1668" height="62" rx="14" fill="url(#saff)"/>
+  <use href="#chakra" transform="translate(158,1785) scale(0.20) translate(-100,-100)" color="#7c1428"/>
+  <text x="196" y="1797" class="xb" font-size="38" fill="#5e0f1f">KEY FEATURES</text>
+  <g>
+    <use href="#ic-speaker" x="150" y="1856" width="44" height="44" color="#1b2a66"/>
+    <text x="208" y="1876" class="b" font-size="31">Read this page</text><text x="208" y="1911" font-size="25" class="muted">Neural Odia / Hindi / English TTS</text>
+    <use href="#ic-globe" x="150" y="1946" width="44" height="44" color="#157a37"/>
+    <text x="208" y="1966" class="b" font-size="31">Translate this page</text><text x="208" y="2001" font-size="25" class="muted">IndicTrans2, rewritten in place</text>
+    <use href="#ic-mic" x="150" y="2036" width="44" height="44" color="#cf5f12"/>
+    <text x="208" y="2056" class="b" font-size="31">Speak to fill</text><text x="208" y="2091" font-size="25" class="muted">Voice &#8594; form fields (Whisper)</text>
+
+    <use href="#ic-text" x="940" y="1856" width="44" height="44" color="#7a3ff2"/>
+    <text x="998" y="1876" class="b" font-size="31">Dyslexia mode</text><text x="998" y="1911" font-size="25" class="muted">Conjunct-safe Odia spacing</text>
+    <use href="#ic-hand" x="940" y="1946" width="44" height="44" color="#a8213b"/>
+    <text x="998" y="1966" class="b" font-size="31">Hover to speak</text><text x="998" y="2001" font-size="25" class="muted">Point at anything to hear it</text>
+    <use href="#ic-puzzle" x="940" y="2036" width="44" height="44" color="#1b2a66"/>
+    <text x="998" y="2056" class="b" font-size="31">Works everywhere</text><text x="998" y="2091" font-size="25" class="muted">Any website, via the extension</text>
+  </g>
+
+  <rect x="1824" y="1754" width="1668" height="358" rx="14" fill="#fffaf0" stroke="#c9952a" stroke-width="3"/>
+  <rect x="1824" y="1754" width="1668" height="62" rx="14" fill="#1b2a66"/>
+  <use href="#chakra" transform="translate(1874,1785) scale(0.20) translate(-100,-100)" color="#e6b93f"/>
+  <text x="1912" y="1797" class="xb cream" font-size="38">ONE PLATFORM, SIX PARTS</text>
+  <g font-size="30">
+    <circle cx="1906" cy="1876" r="21" fill="#9c1f37"/><text x="1906" y="1887" class="b cream" font-size="27" text-anchor="middle">1</text><text x="1942" y="1887" class="b">Speech-to-Text</text>
+    <circle cx="1906" cy="1940" r="21" fill="#9c1f37"/><text x="1906" y="1951" class="b cream" font-size="27" text-anchor="middle">2</text><text x="1942" y="1951" class="b">Text-to-Speech + Screen Reader</text>
+    <circle cx="1906" cy="2004" r="21" fill="#9c1f37"/><text x="1906" y="2015" class="b cream" font-size="27" text-anchor="middle">3</text><text x="1942" y="2015" class="b">Accessibility API Gateway</text>
+    <circle cx="2706" cy="1876" r="21" fill="#1a7a3c"/><text x="2706" y="1887" class="b cream" font-size="27" text-anchor="middle">4</text><text x="2742" y="1887" class="b">Translation — IndicTrans2</text>
+    <circle cx="2706" cy="1940" r="21" fill="#1a7a3c"/><text x="2706" y="1951" class="b cream" font-size="27" text-anchor="middle">5</text><text x="2742" y="1951" class="b">Accessible Examination module</text>
+    <circle cx="2706" cy="2004" r="21" fill="#1a7a3c"/><text x="2706" y="2015" class="b cream" font-size="27" text-anchor="middle">6</text><text x="2742" y="2015" class="b">Admin Dashboard</text>
+  </g>
+  <text x="1906" y="2082" class="b" font-size="26" fill="#7a5a38">TECH</text>
+  <g font-size="23" fill="#3a2410">
+    <rect x="1964" y="2061" width="214" height="36" rx="18" fill="#f3e7cf" stroke="#d9b877" stroke-width="1"/><text x="2071" y="2086" text-anchor="middle">MV3 Extension</text>
+    <rect x="2194" y="2061" width="206" height="36" rx="18" fill="#f3e7cf" stroke="#d9b877" stroke-width="1"/><text x="2297" y="2086" text-anchor="middle">FastAPI Gateway</text>
+    <rect x="2416" y="2061" width="196" height="36" rx="18" fill="#f3e7cf" stroke="#d9b877" stroke-width="1"/><text x="2514" y="2086" text-anchor="middle">Meta MMS-TTS</text>
+    <rect x="2628" y="2061" width="146" height="36" rx="18" fill="#f3e7cf" stroke="#d9b877" stroke-width="1"/><text x="2701" y="2086" text-anchor="middle">Whisper</text>
+    <rect x="2790" y="2061" width="262" height="36" rx="18" fill="#f3e7cf" stroke="#d9b877" stroke-width="1"/><text x="2921" y="2086" text-anchor="middle">AI4Bharat IndicTrans2</text>
+    <rect x="3068" y="2061" width="278" height="36" rx="18" fill="#f3e7cf" stroke="#d9b877" stroke-width="1"/><text x="3207" y="2086" text-anchor="middle">ONNX / WebAssembly</text>
+  </g>
+
+  <!-- ===================== FOOTER ===================== -->
+  <rect x="108" y="2140" width="3384" height="196" rx="14" fill="url(#maroon)"/>
+  <rect x="108" y="2140" width="3384" height="196" rx="14" fill="none" stroke="#e6b93f" stroke-width="4"/>
+  <!-- temple skyline -->
+  <g color="#5e0f1f" opacity="0.5">
+    <use href="#deula" transform="translate(250,2336) scale(0.42)"/>
+    <use href="#deula" transform="translate(470,2336) scale(0.30)"/>
+    <use href="#deula" transform="translate(3350,2336) scale(0.42)"/>
+    <use href="#deula" transform="translate(3140,2336) scale(0.30)"/>
+  </g>
+  <g font-size="28" class="b">
+    <rect x="600" y="2176" width="346" height="52" rx="26" fill="none" stroke="#e6b93f" stroke-width="2"/><text x="773" y="2212" class="cream" text-anchor="middle">WCAG 2.1 AA aligned</text>
+    <rect x="966" y="2176" width="364" height="52" rx="26" fill="none" stroke="#e6b93f" stroke-width="2"/><text x="1148" y="2212" class="cream" text-anchor="middle">Multi-tenant API service</text>
+    <rect x="1350" y="2176" width="410" height="52" rx="26" fill="none" stroke="#e6b93f" stroke-width="2"/><text x="1555" y="2212" class="cream" text-anchor="middle">DPDP-conscious data flow</text>
+    <rect x="1780" y="2176" width="280" height="52" rx="26" fill="none" stroke="#e6b93f" stroke-width="2"/><text x="1920" y="2212" class="cream" text-anchor="middle">Offline-capable</text>
+    <rect x="2080" y="2176" width="240" height="52" rx="26" fill="#e6b93f"/><text x="2200" y="2212" fill="#5e0f1f" text-anchor="middle">Odisha-first</text>
+  </g>
+  <text x="1800" y="2272" font-size="27" class="cream" text-anchor="middle">For students with disabilities, PwDs &amp; non-English-speaking citizens — built for schools, universities, govt offices &amp; exam boards</text>
+  <text x="1800" y="2314" font-size="28" class="b gold" text-anchor="middle">Smart Odisha Hackathon '25  &#183;  Team SUBARNAREKHA  &#183;  Accessibility as a Service (AaaS)</text>
+</svg>

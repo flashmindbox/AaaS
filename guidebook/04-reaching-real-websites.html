@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · Reaching Real Websites</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 04</span><span>Reaching Real Websites</span></div>
+
+  <p class="kicker">Chapter 04</p>
+  <h1 class="title">Reaching Real Websites</h1>
+  <p class="lead">Accessibility is useless if it can’t get onto the pages people actually use. We offer two routes:
+  the institution adds one line of code, or the citizen installs a browser extension that works <em>everywhere.</em></p>
+
+  <h2>Route A — the one-line widget (institution opts in)</h2>
+  <p>An institution pastes a single tag into its site. The widget then loads itself and adds the floating
+  <span class="odia">ଅ</span> accessibility button.</p>
+  <div class="code"><span class="c">&lt;!-- one line in the page's HTML --&gt;</span>
+&lt;script src="https://your-gateway/widget.js" <span class="s">data-key="aaas_live_…"</span> defer&gt;&lt;/script&gt;</div>
+
+  <h2>Route B — the browser extension (citizen opts in)</h2>
+  <p>This is the “wow” path: install once, and the same accessibility button appears on <strong>every</strong> website you
+  visit — no cooperation needed from the site owner. This matters because most government sites will never add the tag themselves.</p>
+
+  <h2>The trick that makes it safe on any page: the Shadow DOM</h2>
+  <p>The widget builds its panel inside a <strong>Shadow DOM</strong> — a sealed bubble. The host page’s styles can’t leak in
+  and break the widget, and the widget’s styles can’t leak out and break the page. It can sit on a bank, a news site, or a
+  government portal without conflict.</p>
+
+  <h2>How the extension injects the widget</h2>
+  <p>A browser keeps an extension’s scripts in a separate “world” from the page’s scripts for security. We bridge the two
+  using the one thing they share — the page’s HTML — passing the gateway address and key through it.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 250" class="dgm" role="img" aria-label="Extension injection flow">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker>
+      <marker id="ahb" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1657c8"/></marker></defs>
+
+      <rect class="zone" x="14" y="14" width="330" height="222"></rect>
+      <text class="t sm" x="179" y="32" text-anchor="middle" style="fill:#46505f">INSIDE THE PAGE (the browser tab)</text>
+
+      <rect class="box grey" x="30" y="44" width="140" height="48"></rect>
+      <text class="t b" x="100" y="64" text-anchor="middle">Config script</text>
+      <text class="t sm" x="100" y="80" text-anchor="middle">(isolated world)</text>
+
+      <rect class="box" x="190" y="44" width="138" height="48"></rect>
+      <text class="t b" x="259" y="64" text-anchor="middle">Page HTML</text>
+      <text class="t sm" x="259" y="80" text-anchor="middle">carries gateway + key</text>
+      <path class="arrow" d="M170 68 H190" marker-end="url(#ah)"></path>
+      <text class="t sm" x="180" y="40" text-anchor="middle">writes</text>
+
+      <rect class="box blue" x="190" y="118" width="138" height="48"></rect>
+      <text class="t b blue" x="259" y="138" text-anchor="middle">Widget script</text>
+      <text class="t sm" x="259" y="154" text-anchor="middle">(main world)</text>
+      <path class="arrow" d="M259 92 V118" marker-end="url(#ah)"></path>
+      <text class="t sm" x="290" y="108" text-anchor="middle">reads</text>
+
+      <rect class="box blue" x="60" y="118" width="110" height="100"></rect>
+      <text class="t b blue" x="115" y="150" text-anchor="middle">Shadow</text>
+      <text class="t b blue" x="115" y="166" text-anchor="middle">DOM panel</text>
+      <text class="t sm" x="115" y="186" text-anchor="middle">sealed bubble:</text>
+      <text class="t sm" x="115" y="199" text-anchor="middle">the ଅ button</text>
+      <path class="arrow blue" d="M190 150 H170" marker-end="url(#ahb)"></path>
+      <text class="t sm" x="180" y="138" text-anchor="middle">builds</text>
+
+      <!-- gateway -->
+      <path class="arrow blue dash" d="M328 142 H470" marker-end="url(#ahb)"></path>
+      <text class="t sm" x="399" y="134" text-anchor="middle" style="fill:#1657c8">cross-origin HTTPS</text>
+      <rect class="box solid" x="470" y="112" width="210" height="64"></rect>
+      <text class="t b white" x="575" y="138" text-anchor="middle">AaaS Gateway</text>
+      <text class="t sm white" x="575" y="156" text-anchor="middle" style="fill:#cfe0ff">TTS · STT · Translate</text>
+    </svg>
+    <figcaption>The config script writes the address into the page; the widget reads it, builds its sealed panel, and calls the gateway.</figcaption>
+  </figure>
+
+  <h2>The two cross-origin hurdles (and how we cleared them)</h2>
+  <p>When a widget on, say, a real university site calls our gateway, the browser applies extra safety checks. We had to satisfy two:</p>
+  <ul class="tight">
+    <li><strong>CORS</strong> — the gateway explicitly allows calls from any origin (it only accepts an API-key header, never cookies), so a widget on any site is permitted to call it.</li>
+    <li><strong>Private Network Access</strong> — modern Chrome blocks a public website from quietly calling a local address (<code>127.0.0.1</code>) unless the server opts in. We added the <code>Allow-Private-Network</code> response so the local demo works from real pages too.</li>
+  </ul>
+
+  <div class="callout good">
+    <span class="h">Verified on a real site</span>
+    <p>With the local services running, the widget was injected on a live third-party HTTPS page and <strong>read the page
+    aloud in a real Odia voice</strong> — proving the extension path works beyond our own demo sites.</p>
+  </div>
+
+  <h2>Offline option: on-device mode</h2>
+  <p>The extension can run the speech models <strong>entirely inside the browser</strong> using WebAssembly — no server, no
+  internet. It’s slower and uses more memory, so it’s optional, but it’s a powerful answer to “what about poor connectivity?”</p>
+
+  <div class="callout warn">
+    <span class="h">Graceful failure</span>
+    <p>If the gateway can’t be reached, the widget shows a clear status instead of failing silently. The design principle
+    throughout: <strong>never leave the user in confused silence.</strong></p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 04 · Reaching Real Websites</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="03-the-six-components.html">← Chapter 03</a><a href="05-how-the-ai-works.html">Chapter 05: How the AI Works →</a></nav>
+</body>
+</html>

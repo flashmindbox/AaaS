@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 · How the AI Works</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 05</span><span>How the AI Works</span></div>
+
+  <p class="kicker">Chapter 05</p>
+  <h1 class="title">How the AI Works</h1>
+  <p class="lead">No magic — three well-understood pipelines. We do not train new models; we <strong>integrate</strong> the best
+  open ones for Indian languages and wrap them in reliable, swappable services. Here is each, in plain terms.</p>
+
+  <h2>Three pipelines, one shape</h2>
+  <p>Each service is a small assembly line: clean the input, hand it to a neural model, return the output.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 300" class="dgm" role="img" aria-label="Three AI pipelines">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+
+      <!-- TTS -->
+      <text class="t b blue" x="20" y="30">① Text → Speech (read aloud)</text>
+      <rect class="box" x="20" y="40" width="120" height="38"></rect><text class="t" x="80" y="63" text-anchor="middle">Odia text</text>
+      <path class="arrow" d="M140 59 H176" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="176" y="40" width="150" height="38"></rect><text class="t" x="251" y="56" text-anchor="middle">clean + split</text><text class="t sm" x="251" y="70" text-anchor="middle">into sentences</text>
+      <path class="arrow" d="M326 59 H362" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="362" y="40" width="170" height="38"></rect><text class="t b" x="447" y="56" text-anchor="middle">MMS-TTS model</text><text class="t sm" x="447" y="70" text-anchor="middle">predicts a sound wave</text>
+      <path class="arrow" d="M532 59 H568" marker-end="url(#ah)"></path>
+      <rect class="box green" x="568" y="40" width="112" height="38"></rect><text class="t" x="624" y="63" text-anchor="middle">.wav audio</text>
+
+      <!-- STT -->
+      <text class="t b blue" x="20" y="130">② Speech → Text (dictation)</text>
+      <rect class="box" x="20" y="140" width="120" height="38"></rect><text class="t" x="80" y="163" text-anchor="middle">your voice</text>
+      <path class="arrow" d="M140 159 H176" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="176" y="140" width="150" height="38"></rect><text class="t" x="251" y="156" text-anchor="middle">resample to 16 kHz</text><text class="t sm" x="251" y="170" text-anchor="middle">mono audio</text>
+      <path class="arrow" d="M326 159 H362" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="362" y="140" width="170" height="38"></rect><text class="t b" x="447" y="156" text-anchor="middle">IndicWav2Vec / Whisper</text><text class="t sm" x="447" y="170" text-anchor="middle">sound → letters</text>
+      <path class="arrow" d="M532 159 H568" marker-end="url(#ah)"></path>
+      <rect class="box green" x="568" y="140" width="112" height="38"></rect><text class="t" x="624" y="163" text-anchor="middle">Odia text</text>
+
+      <!-- MT -->
+      <text class="t b blue" x="20" y="230">③ Translate (one language → another)</text>
+      <rect class="box" x="20" y="240" width="120" height="38"></rect><text class="t" x="80" y="263" text-anchor="middle">English text</text>
+      <path class="arrow" d="M140 259 H176" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="176" y="240" width="150" height="38"></rect><text class="t" x="251" y="256" text-anchor="middle">tokenise</text><text class="t sm" x="251" y="270" text-anchor="middle">+ tag languages</text>
+      <path class="arrow" d="M326 259 H362" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="362" y="240" width="170" height="38"></rect><text class="t b" x="447" y="256" text-anchor="middle">NLLB-200 model</text><text class="t sm" x="447" y="270" text-anchor="middle">predicts Odia words</text>
+      <path class="arrow" d="M532 259 H568" marker-end="url(#ah)"></path>
+      <rect class="box green" x="568" y="240" width="112" height="38"></rect><text class="t" x="624" y="263" text-anchor="middle">Odia text</text>
+    </svg>
+    <figcaption>Read-aloud, dictation, and translation are the same three-step shape: prepare → model → result.</figcaption>
+  </figure>
+
+  <h2>The models we use, and why</h2>
+  <table>
+    <thead><tr><th>Job</th><th>Model</th><th>Why this one (in one line)</th></tr></thead>
+    <tbody>
+      <tr><td>Odia / Hindi / English voice</td><td><strong>Meta MMS-TTS</strong></td><td>Small, fast on CPU, and already has an Odia voice — most TTS systems have none.</td></tr>
+      <tr><td>Odia dictation</td><td><strong>AI4Bharat IndicWav2Vec</strong></td><td>Best published accuracy for Odia speech; far better than English-centric tools.</td></tr>
+      <tr><td>English / mixed dictation</td><td><strong>Whisper</strong></td><td>A robust, CPU-friendly fallback for English and Odia-English code-mix.</td></tr>
+      <tr><td>Translation</td><td><strong>Meta NLLB-200</strong></td><td>Covers 200 languages incl. Odia, runs on CPU, and needs no sign-in to download.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <span class="h">A simple way to picture a speech model</span>
+    <p>Think of MMS-TTS as someone who has heard thousands of hours of Odia and learned the exact shape of the sound wave for
+    every letter combination. Give it letters, it draws the matching wave; play the wave, you hear Odia. Dictation is the same
+    skill in reverse — wave in, letters out.</p>
+  </div>
+
+  <h2>What the “mock” actually does</h2>
+  <p>The mock isn’t random. It takes a fingerprint (a hash) of the input and always returns the <strong>same</strong> sensible
+  answer for the same input — for example, a fixed set of Odia demo phrases for dictation, or a curated phrase table for
+  translation. That determinism makes automated tests reliable and the demo repeatable, even with no model present.</p>
+
+  <h2>Honest about quality</h2>
+  <div class="callout warn">
+    <span class="h">We say what works and what doesn’t</span>
+    <p>Standard Odia (Bhubaneswar/Cuttack) dictation is good; rural dialects like Sambalpuri and Kosali are not yet benchmarked
+    and are weaker. Translation is solid for common sentences. We publish accuracy rather than pretend — judges trust honesty
+    more than inflated claims.</p>
+  </div>
+
+  <p class="small">Every model here is open and Indic-capable. The one licensing caveat: the MMS-TTS voice is licensed for
+  non-commercial use, so a real pilot would swap to a commercially-cleared Odia voice — a change isolated to one file.</p>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 05 · How the AI Works</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="04-reaching-real-websites.html">← Chapter 04</a><a href="06-odia-first-design.html">Chapter 06: Odia-First Design →</a></nav>
+</body>
+</html>

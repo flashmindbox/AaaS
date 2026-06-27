@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>06 · Odia-First Design</title>
+<link rel="stylesheet" href="assets/guide.css">
+<style>
+  .typo { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+  .typo .box2 { border:1px solid var(--line); border-radius:6px; padding:10px 12px; break-inside:avoid; }
+  .typo .tag2 { font-size:8pt; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+  .od-bad  { font-family:"Noto Sans Oriya","Kalinga","Nirmala UI",serif; font-size:13pt; letter-spacing:.12em; line-height:1.4; color:#333; }
+  .od-good { font-family:"Noto Sans Oriya","Kalinga","Nirmala UI",serif; font-size:13pt; letter-spacing:0; word-spacing:.14em; line-height:1.95; color:#1a2230; }
+</style>
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 06</span><span>Odia-First Design</span></div>
+
+  <p class="kicker">Chapter 06</p>
+  <h1 class="title">Odia-First Design</h1>
+  <p class="lead">“Odia-first” is not a slogan. It means Odia is the <strong>reference language</strong> — every feature is built and
+  validated for Odia before any other language ships. That forces decisions most tools get wrong.</p>
+
+  <h2>The font travels with the widget</h2>
+  <p>Many Windows machines render Odia conjuncts poorly (the default “Kalinga” font breaks them). So we <strong>bundle Noto Sans
+  Oriya inside the widget itself</strong> — embedded directly in the code. Wherever the widget loads, Odia renders correctly,
+  even offline, even on a fresh laptop. Odia also gets a more generous default line-height (1.7) than Latin text (1.5).</p>
+
+  <h2>The dyslexia insight everyone else misses</h2>
+  <p>For English, dyslexia tools add <em>letter-spacing</em> and switch to a font like OpenDyslexic. <strong>Doing that to Odia
+  is actively harmful.</strong> Odia letters join into conjuncts — single shapes made of multiple letters. Adding letter-spacing
+  rips those shapes apart, making text <em>harder</em> to read. OpenDyslexic doesn’t even support the script.</p>
+
+  <p>So our Odia dyslexia mode does the opposite: it keeps Noto Sans Oriya, sets letter-spacing to <strong>zero</strong>, and
+  instead increases <strong>word-spacing</strong> and pushes line-height to ~1.9. More breathing room between words and lines,
+  without ever breaking a conjunct.</p>
+
+  <div class="typo">
+    <div class="box2" style="border-color:#e3b4ae;background:var(--red-tint)">
+      <div class="tag2" style="color:var(--red)">✗ Naïve “dyslexia” styling (letter-spaced)</div>
+      <p class="od-bad">ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ</p>
+      <p class="small" style="margin:0">Letter-spacing pulls conjuncts apart — the base letter and its marks drift, harder to read.</p>
+    </div>
+    <div class="box2" style="border-color:#b6e0c6;background:var(--green-tint)">
+      <div class="tag2" style="color:var(--green)">✓ Odia-aware dyslexia mode (ours)</div>
+      <p class="od-good">ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ</p>
+      <p class="small" style="margin:0">Zero letter-spacing, more word-spacing &amp; line-height — calmer, conjuncts intact.</p>
+    </div>
+  </div>
+  <p class="small">(Both lines read “Board of Secondary Education, Odisha.” If your printer lacks an Odia font the shapes may
+  differ, but the spacing principle still shows.)</p>
+
+  <h2>Cultural correctness, not just translation</h2>
+  <ul class="tight">
+    <li><strong>Formal address.</strong> The interface uses the respectful <span class="odia">ଆପଣ</span> (“you”), as a government service should.</li>
+    <li><strong>Odia numerals.</strong> The system understands Odia digits (<span class="odia">୨୦୦୫</span> = 2005), not only Western ones.</li>
+    <li><strong>Real institutions.</strong> Demo sites mirror genuine Odisha bodies — Utkal University, BSE Odisha, Jajpur Collectorate — with real scheme names like the Madhu Babu Pension Yojana.</li>
+  </ul>
+
+  <h2>Language coverage</h2>
+  <div class="grid c3">
+    <div class="card"><h4>Today</h4><p><strong>Odia, Hindi, English</strong> for voice and translation — the three the demo speaks end to end.</p></div>
+    <div class="card"><h4>Next</h4><p>Bengali, Tamil, Telugu and more — the translation model already covers 200 languages.</p></div>
+    <div class="card"><h4>Research</h4><p>Sambalpuri / Kosali / Desia dialect robustness for Odia speech — openly flagged as not-yet-solved.</p></div>
+  </div>
+
+  <div class="callout key">
+    <span class="h">The positioning, in one sentence</span>
+    <p>“Odia as a <strong>reference language</strong>, not a translation target.” We design for Odia first and let the rest
+    follow — the opposite of building in English and bolting Odia on at the end.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 06 · Odia-First Design</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="05-how-the-ai-works.html">← Chapter 05</a><a href="07-security-privacy-a11y.html">Chapter 07: Security, Privacy &amp; Accessibility →</a></nav>
+</body>
+</html>

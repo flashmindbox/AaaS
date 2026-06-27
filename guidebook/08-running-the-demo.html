@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>08 · Running &amp; Demoing It</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 08</span><span>Running &amp; Demoing It</span></div>
+
+  <p class="kicker">Chapter 08</p>
+  <h1 class="title">Running &amp; Demoing It</h1>
+  <p class="lead">Two independent ways to run, so a dead Wi-Fi or a locked-down laptop never kills the demo. Both run the
+  exact same code.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 170" class="dgm" role="img" aria-label="Two demo paths">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <rect class="box blue" x="20" y="64" width="150" height="44"></rect><text class="t b blue" x="95" y="90" text-anchor="middle">Same source code</text>
+      <path class="arrow" d="M170 74 H250" marker-end="url(#ah)"></path>
+      <path class="arrow" d="M170 98 H250" marker-end="url(#ah)"></path>
+      <rect class="box green" x="250" y="24" width="430" height="56"></rect>
+      <text class="t b" x="270" y="46" text-anchor="start">A · Cloud / Docker  (primary)</text>
+      <text class="t sm" x="270" y="64" text-anchor="start">Judges open a URL. One command brings up gateway + 3 services behind HTTPS. No install.</text>
+      <rect class="box amber" x="250" y="90" width="430" height="56"></rect>
+      <text class="t b" x="270" y="112" text-anchor="start">B · Local laptop bundle  (offline backup)</text>
+      <text class="t sm" x="270" y="130" text-anchor="start">Everything pre-loaded, runs on 127.0.0.1. Works with the network unplugged.</text>
+    </svg>
+    <figcaption>Cloud is the smooth primary path; the offline laptop bundle is the insurance policy.</figcaption>
+  </figure>
+
+  <h2>Running it locally (developer / offline)</h2>
+  <p>Four small web services run on four ports. Start them, open the browser, done.</p>
+  <table>
+    <thead><tr><th>Service</th><th>Address</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Gateway</td><td><code>127.0.0.1:8000</code></td><td>Front door + all the web pages</td></tr>
+      <tr><td>TTS</td><td><code>127.0.0.1:8001</code></td><td>Odia / Hindi / English voice</td></tr>
+      <tr><td>STT</td><td><code>127.0.0.1:8002</code></td><td>Voice → text</td></tr>
+      <tr><td>Translate</td><td><code>127.0.0.1:8003</code></td><td>Indic ↔ English</td></tr>
+    </tbody>
+  </table>
+  <div class="code"><span class="c"># one-time setup (downloads the Python libraries + models)</span>
+SETUP-FRIEND.bat
+<span class="c"># every time you want the demo</span>
+RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo/</span></div>
+  <p class="small">Then visit <code>http://127.0.0.1:8000/demo/</code> for the landing page with the three Odisha demo sites,
+  the exam, and the admin dashboard.</p>
+
+  <h2>The two-minute judge walkthrough</h2>
+  <p>“Priya is a blind student in Jajpur applying to Utkal University.” Every step degrades gracefully if something misbehaves.</p>
+  <ol class="steps">
+    <li><b>Open the Utkal University demo.</b> The <span class="odia">ଅ</span> button is in the corner. Press it → “Read this page” → the page reads aloud in Odia.</li>
+    <li><b>Switch to English &amp; translate.</b> Flip the language; the page re-reads in English for her English-speaking helper. Translation runs through our own gateway.</li>
+    <li><b>Fill a field by voice.</b> Tap the mic, speak a name in Odia, watch it become text in the form.</li>
+    <li><b>Open the exam.</b> It loads with a dyslexia-friendly font, high contrast, and a +50% extra-time banner; each question can be read aloud and answered by voice.</li>
+    <li><b>Open the admin dashboard.</b> Show the tenant list, the live usage chart (Priya’s session is visible), and a one-click WCAG scan returning an AA report.</li>
+    <li><b>Land the message.</b> “One integration surface — TTS, dictation, translation, and WCAG monitoring. Six compliance wins from one line of code.”</li>
+  </ol>
+
+  <h2>If something breaks (rehearsed fallbacks)</h2>
+  <table>
+    <thead><tr><th>If…</th><th>Then…</th></tr></thead>
+    <tbody>
+      <tr><td>Venue Wi-Fi dies</td><td>Switch to the offline laptop bundle (127.0.0.1).</td></tr>
+      <tr><td>A model misbehaves</td><td>The mock answers instead — the flow keeps moving.</td></tr>
+      <tr><td>The mic fails</td><td>Type the Odia input; the rest of the story is unaffected.</td></tr>
+      <tr><td>The whole laptop dies</td><td>Hand over this guidebook and give the 60-second pitch (Chapter 09).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <span class="h">Design the demo around what cannot fail</span>
+    <p>The voice, the page-flip to Odia, and the dashboard all work without the riskiest AI being perfect. We lead with the
+    parts that are rock-solid and keep a recorded run ready as the final safety net.</p>
+  </div>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 08 · Running &amp; Demoing It</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="07-security-privacy-a11y.html">← Chapter 07</a><a href="09-pitch-and-judge-qa.html">Chapter 09: Pitch, Q&amp;A &amp; Roadmap →</a></nav>
+</body>
+</html>

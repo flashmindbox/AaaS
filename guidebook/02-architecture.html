@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · System Architecture</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
+
+<section class="sheet">
+  <div class="masthead"><span><b>AaaS</b> · Chapter 02</span><span>System Architecture</span></div>
+
+  <p class="kicker">Chapter 02</p>
+  <h1 class="title">System Architecture</h1>
+  <p class="lead">One front door, three workers behind it, and a safety net that means the demo
+  never goes dark. Here is how the pieces fit and how a single click becomes spoken Odia.</p>
+
+  <h2>The whole system at a glance</h2>
+  <p>Everything a user touches (the widget, the browser extension, the exam, the admin dashboard) talks to a single
+  <strong>API Gateway</strong>. The gateway checks the request, then forwards it to whichever AI service can answer:
+  text-to-speech, speech-to-text, or translation. Nothing else is exposed to the internet.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 320" class="dgm" role="img" aria-label="Full architecture">
+      <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker>
+        <marker id="ahb" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1657c8"/></marker></defs>
+
+      <!-- clients zone -->
+      <rect class="zone" x="14" y="14" width="180" height="292"></rect>
+      <text class="t sm" x="104" y="32" text-anchor="middle" style="fill:#46505f">CLIENTS (any browser)</text>
+      <rect class="box blue" x="30" y="44"  width="148" height="34"></rect><text class="t" x="104" y="65" text-anchor="middle">Widget on a website</text>
+      <rect class="box blue" x="30" y="86"  width="148" height="34"></rect><text class="t" x="104" y="107" text-anchor="middle">Browser extension</text>
+      <rect class="box blue" x="30" y="128" width="148" height="34"></rect><text class="t" x="104" y="149" text-anchor="middle">Accessible exam</text>
+      <rect class="box blue" x="30" y="170" width="148" height="34"></rect><text class="t" x="104" y="191" text-anchor="middle">Admin dashboard</text>
+      <rect class="box blue" x="30" y="212" width="148" height="34"></rect><text class="t" x="104" y="233" text-anchor="middle">Demo sites</text>
+
+      <!-- gateway -->
+      <path class="arrow blue" d="M194 130 H266" marker-end="url(#ahb)"></path>
+      <text class="t sm" x="230" y="122" text-anchor="middle" style="fill:#1657c8">HTTPS</text>
+      <rect class="box solid" x="266" y="92" width="140" height="92"></rect>
+      <text class="t b white" x="336" y="118" text-anchor="middle">API GATEWAY</text>
+      <text class="t sm white" x="336" y="138" text-anchor="middle" style="fill:#cfe0ff">API-key check</text>
+      <text class="t sm white" x="336" y="152" text-anchor="middle" style="fill:#cfe0ff">routing + proxy</text>
+      <text class="t sm white" x="336" y="166" text-anchor="middle" style="fill:#cfe0ff">audit log · CORS</text>
+
+      <!-- services -->
+      <path class="arrow" d="M406 118 H470" marker-end="url(#ah)"></path>
+      <path class="arrow" d="M406 138 H470" marker-end="url(#ah)"></path>
+      <path class="arrow" d="M406 158 H470" marker-end="url(#ah)"></path>
+      <rect class="box saff" x="470" y="70"  width="210" height="40"></rect><text class="t b" x="575" y="88" text-anchor="middle">TTS service · port 8001</text><text class="t sm" x="575" y="102" text-anchor="middle">text → Odia/Hindi/English voice</text>
+      <rect class="box saff" x="470" y="122" width="210" height="40"></rect><text class="t b" x="575" y="140" text-anchor="middle">STT service · port 8002</text><text class="t sm" x="575" y="154" text-anchor="middle">voice → text</text>
+      <rect class="box saff" x="470" y="174" width="210" height="40"></rect><text class="t b" x="575" y="192" text-anchor="middle">Translate · port 8003</text><text class="t sm" x="575" y="206" text-anchor="middle">Indic ↔ English</text>
+
+      <!-- static serving note -->
+      <path class="arrow dash" d="M336 184 V230 H194" marker-end="url(#ah)"></path>
+      <rect class="box grey" x="266" y="232" width="140" height="60"></rect>
+      <text class="t b" x="336" y="254" text-anchor="middle">Static files</text>
+      <text class="t sm" x="336" y="270" text-anchor="middle">widget.js, demo,</text>
+      <text class="t sm" x="336" y="283" text-anchor="middle">exam, admin pages</text>
+      <text class="t sm" x="575" y="238" text-anchor="middle" style="fill:#46505f">Gateway default port: 8000</text>
+    </svg>
+    <figcaption>One gateway is the public entry point; the three AI services sit behind it and are never exposed directly.</figcaption>
+  </figure>
+
+  <div class="callout note">
+    <span class="h">Why a gateway?</span>
+    <p>It gives us one place to check the institution’s <strong>API key</strong>, attach the <strong>tenant</strong> (which
+    institution is calling), <strong>record every request</strong> for the usage dashboard, and allow cross-site calls (CORS).
+    Each AI service stays simple and does exactly one job.</p>
+  </div>
+
+  <h2>What happens when Priyanka taps “Read this page”</h2>
+  <p>Follow one real request end to end. Each numbered step is a real network call you can watch in the browser’s dev tools.</p>
+  <ol class="steps">
+    <li><b>Widget reads the page.</b> It walks the visible text, skipping menus and decoration, and splits it into sentences.<span class="small">Runs entirely in the browser — no server needed yet.</span></li>
+    <li><b>(If needed) translate.</b> If the reading language differs from the page, each sentence is sent to the gateway’s translation service first.</li>
+    <li><b>Ask for speech.</b> The widget POSTs each sentence to <code>/tts/synthesise</code> on the gateway with the institution’s API key.</li>
+    <li><b>Gateway checks &amp; forwards.</b> It validates the key, tags the tenant, records the call, and proxies it to the TTS service on port 8001.</li>
+    <li><b>The model speaks.</b> Meta MMS-TTS turns the sentence into a <code>.wav</code> audio clip and streams it back.</li>
+    <li><b>Play, sentence by sentence.</b> The widget plays clips as they arrive, so audio starts in about a second instead of waiting for the whole page.</li>
+  </ol>
+
+  <h2>The safety net: “mock-first” engines</h2>
+  <p>Every AI service is built around a swappable <strong>engine</strong>. By default a lightweight <strong>mock</strong> returns
+  sensible canned answers; a single environment-variable flip swaps in the real model. If a real model fails to load (missing
+  weights, no internet, a driver issue), the service keeps serving with the mock — <strong>so a live demo never crashes.</strong></p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 150" class="dgm" role="img" aria-label="Mock-first engine pattern">
+      <defs><marker id="ah2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7688"/></marker></defs>
+      <rect class="box" x="20" y="55" width="150" height="40"></rect><text class="t" x="95" y="79" text-anchor="middle">request arrives</text>
+      <path class="arrow" d="M170 75 H250" marker-end="url(#ah2)"></path>
+      <rect class="box blue" x="250" y="48" width="150" height="54"></rect>
+      <text class="t b blue" x="325" y="70" text-anchor="middle">Engine selector</text>
+      <text class="t sm" x="325" y="86" text-anchor="middle">env var picks one</text>
+      <path class="arrow" d="M400 62 H500" marker-end="url(#ah2)"></path>
+      <path class="arrow dash" d="M400 90 H500" marker-end="url(#ah2)"></path>
+      <rect class="box green" x="500" y="30" width="180" height="40"></rect><text class="t b" x="590" y="48" text-anchor="middle">Real model</text><text class="t sm" x="590" y="62" text-anchor="middle">MMS-TTS · NLLB · Wav2Vec</text>
+      <rect class="box grey" x="500" y="82" width="180" height="40"></rect><text class="t b" x="590" y="100" text-anchor="middle">Mock engine</text><text class="t sm" x="590" y="114" text-anchor="middle">canned, deterministic, instant</text>
+      <text class="t sm" x="450" y="58" text-anchor="middle" style="fill:#1f8a4c">preferred</text>
+      <text class="t sm" x="448" y="104" text-anchor="middle" style="fill:#8a94a6">fallback</text>
+    </svg>
+    <figcaption>One Protocol, two backends. The demo UI comes together on mocks; real models drop in when ready.</figcaption>
+  </figure>
+
+  <div class="callout good">
+    <span class="h">What this buys us</span>
+    <p>The full user story works on day one; every feature is testable before a heavyweight model download; and on stage,
+    killing a model gives a clean “unavailable” message instead of a white screen. <strong>Predictable degradation is a feature.</strong></p>
+  </div>
+
+  <p class="small">Engines are chosen per service: <code>AAAS_STT_ENGINE</code>, <code>AAAS_TRANSLATE_ENGINE</code>. The TTS service always runs the real Meta MMS-TTS voice because it is small and fast on a plain CPU.</p>
+
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 02 · System Architecture</span></div>
+</section>
+
+<nav class="booknav noprint"><a href="01-the-problem.html">← Chapter 01</a><a href="03-the-six-components.html">Chapter 03: The Six Components →</a></nav>
+</body>
+</html>
