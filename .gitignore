@@ -15,6 +15,12 @@ out/
 *.tsbuildinfo
 *.log
 
+# Keep the built widget tracked — it's the file the gateway actually
+# serves, and fresh clones should have a working demo before running
+# the bundle build.
+!apps/widget/dist/
+!apps/widget/dist/widget.js
+
 # Test / coverage
 coverage/
 .nyc_output/
@@ -68,3 +74,20 @@ PLAN.pdf
 sbom.json
 sbom.xml
 *.spdx.json
+
+# Browser-extension on-device mode build products — fetched from HF Hub
+# and npm by scripts/build_extension_{models,vendor}.py. Not committed
+# because they're ~200 MB of ONNX weights + WASM binaries.
+apps/extension/models/
+apps/extension/vendor/
+
+# Service model weights — downloaded from HF Hub on first service start
+# and by services/*/bundle/prefetch_model.py. Multi-GB, regenerable,
+# never committed.
+services/*/models/
+services/**/models/
+
+# Model weight blobs anywhere (safety net for the rules above)
+*.safetensors
+*.gguf
+pytorch_model.bin
