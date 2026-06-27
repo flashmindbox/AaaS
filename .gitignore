@@ -70,6 +70,9 @@ Desktop.ini
 WHAT_WE_ARE_BUILDING.pdf
 PLAN.pdf
 
+# Generated diagnostic report (produced by DIAGNOSE.bat on demand)
+diagnose-report.txt
+
 # Artifacts / SBOMs
 sbom.json
 sbom.xml
