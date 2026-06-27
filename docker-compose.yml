@@ -1,0 +1,136 @@
+# Docker Compose for the AaaS cloud demo.
+#
+#   docker compose up --build
+#
+# Brings up four services behind a Caddy reverse proxy:
+#   - gateway     (FastAPI, port 8000) — public entry point
+#   - tts         (Meta MMS-TTS-ory, port 8001)
+#   - stt         (mock by default, port 8002)
+#   - translate   (mock by default, port 8003)
+#   - caddy       (reverse proxy, HTTP on :80 / HTTPS on :443)
+#
+# For a local run, Caddy is left at HTTP on :80 by default so you can
+# open http://localhost/ without an MkCert dance. For a real deploy,
+# set AAAS_DOMAIN= (e.g. demo.aaas.cloud) and Caddy will provision a
+# free Let's Encrypt cert on first boot.
+
+name: aaas
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    image: aaas-gateway:dev
+    environment:
+      AAAS_ENV: ${AAAS_ENV:-dev}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      UPSTREAM_TTS_URL: http://tts:8001
+      UPSTREAM_STT_URL: http://stt:8002
+      UPSTREAM_TRANSLATE_URL: http://translate:8003
+    depends_on:
+      tts:
+        condition: service_started
+      stt:
+        condition: service_started
+      translate:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks: [aaas-net]
+
+  tts:
+    build:
+      context: services/tts
+      dockerfile: Dockerfile
+    image: aaas-tts:dev
+    environment:
+      AAAS_ENV: ${AAAS_ENV:-dev}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      TTS_PORT: 8001
+      MODEL_ID: facebook/mms-tts-ory
+      MODEL_CACHE_DIR: /models
+      HF_HOME: /models/hf
+    volumes:
+      # Named volume so the model downloads once and persists across
+      # rebuilds — saves 5–10 minutes on every iteration.
+      - tts-models:/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8001/readyz"]
+      # First boot downloads ~150 MB of weights on a cold volume, so
+      # give it a longer grace period before marking unhealthy.
+      interval: 15s
+      timeout: 5s
+      start_period: 180s
+      retries: 12
+    networks: [aaas-net]
+
+  stt:
+    build:
+      context: services/stt
+      dockerfile: Dockerfile
+      # Flip to `indic` or `whisper` to rebuild with the real engine.
+      args:
+        ENGINE_EXTRA: ${STT_ENGINE_EXTRA:-}
+    image: aaas-stt:dev
+    environment:
+      AAAS_ENV: ${AAAS_ENV:-dev}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      AAAS_STT_ENGINE: ${STT_ENGINE:-mock}
+      AAAS_STT_MODEL_CACHE_DIR: /models
+      HF_HOME: /models/hf
+    volumes:
+      - stt-models:/models
+    restart: unless-stopped
+    networks: [aaas-net]
+
+  translate:
+    build:
+      context: services/translate
+      dockerfile: Dockerfile
+      args:
+        ENGINE_EXTRA: ${TRANSLATE_ENGINE_EXTRA:-}
+    image: aaas-translate:dev
+    environment:
+      AAAS_ENV: ${AAAS_ENV:-dev}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      AAAS_TRANSLATE_ENGINE: ${TRANSLATE_ENGINE:-mock}
+      AAAS_TRANSLATE_MODEL_CACHE_DIR: /models
+      HF_HOME: /models/hf
+    volumes:
+      - translate-models:/models
+    restart: unless-stopped
+    networks: [aaas-net]
+
+  caddy:
+    image: caddy:2.8-alpine
+    ports:
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
+    environment:
+      AAAS_DOMAIN: ${AAAS_DOMAIN:-localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      gateway:
+        condition: service_started
+    restart: unless-stopped
+    networks: [aaas-net]
+
+volumes:
+  tts-models:
+  stt-models:
+  translate-models:
+  caddy-data:
+  caddy-config:
+
+networks:
+  aaas-net:
+    driver: bridge
