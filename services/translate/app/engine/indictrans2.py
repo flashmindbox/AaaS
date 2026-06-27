@@ -114,10 +114,27 @@ class IndicTrans2Engine(TranslateEngine):
             en = await self.translate(text, src_lang=src, tgt_lang="en")
             return await self.translate(en.text, src_lang="en", tgt_lang=tgt)
 
+        # IndicTrans2 operates in a Devanagari-normalised space: Indic INPUT
+        # must be transliterated to Devanagari before tokenising, and Indic
+        # OUTPUT transliterated from Devanagari back to the target's native
+        # script (Oriya, Tamil, …). This is the pre/post-processing that
+        # AI4Bharat's IndicProcessor performs; we do it with the pure-Python
+        # indic-nlp-library so we don't need the Cython IndicTransToolkit
+        # (which requires a C++ build toolchain absent on typical Windows
+        # demo machines). English side stays Latin and is left untouched.
+        from indicnlp.transliterate.unicode_transliterate import (
+            UnicodeIndicTransliterator,
+        )
+
+        src_text = (
+            text if src == "en"
+            else UnicodeIndicTransliterator.transliterate(text, src, "hi")
+        )
+
         def _blocking_infer() -> str:
             import torch  # type: ignore[import-not-found]
 
-            prefixed = f"{src_code} {tgt_code} {text}"
+            prefixed = f"{src_code} {tgt_code} {src_text}"
             inputs = tok(prefixed, return_tensors="pt", truncation=True, max_length=512)
             with torch.no_grad():
                 out = mod.generate(
@@ -125,8 +142,18 @@ class IndicTrans2Engine(TranslateEngine):
                     max_length=512,
                     num_beams=4,
                     early_stopping=True,
+                    # IndicTrans2's bundled modeling_indictrans.py assumes the
+                    # legacy tuple KV-cache; transformers>=4.4x passes a Cache
+                    # object, which crashes its decoder. Disabling the cache is
+                    # correct here — it only forgoes a decode-time speedup,
+                    # negligible for short form/UI sentences.
+                    use_cache=False,
                 )
             return tok.batch_decode(out, skip_special_tokens=True)[0]
 
-        result = await asyncio.to_thread(_blocking_infer)
+        raw = await asyncio.to_thread(_blocking_infer)
+        result = (
+            raw if tgt == "en"
+            else UnicodeIndicTransliterator.transliterate(raw, "hi", tgt)
+        )
         return Translation(text=result, src_lang=src, tgt_lang=tgt, engine=self.name)

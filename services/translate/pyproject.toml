@@ -21,8 +21,15 @@ dependencies = [
 [project.optional-dependencies]
 indic = [
     "torch>=2.4",
-    "transformers>=4.46",
+    # IndicTrans2's bundled modeling code targets transformers 4.x: 5.x removed
+    # transformers.onnx (breaks its tokenizer) and changed the KV-cache contract
+    # its decoder assumes. Pin <5 until the model repo is updated.
+    "transformers>=4.46,<5",
     "sentencepiece>=0.2",
+    # Pure-Python Devanagari<->native-script transliteration for IndicTrans2
+    # pre/post-processing — the script step IndicProcessor does, without the
+    # Cython IndicTransToolkit (which needs a C++ build toolchain).
+    "indic-nlp-library>=0.92",
 ]
 dev = [
     "pytest>=8.3",
