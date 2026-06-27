@@ -1,0 +1,209 @@
+/* Jajpur Collectorate mock — styled to look like a real Indian district portal.
+   Saffron + navy palette echoes the flag without being kitsch. */
+
+:root {
+  --saffron: #d97a1f;
+  --navy: #0a2958;
+  --navy-2: #12367a;
+  --ink: #16202c;
+  --muted: #5a6778;
+  --line: #dfe4ec;
+  --bg: #f6f7fa;
+  --card: #ffffff;
+  --accent: #0f7b4a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  /* Noto Sans Oriya renders conjuncts well on all modern OSes. */
+  font-family: "Noto Sans", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  line-height: 1.7;
+}
+
+/* Odia snippets need word-spacing (not letter-spacing) to keep conjuncts
+   intact, and a slightly taller line to give matras room to breathe. */
+.or, [lang="or"], :lang(or) {
+  font-family: "Noto Sans Oriya", "Kalinga", "Noto Sans", system-ui, sans-serif;
+  line-height: 1.9;
+}
+
+a { color: var(--navy-2); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  background: var(--navy);
+  color: white;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  z-index: 9999;
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.top-strip {
+  background: var(--navy);
+  color: white;
+  font-size: 0.82rem;
+  padding: 0.35rem 0;
+}
+.top-strip .wrap { display: flex; gap: 0.75rem; align-items: center; }
+.top-strip .divider { opacity: 0.5; }
+
+.masthead {
+  background: linear-gradient(180deg, #fff, #fbfbfb);
+  border-bottom: 3px solid var(--saffron);
+}
+.masthead-grid {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+}
+.seal {
+  flex: 0 0 auto;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border: 3px solid var(--saffron);
+}
+.seal-inner { letter-spacing: 1px; }
+.ministry {
+  margin: 0;
+  color: var(--saffron);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+h1 { margin: 0.15rem 0 0.2rem; font-size: 1.6rem; color: var(--navy); }
+.tagline { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+.mainnav {
+  background: var(--navy-2);
+}
+.mainnav ul {
+  margin: 0; padding: 0; list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+}
+.mainnav a {
+  display: block;
+  color: white;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.mainnav a:hover, .mainnav a:focus-visible {
+  background: rgba(255,255,255,0.12);
+  text-decoration: none;
+}
+
+main { padding: 2rem 0 3rem; }
+section, aside { margin-bottom: 2.2rem; }
+
+h2 {
+  color: var(--navy);
+  font-size: 1.35rem;
+  border-bottom: 2px solid var(--saffron);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.9rem;
+  display: inline-block;
+}
+
+.hero p { max-width: 68ch; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(10,41,88,0.04);
+}
+.card h3 { margin: 0 0 0.15rem; font-size: 1.05rem; color: var(--navy); }
+.card .or { margin: 0 0 0.5rem; color: var(--saffron); font-weight: 600; }
+.card p { margin: 0; color: var(--ink); font-size: 0.95rem; }
+
+.notices {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.notices li {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+.notices li:last-child { border-bottom: 0; }
+.notices time {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  min-width: 6.5rem;
+}
+
+.highlight {
+  background: #f0f6ff;
+  border-left: 5px solid var(--navy-2);
+  padding: 1.25rem 1.5rem;
+  border-radius: 0 10px 10px 0;
+}
+
+.grievance {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+footer {
+  background: var(--navy);
+  color: #cfd7e6;
+  padding: 2rem 0 1rem;
+  margin-top: 1rem;
+}
+footer h3 { color: white; margin-top: 0; }
+footer a { color: #9fb7e6; }
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+.credit {
+  text-align: center;
+  font-size: 0.82rem;
+  color: #8197bc;
+  margin: 1.5rem 0 0;
+  border-top: 1px solid #1a3a73;
+  padding-top: 1rem;
+}

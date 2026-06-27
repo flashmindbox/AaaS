@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AaaS · Admin Dashboard</title>
+  <meta name="description" content="AaaS operator dashboard — tenants, API keys, usage, WCAG scans." />
+  <link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-block">
+        <p class="brand-tag">Team SUBARNAREKHA · AaaS</p>
+        <h1>Operator Dashboard</h1>
+      </div>
+      <form class="key-form" id="keyForm" aria-label="Authenticate">
+        <label for="apiKey">API key</label>
+        <input
+          type="text"
+          id="apiKey"
+          spellcheck="false"
+          autocomplete="off"
+          value="aaas_live_00000000000000000000000000000000"
+          aria-describedby="keyHint"
+        />
+        <button type="submit" class="btn-primary">Load</button>
+        <span id="authStatus" class="status-pill" role="status" aria-live="polite">Idle</span>
+      </form>
+      <p id="keyHint" class="hint">
+        Seed keys: operator <code>aaas_live_0…0</code>,
+        Jajpur <code>aaas_live_1…1</code>,
+        BSE Odisha <code>aaas_live_2…2</code>.
+      </p>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Sections">
+    <button type="button" class="tab" data-tab="tenants" aria-selected="true">Tenants</button>
+    <button type="button" class="tab" data-tab="usage" aria-selected="false">Usage</button>
+    <button type="button" class="tab" data-tab="wcag" aria-selected="false">Compliance</button>
+    <button type="button" class="tab" data-tab="about" aria-selected="false">About</button>
+  </nav>
+
+  <main id="main">
+
+    <!-- Tenants panel -->
+    <section id="tab-tenants" class="panel" aria-labelledby="tenantsHeading">
+      <h2 id="tenantsHeading">Tenants</h2>
+      <p class="muted">
+        Tenants are isolated slices of the platform. Each has its own API
+        keys, usage quotas, and accessibility policies. Demo is seeded
+        with three Odisha-focused tenants.
+      </p>
+      <div class="table-wrap">
+        <table id="tenantsTable">
+          <thead>
+            <tr>
+              <th scope="col">Slug</th>
+              <th scope="col">Display name</th>
+              <th scope="col">Category</th>
+              <th scope="col">Region</th>
+              <th scope="col">Keys</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="tenantsBody">
+            <tr><td colspan="6" class="muted">Enter an API key and click Load.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <article class="drawer" id="tenantDetail" hidden aria-labelledby="drawerHeading">
+        <header class="drawer-header">
+          <h3 id="drawerHeading">Tenant detail</h3>
+          <button type="button" class="btn-ghost" id="closeDrawer" aria-label="Close detail">×</button>
+        </header>
+        <dl class="kv">
+          <dt>Slug</dt><dd id="detailSlug"></dd>
+          <dt>Display name</dt><dd id="detailName"></dd>
+          <dt>Category</dt><dd id="detailCategory"></dd>
+          <dt>Region</dt><dd id="detailRegion"></dd>
+          <dt>Tenant ID</dt><dd id="detailId"></dd>
+        </dl>
+        <h4>API keys</h4>
+        <ul class="key-list" id="keyList"></ul>
+        <form class="mint-form" id="mintForm">
+          <label for="mintName">Key name</label>
+          <input type="text" id="mintName" value="new-integration" />
+          <button type="submit" class="btn-primary">Mint new key</button>
+        </form>
+        <div class="raw-key" id="rawKeyBox" hidden role="alert">
+          <strong>New key — copy now:</strong>
+          <code id="rawKeyValue"></code>
+          <p class="warn">This is the only time the full key will be shown.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- Usage panel -->
+    <section id="tab-usage" class="panel" aria-labelledby="usageHeading" hidden>
+      <h2 id="usageHeading">Usage</h2>
+      <form class="usage-controls" id="usageControls">
+        <label>Window
+          <select id="usageMinutes">
+            <option value="60">Last hour</option>
+            <option value="360">Last 6 hours</option>
+            <option value="1440" selected>Last 24 hours</option>
+            <option value="10080">Last 7 days</option>
+          </select>
+        </label>
+        <label>Bucket
+          <select id="usageBucket">
+            <option value="1">1 min</option>
+            <option value="5" selected>5 min</option>
+            <option value="15">15 min</option>
+            <option value="60">1 hour</option>
+          </select>
+        </label>
+        <button type="submit" class="btn-primary">Refresh</button>
+        <a id="csvLink" class="btn-secondary" href="#" download>Download CSV</a>
+      </form>
+
+      <div class="cards">
+        <div class="card">
+          <p class="card-label">Total requests</p>
+          <p class="card-value" id="totalReq">—</p>
+        </div>
+        <div class="card">
+          <p class="card-label">Errors</p>
+          <p class="card-value" id="totalErr">—</p>
+        </div>
+        <div class="card">
+          <p class="card-label">Error rate</p>
+          <p class="card-value" id="errRate">—</p>
+        </div>
+        <div class="card">
+          <p class="card-label">Endpoints</p>
+          <p class="card-value" id="endpointCount">—</p>
+        </div>
+      </div>
+
+      <h3>Requests over time</h3>
+      <div class="chart-wrap" role="img" aria-labelledby="chartLabel">
+        <p id="chartLabel" class="sr-only">Bar chart of requests per bucket.</p>
+        <svg id="usageChart" viewBox="0 0 800 220" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <table class="chart-data" id="chartTable">
+          <caption class="sr-only">Bucketed request counts</caption>
+          <thead><tr><th>Bucket</th><th>Requests</th><th>Errors</th><th>p50 ms</th><th>p95 ms</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="split">
+        <div>
+          <h3>By endpoint</h3>
+          <ul class="bar-list" id="byEndpoint"></ul>
+        </div>
+        <div>
+          <h3>By tenant</h3>
+          <ul class="bar-list" id="byTenant"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- WCAG panel -->
+    <section id="tab-wcag" class="panel" aria-labelledby="wcagHeading" hidden>
+      <h2 id="wcagHeading">Accessibility compliance</h2>
+      <p class="muted">
+        Scans the selected page against WCAG 2.1 Level AA. Uses axe-core
+        when available (CDN, same-origin frames); falls back to a built-in
+        structural auditor when offline.
+      </p>
+      <form class="scan-form" id="scanForm">
+        <label for="scanUrl">Page to scan</label>
+        <input type="text" id="scanUrl" value="/demo/jajpur-collectorate/" />
+        <button type="submit" class="btn-primary">Run scan</button>
+        <span id="scanStatus" class="status-pill" role="status" aria-live="polite">Idle</span>
+      </form>
+      <iframe id="scanFrame" title="Page under test" aria-label="Page under test"></iframe>
+      <div class="cards">
+        <div class="card"><p class="card-label">Passes</p><p class="card-value" id="passCount">—</p></div>
+        <div class="card"><p class="card-label">Violations</p><p class="card-value" id="violCount">—</p></div>
+        <div class="card"><p class="card-label">Serious</p><p class="card-value" id="seriousCount">—</p></div>
+      </div>
+      <h3>Details</h3>
+      <ul class="wcag-list" id="wcagDetails"></ul>
+
+      <h3>Previous scans (this tenant)</h3>
+      <ul class="wcag-history" id="wcagHistory"></ul>
+    </section>
+
+    <!-- About panel -->
+    <section id="tab-about" class="panel" aria-labelledby="aboutHeading" hidden>
+      <h2 id="aboutHeading">About this dashboard</h2>
+      <p>
+        The <strong>AaaS</strong> Operator Dashboard gives a
+        bird's-eye view of the Accessibility-as-a-Service platform.
+        It is one of the six pillars of the Team SUBARNAREKHA pitch
+        at Smart Odisha Hackathon '25:
+      </p>
+      <ol>
+        <li><strong>Speech-to-Text</strong> — Odia-first, with Hindi + English</li>
+        <li><strong>Text-to-Speech + Screen Reader</strong> — drop-in widget</li>
+        <li><strong>Accessibility API Gateway</strong> — this platform</li>
+        <li><strong>Language Translation</strong> — IndicTrans2, corpus fallback</li>
+        <li><strong>Accessible Exam Module</strong> — see <a href="/exam/">/exam/</a></li>
+        <li><strong>Admin Dashboard</strong> — this page</li>
+      </ol>
+      <p>
+        Meta MMS-TTS is the single TTS engine — Odia, Hindi, and English
+        share the same VITS family, so there is no browser-voice
+        fallback and no second engine to babysit. If translation is
+        down, the widget still reads the source language; the admin API
+        runs against an in-memory tenant store so the demo never depends
+        on Postgres being up.
+      </p>
+      <p class="muted">
+        Version info: <code id="versionInfo">loading…</code>
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <p>
+      AaaS · Odisha-first accessibility platform ·
+      <a href="/demo/">demo sites</a> ·
+      <a href="/exam/">exam module</a> ·
+      <a href="/docs" target="_blank" rel="noopener">OpenAPI</a>
+    </p>
+  </footer>
+
+  <!-- axe-core v4.11.3 vendored under vendor/axe.min.js so the WCAG
+       scanner works on the offline judge-laptop bundle (where the
+       jsDelivr CDN isn't reachable). License MPL-2.0, notice shipped
+       at vendor/axe-core.LICENSE. The scanner in admin.js still falls
+       back to a built-in structural auditor if axe fails to load for
+       any reason. -->
+  <script src="./vendor/axe.min.js" defer></script>
+  <script src="./admin.js" defer></script>
+</body>
+</html>

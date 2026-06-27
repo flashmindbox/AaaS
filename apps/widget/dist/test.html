@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="or">
+  <head>
+    <meta charset="utf-8" />
+    <title>AaaS widget font smoke test</title>
+    <style>
+      body {
+        font-family: "Noto Sans Oriya", "Kalinga", "Noto Sans", system-ui,
+          sans-serif;
+        font-size: 1.25rem;
+        max-width: 780px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.6;
+      }
+      .probe {
+        font-size: 2.4rem;
+        padding: 0.6rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin: 1rem 0;
+      }
+      .label {
+        font-size: 0.85rem;
+        color: #555;
+        font-family: system-ui, sans-serif;
+      }
+      code {
+        font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+        font-size: 0.85em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="label">AaaS widget — font-load smoke test</h1>
+    <p class="label">
+      Widget loads from <code>./widget.js</code>. The host page declares
+      <code>font-family: "Noto Sans Oriya"…</code>. If the bundled font
+      activates, the two probes below will render with identical glyph
+      shapes (Noto Sans Oriya). If the host-page injection fails, the
+      first probe falls back to Kalinga / system fonts.
+    </p>
+
+    <p class="label">Probe A (host page — picks up injected @font-face):</p>
+    <div class="probe">ଓଡ଼ିଶା ଓ ଭାରତ ପାଇଁ ପ୍ରବେଶଯୋଗ୍ୟ ବ୍ୟବସ୍ଥା</div>
+
+    <p class="label">Probe B (explicit conjuncts — ରା, ଷ୍ଟ, ଜ୍ଞ, ଦ୍ୱ):</p>
+    <div class="probe">ରାଷ୍ଟ୍ର, ଜ୍ଞାନ, ଦ୍ୱାର, ଶ୍ରୀ, କ୍ଷମା, ଚ୍ୟୁ</div>
+
+    <p class="label">
+      Open devtools → Network → filter "font". You should see no
+      font request to fonts.gstatic.com — the font is inlined in
+      widget.js. If the widget loaded, you'll see a round ଅ button at
+      bottom-right.
+    </p>
+
+    <script src="./widget.js" defer></script>
+  </body>
+</html>

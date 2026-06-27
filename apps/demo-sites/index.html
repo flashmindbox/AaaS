@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AaaS · Demo sites</title>
+    <meta name="description" content="Accessibility-as-a-Service — live demos across three Odisha tenants, plus the operator dashboard and exam module." />
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to demos</a>
+
+    <header class="hero">
+      <div class="wrap">
+        <p class="overline">Team SUBARNAREKHA · Smart Odisha Hackathon '25</p>
+        <h1>
+          <span class="brand">AaaS</span>
+          &nbsp;· Accessibility-as-a-Service
+        </h1>
+        <p class="lede">
+          One API for <strong>TTS</strong>, <strong>STT</strong>,
+          <strong>Translation</strong>, and <strong>WCAG compliance</strong>,
+          deployed Odisha-first. Click any of the demos below to see the
+          widget running on a real-looking tenant site.
+        </p>
+        <p class="lede" lang="or">
+          ଗୋଟିଏ API — TTS, STT, ଅନୁବାଦ ଓ WCAG ସୁଗମ୍ୟତା — ଓଡ଼ିଶା-ପ୍ରଥମ
+          ପ୍ରଣାଳୀରେ ନିୟୋଜିତ।
+        </p>
+      </div>
+    </header>
+
+    <main id="main" class="wrap">
+
+      <section>
+        <h2>Tenant demos</h2>
+        <div class="grid">
+          <article class="site-card site-jajpur">
+            <header>
+              <span class="pill" data-cat="government">Government</span>
+              <h3>Jajpur Collectorate</h3>
+              <p lang="or">ଜାଜପୁର ଜିଲ୍ଲା ପ୍ରଶାସନ</p>
+            </header>
+            <p>
+              A district administration portal with citizen services,
+              notifications, and grievance redressal — now with every
+              page readable aloud in Odia.
+            </p>
+            <footer>
+              <a class="btn" href="./jajpur-collectorate/">Open demo →</a>
+            </footer>
+          </article>
+
+          <article class="site-card site-utkal">
+            <header>
+              <span class="pill" data-cat="university">University</span>
+              <h3>Utkal University</h3>
+              <p lang="or">ଉତ୍କଳ ବିଶ୍ୱବିଦ୍ୟାଳୟ</p>
+            </header>
+            <p>
+              The first university of Odisha, est. 1943. Demonstrates the
+              widget on long-form academic content with Sanskrit mottos
+              and dedicated disability-support services.
+            </p>
+            <footer>
+              <a class="btn" href="./utkal-university/">Open demo →</a>
+            </footer>
+          </article>
+
+          <article class="site-card site-bse">
+            <header>
+              <span class="pill" data-cat="exam-board">Exam board</span>
+              <h3>Board of Secondary Education</h3>
+              <p lang="or">ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ</p>
+            </header>
+            <p>
+              The HSC / Madhyama exam board website — schedules, results,
+              accessibility provisions for PwD candidates, and a link to the
+              accessible mock-exam module.
+            </p>
+            <footer>
+              <a class="btn" href="./bse-odisha/">Open demo →</a>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Platform surfaces</h2>
+        <div class="grid grid-2">
+          <article class="site-card site-exam">
+            <header>
+              <span class="pill" data-cat="module">Module</span>
+              <h3>Accessible exam module</h3>
+              <p>5 questions · Odia first · +50% extra-time toggle</p>
+            </header>
+            <p>
+              Live mock exam with TTS readout, voice answers, dyslexia
+              font, high-contrast theme, and keyboard navigation. The
+              BSE tenant's integration target.
+            </p>
+            <footer>
+              <a class="btn btn-gold" href="/exam/">Open exam →</a>
+            </footer>
+          </article>
+
+          <article class="site-card site-admin">
+            <header>
+              <span class="pill" data-cat="operator">Operator</span>
+              <h3>Admin dashboard</h3>
+              <p>Tenants · API keys · Usage · WCAG scans</p>
+            </header>
+            <p>
+              The operator's view: list tenants, mint API keys, watch
+              request volumes and error rates, run axe-core WCAG 2.1
+              AA scans against any tenant site.
+            </p>
+            <footer>
+              <a class="btn btn-dark" href="/admin/">Open dashboard →</a>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <section class="about">
+        <h2>How to demo</h2>
+        <ol>
+          <li>Open any tenant site above.</li>
+          <li>
+            Click the circular <strong>ଅ</strong> button in the lower-right
+            corner. It opens the AaaS widget.
+          </li>
+          <li>
+            Hit <strong>"Read this page"</strong> — Meta MMS-TTS speaks
+            the visible content (Odia, Hindi, or English). If the gateway
+            is offline, the widget shows an error instead of speaking —
+            there is no browser-voice fallback.
+          </li>
+          <li>
+            Pick a language (Auto / Odia / Hindi / English). Content in
+            another language is translated through the gateway before
+            synthesis.
+          </li>
+          <li>
+            Hold <strong>🎙 Record</strong> to speak into the microphone —
+            the gateway returns a transcript. Demo sites that listen for
+            the <code>aaas-transcript</code> event (e.g. the exam module)
+            consume it directly.
+          </li>
+        </ol>
+      </section>
+
+    </main>
+
+    <footer class="foot">
+      <p>
+        Endpoint reference: <a href="/docs" target="_blank" rel="noopener">OpenAPI</a> ·
+        <a href="/healthz">Health</a> ·
+        <a href="/admin/">Admin</a>
+      </p>
+      <p class="muted">
+        Odia-first by design. Hindi + English supported as fallbacks.
+      </p>
+    </footer>
+  </body>
+</html>

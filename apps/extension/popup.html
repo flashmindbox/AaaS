@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AaaS Companion</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <span class="logo" aria-hidden="true">ଅ</span>
+      <div class="head-text">
+        <h1>AaaS Companion</h1>
+        <p class="sub">Odisha-first accessibility on any website.</p>
+      </div>
+    </header>
+
+    <main>
+      <label class="toggle">
+        <input type="checkbox" id="enabled" checked />
+        <span>Enable on all pages</span>
+      </label>
+
+      <label class="toggle alt">
+        <input type="checkbox" id="onDevice" />
+        <span>
+          On-device mode
+          <em class="beta">experimental · offline</em>
+        </span>
+      </label>
+      <p class="hint below-toggle">
+        Runs TTS (Odia / Hindi / English) and speech-to-text entirely in the browser via
+        WebAssembly. No gateway needed. First use downloads ~180 MB of models
+        from this extension. Translation still uses the gateway.
+      </p>
+
+      <div class="gw-section" id="gwSection">
+      <label class="field">
+        <span>Gateway URL</span>
+        <input
+          type="url"
+          id="gateway"
+          placeholder="http://127.0.0.1:8000"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <span class="hint">Where your AaaS services are running. Default is the USB bundle on this machine.</span>
+      </label>
+
+      <label class="field">
+        <span>API key</span>
+        <input
+          type="text"
+          id="apiKey"
+          placeholder="aaas_live_..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <span class="hint">Leave the seed key to use the bundled demo tenant.</span>
+      </label>
+
+      </div>
+
+      <label class="field">
+        <span>Default language</span>
+        <select id="defaultLang">
+          <option value="auto">Auto (detect from page)</option>
+          <option value="or" selected>Odia · ଓଡ଼ିଆ</option>
+          <option value="hi">Hindi · हिन्दी</option>
+          <option value="en">English</option>
+        </select>
+        <span class="hint">The widget's "Auto" setting uses the page's <code>lang</code> attribute. Override here to force a specific voice.</span>
+      </label>
+
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+
+      <div class="actions">
+        <button type="button" id="test" class="secondary">Test gateway</button>
+        <button type="button" id="save" class="primary">Save</button>
+      </div>
+    </main>
+
+    <footer>
+      <p>Reload any open tab after changing settings.</p>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

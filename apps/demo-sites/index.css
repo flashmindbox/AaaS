@@ -1,0 +1,209 @@
+/* Landing page for /demo/. Deliberately distinct from any of the
+   tenant portals — this is the AaaS product surface, so we use the
+   same dark, product-looking theme as the admin dashboard. */
+
+:root {
+  --bg: #0e1218;
+  --bg-raised: #161c25;
+  --bg-inset: #0b0f14;
+  --fg: #e8edf2;
+  --fg-muted: #8b96a5;
+  --accent: #1a66cc;
+  --accent-2: #2d7ad9;
+  --gold: #ffcf33;
+  --border: #253040;
+  --maroon: #6b1724;
+  --forest: #0e4d34;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+a { color: var(--fg); }
+a:hover, a:focus-visible { color: var(--gold); }
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 1rem; top: 1rem;
+  background: var(--gold);
+  color: #000;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  z-index: 99;
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ---- Hero ---- */
+
+.hero {
+  background:
+    radial-gradient(800px 400px at 15% -10%, rgba(26,102,204,0.35), transparent),
+    radial-gradient(700px 300px at 100% 0%,  rgba(255,207,51,0.16), transparent),
+    linear-gradient(180deg, #12202e, var(--bg));
+  padding: 2.5rem 1.25rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.overline {
+  margin: 0 0 0.5rem;
+  color: var(--gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.hero h1 {
+  margin: 0.1rem 0 0.6rem;
+  font-size: 2.1rem;
+  line-height: 1.2;
+}
+.brand {
+  background: linear-gradient(135deg, #8cc0ff, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 900;
+}
+.lede {
+  max-width: 70ch;
+  color: var(--fg-muted);
+  margin: 0.4rem 0;
+  font-size: 1.05rem;
+}
+.lede:lang(or), .lede[lang="or"] {
+  font-family: "Noto Sans Oriya", "Kalinga", "Noto Sans", system-ui, sans-serif;
+  line-height: 1.9;
+}
+
+/* ---- Main ---- */
+
+main { padding: 2rem 0 3rem; }
+section { margin-bottom: 2rem; }
+h2 { margin: 0 0 0.8rem; font-size: 1.35rem; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.site-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.site-card header { display: grid; gap: 0.25rem; }
+.site-card h3 { margin: 0; font-size: 1.1rem; }
+.site-card header p {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+}
+.site-card header p[lang="or"] {
+  font-family: "Noto Sans Oriya", "Kalinga", "Noto Sans", system-ui, sans-serif;
+}
+.site-card > p { margin: 0.4rem 0 0.6rem; color: var(--fg-muted); font-size: 0.95rem; }
+.site-card footer { margin-top: auto; }
+
+.pill {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  width: max-content;
+}
+.pill[data-cat="government"] { border-color: #1a66cc; color: #8cc0ff; }
+.pill[data-cat="university"] { border-color: #b58900; color: #ffd27a; }
+.pill[data-cat="exam-board"] { border-color: #1f9d55; color: #7bd9a5; }
+.pill[data-cat="module"]     { border-color: var(--gold); color: var(--gold); }
+.pill[data-cat="operator"]   { border-color: #a06bff; color: #c7a6ff; }
+
+/* Tenant accent stripes on the left edge so the cards feel like they
+   belong to their tenants. */
+.site-jajpur  { border-left: 5px solid #0a2958; }
+.site-utkal   { border-left: 5px solid var(--maroon); }
+.site-bse     { border-left: 5px solid var(--forest); }
+.site-exam    { border-left: 5px solid var(--gold); }
+.site-admin   { border-left: 5px solid #a06bff; }
+
+.btn {
+  display: inline-block;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border: 2px solid transparent;
+}
+.btn:hover, .btn:focus-visible {
+  background: var(--accent-2);
+  color: #fff;
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.btn-gold { background: var(--gold); color: #1a1200; }
+.btn-gold:hover { background: #ffde6a; color: #1a1200; }
+.btn-dark { background: #a06bff; color: #fff; }
+.btn-dark:hover { background: #b58fff; color: #fff; }
+
+/* ---- How-to section ---- */
+
+.about {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1.4rem;
+}
+.about ol { margin: 0.4rem 0 0; padding-left: 1.3rem; }
+.about li { margin-bottom: 0.4rem; color: var(--fg-muted); }
+.about li strong { color: var(--fg); }
+.about li em { color: var(--gold); font-style: normal; }
+.about code {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.85rem;
+}
+
+/* ---- Footer ---- */
+
+.foot {
+  max-width: 1100px;
+  margin: 2rem auto 0;
+  padding: 1.2rem 1.25rem;
+  border-top: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+.foot p { margin: 0.15rem 0; }
+.foot .muted { color: #6a7585; }
