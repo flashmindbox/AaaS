@@ -33,8 +33,8 @@ On every page you visit, the extension:
    through the background service worker — the one context that can call
    Google regardless of the page's CSP/CORS. This means read-aloud in
    Odia/Hindi and "Translate this page" work on **any** website with no
-   local gateway running. If Google is unreachable, it falls back to the
-   gateway's `/translate` (NLLB) so the offline USB bundle still works.
+   local gateway running. When the local gateway is reachable, translation
+   prefers its `/translate` (IndicTrans2) for the best Odia quality.
 5. **On-device mode (default ON):** TTS and STT run entirely inside the
    browser via WebAssembly (Meta MMS-TTS voices, incl. Odia). Combined
    with Google Translate above, the full feature set works with no backend
@@ -61,8 +61,8 @@ The popup opens automatically after install. Defaults:
   page — no gateway needed. First utterance in each language warms up
   the ONNX model (~2 s lag); subsequent ones are sub-second. Turn it
   off to route TTS/STT to the gateway instead.
-- **Translation:** always Google Translate (via the background worker),
-  with the gateway's NLLB as an offline fallback. No setting required.
+- **Translation:** the gateway's IndicTrans2 when reachable, otherwise
+  Google Translate (via the background worker). No setting required.
 - **Gateway URL:** `http://127.0.0.1:8000`
   Only needed for the fallback paths: TTS/STT when on-device mode is off,
   and translation when Google is unreachable. Point it at wherever AaaS

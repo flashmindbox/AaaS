@@ -16,7 +16,7 @@ Outputs (under <repo>/dist):
        The full offline bundle (local gateway + STT/TTS/translate services
        + demo sites). Refreshes the bundle's extension/ copy to v0.3.0 then
        re-zips the existing dist/AaaS-Demo/ folder. Translation works with
-       no internet here (gateway NLLB fallback). Friend runs start.bat.
+       no internet here (bundled IndicTrans2 weights). Friend runs start.bat.
 
 Usage:
     python scripts/build_friend_package.py            # both

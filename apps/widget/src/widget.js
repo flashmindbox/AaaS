@@ -1141,9 +1141,9 @@
     }
   }
 
-  // Gateway translate (NLLB) — the offline fallback. Kept so the portable
-  // demo bundle keeps working with no internet, and as a backstop when
-  // Google is unreachable.
+  // Gateway translate (IndicTrans2) — the preferred path when the gateway
+  // is reachable, and the reason the portable demo bundle keeps working
+  // with no internet.
   async function gatewayTranslate(text, srcLang, tgtLang, { signal, timeoutMs }) {
     const t = withTimeout(timeoutMs, signal);
     try {

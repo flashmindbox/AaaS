@@ -123,8 +123,8 @@ works out of the box for the USB demo.
 The popup's "On-device mode" toggle flips the widget to an entirely
 offline speech stack: Meta MMS-TTS (Odia / Hindi / English) and
 OpenAI Whisper-base both run inside the page via transformers.js +
-onnxruntime-web. Translation still goes through the gateway — NLLB-200
-is ~900 MB quantized and too heavy to bundle for v1.
+onnxruntime-web. Translation still goes through the gateway — IndicTrans2
+(~2 GB for both directions) is too heavy to bundle for v1.
 
 ### Data flow when on-device is active
 
@@ -187,8 +187,8 @@ CDN at runtime.
 | whisper-base (int8) | ~80 MB | `Xenova/whisper-base`                  |
 | **Total**           | ~230 MB| sideload only, not Chrome Web Store    |
 
-NLLB-200 distilled (the translation model) adds another ~900 MB
-quantized, which is why it's out of scope for v1.
+IndicTrans2 (the translation model) adds another ~2 GB for the two
+directions, which is why it's out of scope for v1.
 
 ### Rebuilding models + vendor
 

@@ -224,7 +224,8 @@ def build():
             "[OK]   MMS-TTS Odia\n"
             "[OK]   MMS-TTS Hindi\n"
             "[OK]   MMS-TTS English\n"
-            "[OK]   NLLB-200 distilled-600M\n"
+            "[OK]   IndicTrans2 en->indic (200M)\n"
+            "[OK]   IndicTrans2 indic->en (200M)\n"
             "[OK]   IndicWav2Vec Odia\n"
             "READY — safe to run RUN-DEMO.bat."
         ),

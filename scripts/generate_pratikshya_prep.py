@@ -233,7 +233,7 @@ class ArchitectureDiagram(Flowable):
         # 4 AI models (bottom)
         mdl_y = h * 0.05
         mdl_h = h * 0.10
-        mdl_titles = ["MMS-TTS (Meta)", "IndicWav2Vec", "NLLB-200 (Meta)", "WCAG axe-core"]
+        mdl_titles = ["MMS-TTS (Meta)", "IndicWav2Vec", "IndicTrans2 (AI4Bharat)", "WCAG axe-core"]
         mdl_w = (w - 5 * gap) / 4
         for i, t in enumerate(mdl_titles):
             x = gap + i * (mdl_w + gap * 0.6)
@@ -413,10 +413,10 @@ def doc_what_is_aaas() -> list[Flowable]:
     s.append(ArchitectureDiagram())
     s.append(Spacer(1, 10))
 
-    s.append(callout("If a judge asks what MMS-TTS / NLLB / IndicWav2Vec are:",
+    s.append(callout("If a judge asks what MMS-TTS / IndicTrans2 / IndicWav2Vec are:",
                      ["<b>MMS-TTS</b> (Meta) - turns text into Odia voice.",
                       "<b>IndicWav2Vec</b> (AI4Bharat) - turns Odia voice into text.",
-                      "<b>NLLB-200</b> (Meta) - translates between Indian languages and English.",
+                      "<b>IndicTrans2</b> (AI4Bharat, IIT Madras) - translates between Indian languages and English.",
                       "<b>axe-core</b> - scans a website for accessibility mistakes."]))
     s.append(Spacer(1, 8))
     s.append(para("You don't need to know the maths behind these. Judges rarely ask. "
@@ -522,7 +522,7 @@ def doc_demo_walkthrough() -> list[Flowable]:
         "Click <b>Translate this page → Odia</b>. Watch blocks of English text turn into Odia. "
         "Say while it happens:", "body"))
     s.append(Paragraph(
-        "\"We use Meta's NLLB-200 translation model. An Odia-speaking student can now read "
+        "\"We use AI4Bharat's IndicTrans2 translation model, built at IIT Madras. An Odia-speaking student can now read "
         "every form label, every instruction, every error message - in Odia. Not English.\"",
         STYLES["quote"]))
 
@@ -781,7 +781,7 @@ def doc_pitch_and_fallback() -> list[Flowable]:
 
     s.append(para("Phrases to avoid", "h1"))
     s.extend(bullet_list([
-        "\"AI-powered\" as a standalone claim. Always name the model (MMS-TTS, NLLB, IndicWav2Vec).",
+        "\"AI-powered\" as a standalone claim. Always name the model (MMS-TTS, IndicTrans2, IndicWav2Vec).",
         "\"Solves accessibility.\" We <i>enable</i> it. We don't <i>solve</i> it.",
         "\"Disabled people.\" Say \"people with disabilities\" or be specific (blind, Deaf, dyslexic).",
         "\"Simple\" or \"easy.\" Accessibility is never simple. Judges know it.",

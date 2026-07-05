@@ -59,7 +59,7 @@
       <path class="arrow blue" d="M420 124 H520" marker-end="url(#ah)"></path>
       <rect class="box saff" x="520" y="40" width="180" height="40"></rect><text class="t b" x="610" y="58" text-anchor="middle">Text → Speech</text><text class="t sm" x="610" y="72" text-anchor="middle">Meta MMS-TTS</text>
       <rect class="box saff" x="520" y="100" width="180" height="40"></rect><text class="t b" x="610" y="118" text-anchor="middle">Speech → Text</text><text class="t sm" x="610" y="132" text-anchor="middle">IndicWav2Vec / Whisper</text>
-      <rect class="box saff" x="520" y="160" width="180" height="40"></rect><text class="t b" x="610" y="178" text-anchor="middle">Translation</text><text class="t sm" x="610" y="192" text-anchor="middle">Meta NLLB-200</text>
+      <rect class="box saff" x="520" y="160" width="180" height="40"></rect><text class="t b" x="610" y="178" text-anchor="middle">Translation</text><text class="t sm" x="610" y="192" text-anchor="middle">AI4Bharat IndicTrans2</text>
     </svg>
     <figcaption>The whole platform on one page: clients talk to one gateway; the gateway routes to three AI services.</figcaption>
   </figure>
@@ -270,7 +270,7 @@
       <text class="t sm" x="325" y="86" text-anchor="middle">env var picks one</text>
       <path class="arrow" d="M400 62 H500" marker-end="url(#ah2)"></path>
       <path class="arrow dash" d="M400 90 H500" marker-end="url(#ah2)"></path>
-      <rect class="box green" x="500" y="30" width="180" height="40"></rect><text class="t b" x="590" y="48" text-anchor="middle">Real model</text><text class="t sm" x="590" y="62" text-anchor="middle">MMS-TTS · NLLB · Wav2Vec</text>
+      <rect class="box green" x="500" y="30" width="180" height="40"></rect><text class="t b" x="590" y="48" text-anchor="middle">Real model</text><text class="t sm" x="590" y="62" text-anchor="middle">MMS-TTS · IndicTrans2 · Wav2Vec</text>
       <rect class="box grey" x="500" y="82" width="180" height="40"></rect><text class="t b" x="590" y="100" text-anchor="middle">Mock engine</text><text class="t sm" x="590" y="114" text-anchor="middle">canned, deterministic, instant</text>
       <text class="t sm" x="450" y="58" text-anchor="middle" style="fill:#1f8a4c">preferred</text>
       <text class="t sm" x="448" y="104" text-anchor="middle" style="fill:#8a94a6">fallback</text>
@@ -318,8 +318,8 @@
 
   <h2>3 · Translation <span class="pill mock">mock → real</span></h2>
   <p><strong>What it does:</strong> converts content between Indian languages and English — so an English circular can be read in Odia.
-  <strong>How:</strong> Meta’s <em>NLLB-200</em> model (200 languages, runs on CPU) is the default real engine; AI4Bharat’s
-  <em>IndicTrans2</em> is an optional swap. A small built-in phrase table covers the demo if no model is loaded.</p>
+  <strong>How:</strong> AI4Bharat’s <em>IndicTrans2</em> model (distilled 200M, runs on CPU) is the default real engine; Meta’s
+  <em>NLLB-200</em> (200 languages) is an optional swap. A small built-in phrase table covers the demo if no model is loaded.</p>
 
   <div class="callout note">
     <span class="h">All three speak the same simple language</span>
@@ -504,7 +504,7 @@
       <path class="arrow" d="M140 259 H176" marker-end="url(#ah)"></path>
       <rect class="box grey" x="176" y="240" width="150" height="38"></rect><text class="t" x="251" y="256" text-anchor="middle">tokenise</text><text class="t sm" x="251" y="270" text-anchor="middle">+ tag languages</text>
       <path class="arrow" d="M326 259 H362" marker-end="url(#ah)"></path>
-      <rect class="box saff" x="362" y="240" width="170" height="38"></rect><text class="t b" x="447" y="256" text-anchor="middle">NLLB-200 model</text><text class="t sm" x="447" y="270" text-anchor="middle">predicts Odia words</text>
+      <rect class="box saff" x="362" y="240" width="170" height="38"></rect><text class="t b" x="447" y="256" text-anchor="middle">IndicTrans2 model</text><text class="t sm" x="447" y="270" text-anchor="middle">predicts Odia words</text>
       <path class="arrow" d="M532 259 H568" marker-end="url(#ah)"></path>
       <rect class="box green" x="568" y="240" width="112" height="38"></rect><text class="t" x="624" y="263" text-anchor="middle">Odia text</text>
     </svg>
@@ -518,7 +518,7 @@
       <tr><td>Odia / Hindi / English voice</td><td><strong>Meta MMS-TTS</strong></td><td>Small, fast on CPU, and already has an Odia voice — most TTS systems have none.</td></tr>
       <tr><td>Odia dictation</td><td><strong>AI4Bharat IndicWav2Vec</strong></td><td>Best published accuracy for Odia speech; far better than English-centric tools.</td></tr>
       <tr><td>English / mixed dictation</td><td><strong>Whisper</strong></td><td>A robust, CPU-friendly fallback for English and Odia-English code-mix.</td></tr>
-      <tr><td>Translation</td><td><strong>Meta NLLB-200</strong></td><td>Covers 200 languages incl. Odia, runs on CPU, and needs no sign-in to download.</td></tr>
+      <tr><td>Translation</td><td><strong>AI4Bharat IndicTrans2</strong></td><td>Best published Indic↔English quality incl. Odia, distilled to run on CPU.</td></tr>
     </tbody>
   </table>
 
@@ -800,7 +800,7 @@ RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo
   We make sites better, we don’t paper over them.</p>
 
   <h3>“You didn’t train the AI models — where’s the innovation?”</h3>
-  <p>Correct, and deliberate. The models (MMS-TTS, NLLB, IndicWav2Vec) are open and excellent; reinventing them would be foolish.
+  <p>Correct, and deliberate. The models (MMS-TTS, IndicTrans2, IndicWav2Vec) are open and excellent; reinventing them would be foolish.
   The hard, valuable work is the <strong>integration</strong>: a reliable multi-tenant platform, the Odia-specific design rules,
   graceful failure, DPDP controls, and one-line adoption. UPI didn’t invent banks — it connected them.</p>
 
@@ -827,7 +827,7 @@ RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo
     <tbody>
       <tr><td>Backend services</td><td>Python + FastAPI</td><td>The natural home for AI/ML, fast to build, easy to read.</td></tr>
       <tr><td>Widget</td><td>Plain JS + Shadow DOM</td><td>Tiny, dependency-free, and conflict-proof on any host page.</td></tr>
-      <tr><td>Voice / Speech / Translate</td><td>MMS-TTS · IndicWav2Vec/Whisper · NLLB-200</td><td>Best open, Indic-capable, CPU-friendly models — no vendor lock-in.</td></tr>
+      <tr><td>Voice / Speech / Translate</td><td>MMS-TTS · IndicWav2Vec/Whisper · IndicTrans2</td><td>Best open, Indic-capable, CPU-friendly models — no vendor lock-in.</td></tr>
       <tr><td>Accessibility audit</td><td>axe-core</td><td>The industry-standard WCAG engine; runs client-side, works offline.</td></tr>
       <tr><td>Packaging</td><td>Docker (cloud) + offline bundle</td><td>Two independent, identical demo paths.</td></tr>
     </tbody>
