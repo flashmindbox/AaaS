@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AaaS · Demo sites</title>
-    <meta name="description" content="Accessibility-as-a-Service — live demos across three Odisha tenants, plus the operator dashboard and exam module." />
+    <meta name="description" content="Accessibility-as-a-Service — live demos across three Odisha tenants, plus the operator dashboard." />
     <link rel="stylesheet" href="index.css" />
   </head>
   <body>
@@ -75,8 +75,8 @@
             </header>
             <p>
               The HSC / Madhyama exam board website — schedules, results,
-              accessibility provisions for PwD candidates, and a link to the
-              accessible mock-exam module.
+              and accessibility provisions for PwD candidates, with every
+              page readable aloud in Odia.
             </p>
             <footer>
               <a class="btn" href="./bse-odisha/">Open demo →</a>
@@ -88,22 +88,6 @@
       <section>
         <h2>Platform surfaces</h2>
         <div class="grid grid-2">
-          <article class="site-card site-exam">
-            <header>
-              <span class="pill" data-cat="module">Module</span>
-              <h3>Accessible exam module</h3>
-              <p>5 questions · Odia first · +50% extra-time toggle</p>
-            </header>
-            <p>
-              Live mock exam with TTS readout, voice answers, dyslexia
-              font, high-contrast theme, and keyboard navigation. The
-              BSE tenant's integration target.
-            </p>
-            <footer>
-              <a class="btn btn-gold" href="/exam/">Open exam →</a>
-            </footer>
-          </article>
-
           <article class="site-card site-admin">
             <header>
               <span class="pill" data-cat="operator">Operator</span>
@@ -144,8 +128,8 @@
           <li>
             Hold <strong>🎙 Record</strong> to speak into the microphone —
             the gateway returns a transcript. Demo sites that listen for
-            the <code>aaas-transcript</code> event (e.g. the exam module)
-            consume it directly.
+            the <code>aaas-transcript</code> event consume it directly to
+            fill form fields.
           </li>
         </ol>
       </section>

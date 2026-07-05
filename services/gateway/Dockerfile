@@ -3,7 +3,7 @@
 # AaaS gateway — multi-stage build.
 #
 # Build context is the repo root (see docker-compose.yml), because the
-# gateway also serves the widget + demo sites + exam + admin as static
+# gateway also serves the widget + demo sites + admin as static
 # files so everything stays same-origin. Keeping a single origin side-
 # steps CORS + cookie headaches and matches how the bundled USB demo
 # runs too.
@@ -36,7 +36,6 @@ COPY --chown=aaas:aaas services/gateway/app/ ./app/
 # /app/apps/... (walks up from main.py looking for an apps/ sibling).
 COPY --chown=aaas:aaas apps/widget/dist/ ./apps/widget/dist/
 COPY --chown=aaas:aaas apps/demo-sites/  ./apps/demo-sites/
-COPY --chown=aaas:aaas apps/exam/        ./apps/exam/
 COPY --chown=aaas:aaas apps/admin/       ./apps/admin/
 
 USER aaas

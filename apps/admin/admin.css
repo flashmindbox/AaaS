@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------
    Admin dashboard styles.
 
-   Re-uses the same design tokens as exam.css so the whole platform
+   Re-uses the same design tokens as the demo sites so the whole platform
    has a consistent look without a CSS build step. WCAG 2.1 AA
    contrast on all text; 3px focus ring everywhere.
 ---------------------------------------------------------------- */

@@ -3,7 +3,7 @@
 # A single virtual host fronts the whole platform. Caddy terminates
 # TLS on port 443 (automatic with Let's Encrypt when AAAS_DOMAIN is a
 # real hostname) and proxies everything to the gateway at :8000. The
-# gateway itself serves the widget, demo sites, exam module, and admin
+# gateway itself serves the widget, demo sites, and admin
 # dashboard as same-origin static files (see _mount_demo_assets in
 # services/gateway/app/main.py) — a single origin keeps CORS,
 # cookies, and MediaRecorder permissions all simple.
@@ -46,13 +46,13 @@
 	header Permissions-Policy "microphone=(self), autoplay=(self), clipboard-write=(self)"
 
 	# Caching: static assets served by the gateway (widget.js, demo
-	# HTML, exam JS, admin CSS) get a short cache to keep judges' view
+	# HTML, admin CSS) get a short cache to keep judges' view
 	# current after a rebuild. The widget itself is no-store so hot
 	# fixes land immediately.
 	@widget path /widget.js
 	header @widget Cache-Control "no-store"
 
-	@staticAssets path /demo/* /exam/* /admin/* /admin
+	@staticAssets path /demo/* /admin/* /admin
 	header @staticAssets Cache-Control "public, max-age=60"
 
 	# All paths: let the gateway handle auth, rate-limiting, audit

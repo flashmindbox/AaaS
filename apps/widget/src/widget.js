@@ -12,7 +12,7 @@
  *     page's own language attribute).
  *   - Microphone → records up to 10 s, sends to /stt/transcribe,
  *     displays the transcript, and dispatches an `aaas-transcript`
- *     CustomEvent so the host page (exam module, demo-site forms)
+ *     CustomEvent so the host page (demo-site forms)
  *     can listen and auto-fill form fields.
  *
  * The panel lives in a Shadow DOM so the host page's CSS can't leak

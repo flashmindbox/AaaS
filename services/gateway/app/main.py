@@ -209,22 +209,18 @@ def _mount_demo_assets(app: FastAPI) -> None:
 
     widget_file: Path | None = None
     demo_dir: Path | None = None
-    exam_dir: Path | None = None
     admin_dir: Path | None = None
     for root in candidates:
         w = root / "apps" / "widget" / "dist" / "widget.js"
         d = root / "apps" / "demo-sites"
-        e = root / "apps" / "exam"
         a = root / "apps" / "admin"
         if widget_file is None and w.is_file():
             widget_file = w
         if demo_dir is None and d.is_dir():
             demo_dir = d
-        if exam_dir is None and e.is_dir():
-            exam_dir = e
         if admin_dir is None and a.is_dir():
             admin_dir = a
-        if widget_file and demo_dir and exam_dir and admin_dir:
+        if widget_file and demo_dir and admin_dir:
             break
 
     if widget_file is not None:
@@ -248,14 +244,6 @@ def _mount_demo_assets(app: FastAPI) -> None:
             name="demo",
         )
         logger.info("gateway.mount_demo", path=str(demo_dir))
-
-    if exam_dir is not None:
-        app.mount(
-            "/exam",
-            StaticFiles(directory=str(exam_dir), html=True),
-            name="exam",
-        )
-        logger.info("gateway.mount_exam", path=str(exam_dir))
 
     if admin_dir is not None:
         # Note: this mount serves the HTML dashboard at /admin/.

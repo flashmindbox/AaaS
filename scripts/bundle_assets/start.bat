@@ -96,7 +96,6 @@ echo.
 echo ==========================================================
 echo   Demo is LIVE
 echo     Tenant pages : http://127.0.0.1:!GATEWAY_PORT!/demo/
-echo     Exam module  : http://127.0.0.1:!GATEWAY_PORT!/exam/
 echo     Admin panel  : http://127.0.0.1:!GATEWAY_PORT!/admin/
 echo     API docs     : http://127.0.0.1:!GATEWAY_PORT!/docs
 echo.

@@ -9,12 +9,11 @@ REPO = ROOT.parent.parent                               # repo root
 ENTRYPOINT = str(ROOT / "bundle" / "launcher.py")
 
 datas = []
-# Ship the widget + demo sites + exam + admin so the gateway serves them
+# Ship the widget + demo sites + admin so the gateway serves them
 # even when launched from an isolated temp directory. _mount_demo_assets
 # probes these paths at runtime via sys._MEIPASS.
 datas.append((str(REPO / "apps" / "widget" / "dist"), "apps/widget/dist"))
 datas.append((str(REPO / "apps" / "demo-sites"), "apps/demo-sites"))
-datas.append((str(REPO / "apps" / "exam"), "apps/exam"))
 datas.append((str(REPO / "apps" / "admin"), "apps/admin"))
 # FastAPI/pydantic look up their package metadata at runtime.
 for pkg in ("fastapi", "pydantic", "pydantic-settings", "httpx", "structlog"):
