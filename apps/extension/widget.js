@@ -89,17 +89,21 @@
       "aaas_live_00000000000000000000000000000000",
     // Default read-aloud language. The extension's config bridge writes
     // data-aaas-lang from the popup's "Default language" setting; a plain
-    // embed can use <script data-lang> or window.AAAS_DEFAULT_LANG. "auto"
-    // reads the page's own language. Normalised to a known value so a bad
-    // config can't wedge the picker on an option that doesn't exist.
+    // embed can use <script data-lang> or window.AAAS_DEFAULT_LANG. Falls
+    // back to Odia — this platform is Odisha-first, and the flagship demo
+    // moment (translate + read an English page in Odia) must work without
+    // touching the picker. "auto" (read the page's own language) is still
+    // available in the picker and as an explicit config value. Normalised
+    // to a known value so a bad config can't wedge the picker on an
+    // option that doesn't exist.
     defaultLang: (() => {
       const v = (
         CURRENT_SCRIPT?.dataset.lang ||
         window.AAAS_DEFAULT_LANG ||
         HTML_DATASET.aaasLang ||
-        "auto"
+        "or"
       ).toLowerCase();
-      return ["auto", "or", "hi", "en"].includes(v) ? v : "auto";
+      return ["auto", "or", "hi", "en"].includes(v) ? v : "or";
     })(),
     // Client-side chunk size. Kept well below the TTS service's
     // MAX_INPUT_CHARS (600) so we never hit a 413, but also small
