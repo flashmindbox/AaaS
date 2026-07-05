@@ -59,7 +59,8 @@ EXPECTED_MODELS = [
     "AaaS-Portable/services/tts/models/models--facebook--mms-tts-ory/",
     "AaaS-Portable/services/tts/models/models--facebook--mms-tts-hin/",
     "AaaS-Portable/services/tts/models/models--facebook--mms-tts-eng/",
-    "AaaS-Portable/services/translate/models/models--facebook--nllb-200-distilled-600M/",
+    "AaaS-Portable/services/translate/models/models--ai4bharat--indictrans2-en-indic-dist-200M/",
+    "AaaS-Portable/services/translate/models/models--ai4bharat--indictrans2-indic-en-dist-200M/",
     "AaaS-Portable/apps/extension/models/",
 ]
 

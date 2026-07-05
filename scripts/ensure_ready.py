@@ -4,11 +4,13 @@ Called as the final step of ``SETUP-FRIEND.bat`` and re-runnable via
 ``ENSURE-READY.bat``. For each expected HuggingFace model:
 
   * If the cache is complete, skip.
-  * If missing / partial and the model is not gated (MMS-TTS, NLLB),
+  * If missing / partial and the model is not gated (MMS-TTS),
     download it with ``huggingface_hub.snapshot_download``.
-  * If gated (ai4bharat/indicwav2vec-odia) and HF_TOKEN is set, same.
-  * If gated and no HF_TOKEN, configure the STT service to use its
-    mock engine as a graceful fallback so the demo still boots.
+  * If gated (ai4bharat/indicwav2vec-odia, ai4bharat/indictrans2-*)
+    and HF_TOKEN is set, same.
+  * If gated and no HF_TOKEN, write the service's graceful-fallback
+    engine into its .env (STT -> mock, translate -> google) so the
+    demo still boots.
 
 Exit code 0 means "the demo will boot cleanly" — either with real
 engines or with mock fallbacks that we've explicitly wired up. Exit
@@ -53,12 +55,32 @@ MODELS = [
         "label": "MMS-TTS English",
     },
     {
-        "id": "facebook/nllb-200-distilled-600M",
+        "id": "ai4bharat/indictrans2-en-indic-dist-200M",
         "cache": ROOT / "services" / "translate" / "models",
-        "files": ["config.json", "tokenizer_config.json", "sentencepiece.bpe.model"],
+        "files": ["config.json", "dict.SRC.json", "dict.TGT.json"],
         "weight_files": ["model.safetensors", "pytorch_model.bin"],
-        "gated": False,
-        "label": "NLLB-200 distilled-600M",
+        "gated": True,  # "auto"-gated: any logged-in HF account may download
+        "label": "IndicTrans2 en->indic (200M)",
+        "fallback_env": ("translate", "AAAS_TRANSLATE_ENGINE=google"),
+        "fallback_note": (
+            "Translate configured for the google engine (free web endpoint,\n"
+            "         needs internet; offline it serves the curated mock corpus).\n"
+            "         For offline IndicTrans2: set HF_TOKEN to any huggingface.co\n"
+            "         token, re-run ENSURE-READY.bat, then restore\n"
+            "         AAAS_TRANSLATE_ENGINE=indictrans2 in services\\translate\\.env."
+        ),
+    },
+    {
+        "id": "ai4bharat/indictrans2-indic-en-dist-200M",
+        "cache": ROOT / "services" / "translate" / "models",
+        "files": ["config.json", "dict.SRC.json", "dict.TGT.json"],
+        "weight_files": ["model.safetensors", "pytorch_model.bin"],
+        "gated": True,
+        "label": "IndicTrans2 indic->en (200M)",
+        "fallback_env": ("translate", "AAAS_TRANSLATE_ENGINE=google"),
+        "fallback_note": (
+            "Translate configured for the google engine (see note above)."
+        ),
     },
     {
         "id": "ai4bharat/indicwav2vec-odia",
@@ -67,6 +89,13 @@ MODELS = [
         "weight_files": ["model.safetensors", "pytorch_model.bin"],
         "gated": True,
         "label": "IndicWav2Vec Odia",
+        "fallback_env": ("stt", "AAAS_STT_ENGINE=mock"),
+        "fallback_note": (
+            "STT configured for mock engine.\n"
+            "         Real Odia transcription requires: (1) huggingface.co account,\n"
+            "         (2) access grant at huggingface.co/ai4bharat/indicwav2vec-odia,\n"
+            "         (3) HF_TOKEN env var set to your token, then re-run ENSURE-READY.bat."
+        ),
     },
 ]
 
@@ -150,6 +179,12 @@ def download_model(model: dict, token: str | None) -> tuple[bool, str]:
         return False, f"{type(exc).__name__}: {exc}"
 
 
+def apply_fallback(model: dict) -> None:
+    """Point the owning service at its graceful-fallback engine."""
+    service, line = model["fallback_env"]
+    write_env_line(ROOT / "services" / service / ".env", line)
+
+
 def write_env_line(env_path: Path, line: str) -> None:
     """Append-or-replace an ``AAAS_X=value`` line in the .env file."""
     env_path.parent.mkdir(parents=True, exist_ok=True)
@@ -172,7 +207,10 @@ def main() -> int:
     if token:
         print(f"[info] HF_TOKEN detected (...{token[-6:]}).")
     else:
-        print("[info] HF_TOKEN not set — gated models (IndicWav2Vec) will fall back to mock.")
+        print(
+            "[info] HF_TOKEN not set — gated models (IndicWav2Vec, IndicTrans2)"
+            " use graceful fallbacks if their bundled weights are missing."
+        )
     print()
 
     healed: list[str] = []
@@ -188,15 +226,10 @@ def main() -> int:
 
         print(f"  [MISS] {model['label']} — {reason}")
         if model["gated"] and not token:
-            # Skip download attempt; fall straight through to mock fallback.
-            env_path = ROOT / "services" / "stt" / ".env"
-            write_env_line(env_path, "AAAS_STT_ENGINE=mock")
-            print(
-                "         No HF_TOKEN set — STT configured for mock engine.\n"
-                "         Real Odia transcription requires: (1) huggingface.co account,\n"
-                "         (2) access grant at huggingface.co/ai4bharat/indicwav2vec-odia,\n"
-                "         (3) HF_TOKEN env var set to your token, then re-run ENSURE-READY.bat."
-            )
+            # Skip download attempt; fall straight through to the
+            # service's graceful-fallback engine.
+            apply_fallback(model)
+            print(f"         No HF_TOKEN set — {model['fallback_note']}")
             fallbacks.append(model["label"])
             continue
 
@@ -207,11 +240,10 @@ def main() -> int:
             healed.append(model["label"])
         elif model["gated"]:
             # Gated and token didn't work (no access grant, revoked, etc.)
-            env_path = ROOT / "services" / "stt" / ".env"
-            write_env_line(env_path, "AAAS_STT_ENGINE=mock")
+            apply_fallback(model)
             print(
                 f"  [FALLBACK] {model['label']} unavailable: {msg}\n"
-                f"         STT configured for mock engine.\n"
+                f"         {model['fallback_note']}\n"
                 f"         Ensure you've clicked 'Agree and access repository' at\n"
                 f"         huggingface.co/{model['id']} then re-run ENSURE-READY.bat."
             )

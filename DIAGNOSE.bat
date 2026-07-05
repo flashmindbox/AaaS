@@ -47,10 +47,10 @@ if errorlevel 1 (
 )
 
 REM --- 2. Node + pnpm -------------------------------------------------------
-call :sec "2. Node.js and pnpm (required for setup)"
+call :sec "2. Node.js and pnpm (optional - developer tooling only)"
 where node >nul 2>&1
 if errorlevel 1 (
-  call :bad "Node.js is NOT on PATH. Install Node 20+ from nodejs.org, then re-run SETUP-FRIEND.bat."
+  call :warn "Node.js not found - optional; the demo runs fine without it (SETUP-FRIEND skips the Node steps)."
 ) else (
   set "NODEVER="
   for /f "tokens=*" %%v in ('node --version 2^>^&1') do set "NODEVER=%%v"
@@ -68,8 +68,22 @@ if errorlevel 1 (
 REM --- 3. Setup status -----------------------------------------------------
 call :sec "3. Setup status (has SETUP-FRIEND.bat finished?)"
 set "VPY=%ROOT%.venv-portable\Scripts\python.exe"
+if not exist "%VPY%" (
+  REM Dev checkouts use one .venv per service instead of .venv-portable.
+  set "DEVVENVS=1"
+  for %%S in (gateway tts stt translate) do (
+    if not exist "%ROOT%services\%%S\.venv\Scripts\python.exe" set "DEVVENVS=0"
+  )
+  REM TTS venv has the full stack (fastapi + torch), so probe that one.
+  if "!DEVVENVS!"=="1" set "VPY=%ROOT%services\tts\.venv\Scripts\python.exe"
+)
 if exist "%VPY%" (
-  call :ok "Python environment .venv-portable exists."
+  echo %VPY%|find ".venv-portable" >nul
+  if errorlevel 1 (
+    call :ok "Per-service dev venvs found - .venv-portable not needed on a dev machine."
+  ) else (
+    call :ok "Python environment .venv-portable exists."
+  )
   "%VPY%" -c "import fastapi, uvicorn, structlog" >nul 2>&1
   if errorlevel 1 (
     call :bad "Core Python libraries are missing. Re-run SETUP-FRIEND.bat."
@@ -96,7 +110,8 @@ call :sec "4. AI models (bundled with the zip)"
 call :model "TTS Odia"            "services\tts\models\models--facebook--mms-tts-ory\snapshots"
 call :model "TTS Hindi"           "services\tts\models\models--facebook--mms-tts-hin\snapshots"
 call :model "TTS English"         "services\tts\models\models--facebook--mms-tts-eng\snapshots"
-call :model "Translation NLLB"    "services\translate\models\models--facebook--nllb-200-distilled-600M\snapshots"
+call :model "Translation IndicTrans2 en-or" "services\translate\models\models--ai4bharat--indictrans2-en-indic-dist-200M\snapshots"
+call :model "Translation IndicTrans2 or-en" "services\translate\models\models--ai4bharat--indictrans2-indic-en-dist-200M\snapshots"
 call :model "STT Odia"            "services\stt\models\models--ai4bharat--indicwav2vec-odia\snapshots" opt
 
 REM --- 5. Web widget -------------------------------------------------------
@@ -219,10 +234,16 @@ if errorlevel 1 (
 goto :eof
 
 :health
-curl -s -f --max-time 2 "http://127.0.0.1:%~1/healthz" >nul 2>&1
-if errorlevel 1 (
+set "HBODY="
+for /f "delims=" %%b in ('curl -s -f --max-time 2 "http://127.0.0.1:%~1/healthz" 2^>nul') do set "HBODY=%%b"
+if not defined HBODY (
   call :say "   [--] %~2 on port %~1: not responding - normal if RUN-DEMO is not running."
 ) else (
-  call :ok "%~2 on port %~1 is UP and responding."
+  echo   [OK] %~2 on port %~1 is UP: !HBODY!
+  >>"%REPORT%" echo   [OK] %~2 on port %~1 is UP: !HBODY!
+  echo !HBODY! | findstr /i "mock" >nul 2>&1
+  if not errorlevel 1 (
+    call :warn "%~2 is running in MOCK mode - responses are canned. Run ENSURE-READY.bat to enable the real engine."
+  )
 )
 goto :eof

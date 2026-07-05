@@ -17,10 +17,17 @@ REM checkpoints, ~150 MB each, loaded on demand. See services\tts\README.md.
 setlocal
 set ROOT=%~dp0
 
-start "AaaS TTS"       cmd /k "cd /d %ROOT%services\tts       && python -m uvicorn app.main:app --host 127.0.0.1 --port 8001"
-start "AaaS STT"       cmd /k "cd /d %ROOT%services\stt       && python -m uvicorn app.main:app --host 127.0.0.1 --port 8002"
-start "AaaS Translate" cmd /k "cd /d %ROOT%services\translate && python -m uvicorn app.main:app --host 127.0.0.1 --port 8003"
-start "AaaS Gateway"   cmd /k "cd /d %ROOT%services\gateway   && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+REM Resolve the interpreter per service: the service's own .venv first,
+REM then the portable env from SETUP-FRIEND.bat, then bare `python`.
+call :resolve_py PY_TTS       "%ROOT%services\tts"
+call :resolve_py PY_STT       "%ROOT%services\stt"
+call :resolve_py PY_TRANSLATE "%ROOT%services\translate"
+call :resolve_py PY_GATEWAY   "%ROOT%services\gateway"
+
+start "AaaS TTS"       cmd /k "cd /d %ROOT%services\tts       && "%PY_TTS%" -m uvicorn app.main:app --host 127.0.0.1 --port 8001"
+start "AaaS STT"       cmd /k "cd /d %ROOT%services\stt       && "%PY_STT%" -m uvicorn app.main:app --host 127.0.0.1 --port 8002"
+start "AaaS Translate" cmd /k "cd /d %ROOT%services\translate && "%PY_TRANSLATE%" -m uvicorn app.main:app --host 127.0.0.1 --port 8003"
+start "AaaS Gateway"   cmd /k "cd /d %ROOT%services\gateway   && "%PY_GATEWAY%" -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
 
 echo Waiting for services...
 timeout /t 10 /nobreak > nul
@@ -29,3 +36,14 @@ echo Opening demo landing page...
 start "" "http://127.0.0.1:8000/demo/"
 
 endlocal
+exit /b 0
+
+:resolve_py
+if exist "%~2\.venv\Scripts\python.exe" (
+  set "%~1=%~2\.venv\Scripts\python.exe"
+) else if exist "%ROOT%.venv-portable\Scripts\python.exe" (
+  set "%~1=%ROOT%.venv-portable\Scripts\python.exe"
+) else (
+  set "%~1=python"
+)
+goto :eof

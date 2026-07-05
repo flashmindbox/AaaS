@@ -14,6 +14,11 @@
 *.go text eol=lf
 *.sh text eol=lf
 
+# Windows batch files need CRLF — cmd.exe `call :label` resolution is
+# unreliable in LF-only files (labels intermittently "not found").
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 # Binary
 *.png binary
 *.jpg binary
