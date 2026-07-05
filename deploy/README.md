@@ -17,7 +17,6 @@ volume because it downloads 150 MB of MMS weights), open:
 
 - <http://localhost/demo/> — tenant demo landing page
 - <http://localhost/admin/> — operator dashboard
-- <http://localhost/exam/> — accessible mock exam module
 - <http://localhost/docs> — OpenAPI docs for the gateway
 
 The seed API keys (visible in

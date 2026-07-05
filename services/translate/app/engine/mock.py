@@ -8,7 +8,7 @@ keeps flowing even off-script.
 The curated entries cover:
 - the five demo phrases used by the mock STT engine
 - the title + intro copy of every demo site
-- exam question text (so switching language during the exam works)
+- quiz/Q&A phrases used by demo-site forms
 
 The purpose is to keep rehearsals deterministic and the cloud demo
 runnable without gigabytes of model weights.
@@ -75,7 +75,7 @@ _CORPUS_RAW: list[dict[str, str]] = [
         "hi": "ओडिशा माध्यमिक शिक्षा परिषद",
         "en": "Board of Secondary Education, Odisha",
     },
-    # --- Exam module strings ---
+    # --- Q&A / quiz strings (kept for demo-site forms) ---
     {
         "or": "ପ୍ରଶ୍ନ",
         "hi": "प्रश्न",

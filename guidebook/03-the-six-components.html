@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>03 · The Six Components</title>
+<title>03 · The Five Components</title>
 <link rel="stylesheet" href="assets/guide.css">
 </head>
 <body>
 <button class="printbtn noprint" onclick="window.print()">⎙ Print</button>
 
 <section class="sheet">
-  <div class="masthead"><span><b>AaaS</b> · Chapter 03</span><span>The Six Components</span></div>
+  <div class="masthead"><span><b>AaaS</b> · Chapter 03</span><span>The Five Components</span></div>
 
   <p class="kicker">Chapter 03</p>
-  <h1 class="title">The Six Components</h1>
-  <p class="lead">The platform is six cooperating parts. Three are backend AI services; three are things people see and use.
-  Each has one clear job, so any one can be improved or replaced without disturbing the others.</p>
+  <h1 class="title">The Five Components</h1>
+  <p class="lead">The platform is five cooperating parts. Three are backend AI services; two are the front door and the
+  operator’s control room. Each has one clear job, so any one can be improved or replaced without disturbing the others.</p>
 
   <div class="legend">
     <span><i style="background:var(--green)"></i> real engine working today</span>
@@ -30,7 +30,7 @@
   at start-up; Hindi and English load on first use. Runs comfortably on a normal CPU.</p>
 
   <h2>2 · Speech-to-Text (STT) <span class="pill mock">mock → real</span></h2>
-  <p><strong>What it does:</strong> turns a short voice recording into text so people can fill forms or answer exams by speaking.
+  <p><strong>What it does:</strong> turns a short voice recording into text so people can fill forms by speaking.
   <strong>How:</strong> the browser records up to ten seconds and sends the audio to the gateway. The real Odia engine is
   AI4Bharat’s <em>IndicWav2Vec</em>; <em>Whisper</em> is the fallback for English and code-mixed speech. If the (access-gated)
   Odia model or its libraries aren’t present, the service automatically serves a deterministic mock instead.</p>
@@ -53,12 +53,7 @@
   forwards the call to the right service, and also serves the widget file and the web pages — all from one place, which keeps
   cross-site security simple.</p>
 
-  <h2>5 · The Accessible Exam <span class="pill real">real</span></h2>
-  <p><strong>What it does:</strong> a mock board-exam built for disability from the ground up. <strong>How:</strong> Odia questions,
-  a “read this question aloud” button, answer-by-voice, a dyslexia-friendly font toggle, high-contrast and large-text modes,
-  and a <em>+50% extra-time</em> timer per the RPwD Act. It reuses the same TTS and STT services through the gateway.</p>
-
-  <h2>6 · The Admin Dashboard <span class="pill real">real</span></h2>
+  <h2>5 · The Admin Dashboard <span class="pill real">real</span></h2>
   <p><strong>What it does:</strong> the operator’s control room. <strong>How:</strong> it lists tenants and their API keys, shows
   live usage (requests, errors, latency) as a chart, and runs a one-click <strong>WCAG accessibility scan</strong> of any demo
   page using the industry-standard <em>axe-core</em> engine — producing a pass/violation report on the spot.</p>
@@ -77,12 +72,12 @@
   </table>
 
   <div class="callout good">
-    <span class="h">One integration surface, six wins</span>
+    <span class="h">One integration surface, five wins</span>
     <p>An institution drops in <strong>one line of code</strong> and gets read-aloud, dictation, translation, dyslexia
-    support, accessible exams, and WCAG monitoring — without building any of it themselves.</p>
+    support, and WCAG monitoring — without building any of it themselves.</p>
   </div>
 
-  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 03 · The Six Components</span></div>
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 03 · The Five Components</span></div>
 </section>
 
 <nav class="booknav noprint"><a href="02-architecture.html">← Chapter 02</a><a href="04-reaching-real-websites.html">Chapter 04: Reaching Real Websites →</a></nav>

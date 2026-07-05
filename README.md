@@ -2,7 +2,7 @@
 
 > A centralized, cloud-based accessibility infrastructure for Indian public
 > institutions. Plug-and-play APIs for speech, translation, screen-reader
-> support, accessible examinations, and more — so no citizen is shut out of
+> support, and WCAG monitoring — so no citizen is shut out of
 > their own government.
 
 **Team:** SUBARNAREKHA · **License:** Apache-2.0 · **Status:** Phase 0 — foundations
@@ -57,8 +57,8 @@ Shut down with `pnpm infra:down`; wipe volumes with `pnpm infra:reset`.
 
 ```
 aaas/
-├── apps/          # end-user apps (widget, dashboard, exam, mobile, kiosk)
-├── services/      # backend microservices (gateway, stt, tts, mt, exam ...)
+├── apps/          # end-user apps (widget, dashboard, mobile, kiosk)
+├── services/      # backend microservices (gateway, stt, tts, mt ...)
 ├── packages/      # shared libraries
 │   ├── config/       # @aaas/config — eslint, tsconfig, prettier presets
 │   ├── ui/           # @aaas/ui — accessible design system (AAA contrast)

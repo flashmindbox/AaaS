@@ -18,7 +18,7 @@
   never goes dark. Here is how the pieces fit and how a single click becomes spoken Odia.</p>
 
   <h2>The whole system at a glance</h2>
-  <p>Everything a user touches (the widget, the browser extension, the exam, the admin dashboard) talks to a single
+  <p>Everything a user touches (the widget, the browser extension, the admin dashboard) talks to a single
   <strong>API Gateway</strong>. The gateway checks the request, then forwards it to whichever AI service can answer:
   text-to-speech, speech-to-text, or translation. Nothing else is exposed to the internet.</p>
 
@@ -28,13 +28,12 @@
         <marker id="ahb" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1657c8"/></marker></defs>
 
       <!-- clients zone -->
-      <rect class="zone" x="14" y="14" width="180" height="292"></rect>
+      <rect class="zone" x="14" y="14" width="180" height="250"></rect>
       <text class="t sm" x="104" y="32" text-anchor="middle" style="fill:#46505f">CLIENTS (any browser)</text>
       <rect class="box blue" x="30" y="44"  width="148" height="34"></rect><text class="t" x="104" y="65" text-anchor="middle">Widget on a website</text>
       <rect class="box blue" x="30" y="86"  width="148" height="34"></rect><text class="t" x="104" y="107" text-anchor="middle">Browser extension</text>
-      <rect class="box blue" x="30" y="128" width="148" height="34"></rect><text class="t" x="104" y="149" text-anchor="middle">Accessible exam</text>
-      <rect class="box blue" x="30" y="170" width="148" height="34"></rect><text class="t" x="104" y="191" text-anchor="middle">Admin dashboard</text>
-      <rect class="box blue" x="30" y="212" width="148" height="34"></rect><text class="t" x="104" y="233" text-anchor="middle">Demo sites</text>
+      <rect class="box blue" x="30" y="128" width="148" height="34"></rect><text class="t" x="104" y="149" text-anchor="middle">Admin dashboard</text>
+      <rect class="box blue" x="30" y="170" width="148" height="34"></rect><text class="t" x="104" y="191" text-anchor="middle">Demo sites</text>
 
       <!-- gateway -->
       <path class="arrow blue" d="M194 130 H266" marker-end="url(#ahb)"></path>
@@ -58,7 +57,7 @@
       <rect class="box grey" x="266" y="232" width="140" height="60"></rect>
       <text class="t b" x="336" y="254" text-anchor="middle">Static files</text>
       <text class="t sm" x="336" y="270" text-anchor="middle">widget.js, demo,</text>
-      <text class="t sm" x="336" y="283" text-anchor="middle">exam, admin pages</text>
+      <text class="t sm" x="336" y="283" text-anchor="middle">admin pages</text>
       <text class="t sm" x="575" y="238" text-anchor="middle" style="fill:#46505f">Gateway default port: 8000</text>
     </svg>
     <figcaption>One gateway is the public entry point; the three AI services sit behind it and are never exposed directly.</figcaption>
@@ -116,6 +115,6 @@
   <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 02 · System Architecture</span></div>
 </section>
 
-<nav class="booknav noprint"><a href="01-the-problem.html">← Chapter 01</a><a href="03-the-six-components.html">Chapter 03: The Six Components →</a></nav>
+<nav class="booknav noprint"><a href="01-the-problem.html">← Chapter 01</a><a href="03-the-six-components.html">Chapter 03: The Five Components →</a></nav>
 </body>
 </html>

@@ -12,8 +12,7 @@ boots the full AaaS stack on any Windows 10/11 x64 laptop with no Python,
 no pip, and no network. The four bundled services are:
 
 - **Gateway** (port 8000) — HTTP proxy, API-key auth, audit logging, and
-  the static host for the widget, demo sites, exam module, and admin
-  dashboard.
+  the static host for the widget, demo sites, and admin dashboard.
 - **TTS** (port 8001) — neural speech synthesis in Odia, Hindi, and
   English (three Meta MMS-TTS checkpoints — `-ory`, `-hin`, `-eng`).
   Ships with all three model weights prefetched (~450 MB total).

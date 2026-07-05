@@ -231,7 +231,7 @@ s = slide(); title_bar(s, "Two ways in - the same powers")
 data = [
     ("Institutions integrate", INDIGO, IND_L, [
         "Add one widget <script> line, or call the REST API.",
-        "Site gains read-aloud, translation, voice-to-fill forms and an accessible exam mode.",
+        "Site gains read-aloud, translation and voice-to-fill forms.",
         "Central control: API keys, usage metering, WCAG logging.",
     ]),
     ("Citizens install the extension", GREEN, GRN_L, [
@@ -383,15 +383,14 @@ notes(s, "The DPI framing govt judges love - reusable public rails, like UPI. Op
           "auditable (security), sovereign (no foreign lock-in), and community-extensible "
           "(more languages and signs). It also lets the state own its accessibility stack.")
 
-# ============================================================ 12 SIX PARTS
-s = slide(); title_bar(s, "One platform, six parts")
+# ============================================================ 12 FIVE PARTS
+s = slide(); title_bar(s, "One platform, five parts")
 parts = [
     ("1", "Speech-to-Text", "Voice input, dictation", SAFFRON),
     ("2", "Text-to-Speech + Screen Reader", "Neural Odia/Hindi/English", INDIGO),
     ("3", "Accessibility API Gateway", "The plug-and-play surface", MAROON),
     ("4", "Translation - IndicTrans2", "Indic-tuned, Odia-first", GREEN),
-    ("5", "Accessible Exam module", "Extra time, audio, dyslexia fonts", SAFFRON),
-    ("6", "Admin Dashboard", "Tenants, keys, usage, WCAG", INDIGO),
+    ("5", "Admin Dashboard", "Tenants, keys, usage, WCAG", INDIGO),
 ]
 cw, ch = 3.95, 1.55
 for i, (n, t, d, accent) in enumerate(parts):
@@ -402,8 +401,8 @@ for i, (n, t, d, accent) in enumerate(parts):
     txt(s, x+1.35, y+0.32, cw-1.55, 0.95, [
         (t, {"size": 15.5, "bold": True, "color": INK}), (d, {"size": 12.5, "color": MUTED})], spacing=1.05)
 footer(s)
-notes(s, "Maps directly to the problem statement's six modules - we built the whole platform, with "
-          "the exam module and admin oversight as differentiators.")
+notes(s, "Maps directly to the problem statement's modules - we built the whole platform, with "
+          "admin oversight and WCAG logging as differentiators.")
 
 # ============================================================ 13 TECH
 s = slide(); title_bar(s, "Built to run anywhere")
@@ -483,7 +482,7 @@ txt(s, 0.95, 1.75, 5.4, 0.5, "Outcomes", size=18, color=MAROON, bold=True)
 bullets(s, 0.95, 2.4, 5.4, 3.8, [
     "Any citizen can hear & read any public page in Odia.",
     "Sign-language access for the deaf community.",
-    "Exams become accessible for students with disabilities.",
+    "Forms get filled by voice - no typing, no scribe needed.",
     "Measurable WCAG compliance - no site rebuild.",
 ], size=15.5, gap=12)
 rect(s, 6.75, 1.55, 5.9, 4.9, MAROON, rounded=True, radius=0.05, shadow=True)

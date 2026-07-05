@@ -27,7 +27,6 @@ any time a new data flow is introduced.
 | End-user audio (STT input)           | End user            | High (PII)   |
 | Synthesized audio                    | Platform            | Low          |
 | Uploaded documents (OCR)             | End user / tenant   | Variable     |
-| Exam papers (pre-release)            | Tenant (exam board) | Critical     |
 | Candidate accommodation records      | End user            | High (sPII)  |
 | API keys / OIDC client secrets       | Platform / tenant   | Critical     |
 | Model weights                        | Platform            | Medium (IP)  |
@@ -109,18 +108,7 @@ Trust zones:
 | D      | Large images                                            | Size / pixel limits                                                 |
 | E      | Model weight tampering                                  | Signed weights, checksum on load                                    |
 
-### 2.6 Exam Engine
-
-| STRIDE | Threat                                                      | Mitigation                                                                                     |
-| ------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| S      | Candidate impersonation                                     | Keycloak auth + optional biometric check at start (opt-in, DPDP-compliant)                    |
-| T      | Answer tampering in transit                                 | Signed client submissions; server-side re-timing; replay-resistant nonces                     |
-| R      | Candidate disputes their answers                            | Every answer event appended to immutable audit log with hash-chain                            |
-| I      | Pre-release paper leak                                      | Papers encrypted at rest with per-exam KEK; decrypted only in enclave/at start-of-exam window |
-| D      | Exam platform DoS at test start                             | Pre-signed sessions; scheduled warm-up; queueing with back-off                                |
-| E      | Elevated access to other candidates' papers                 | Strict RLS — candidate can only read own attempt; invigilator role separate                   |
-
-### 2.7 Admin API / Dashboard
+### 2.6 Admin API / Dashboard
 
 | STRIDE | Threat                                 | Mitigation                                                         |
 | ------ | -------------------------------------- | ------------------------------------------------------------------ |
@@ -131,7 +119,7 @@ Trust zones:
 | D      | Scrape protection                      | Per-IP + per-token throttling                                      |
 | E      | Privilege escalation via role editor   | Role changes require MFA + second-admin approval for sensitive grants |
 
-### 2.8 Web Widget (in-browser)
+### 2.7 Web Widget (in-browser)
 
 | STRIDE | Threat                                  | Mitigation                                                    |
 | ------ | --------------------------------------- | ------------------------------------------------------------- |
@@ -142,7 +130,7 @@ Trust zones:
 | D      | Widget script blocks page               | Async loader; < 30 KB gzip budget; initializes on idle         |
 | E      | XSS in widget injected into host        | CSP-compatible; no inline scripts; no `innerHTML` with user data |
 
-### 2.9 Mobile SDK / SaralAccess app
+### 2.8 Mobile SDK / SaralAccess app
 
 | STRIDE | Threat                                          | Mitigation                                                                 |
 | ------ | ----------------------------------------------- | -------------------------------------------------------------------------- |
@@ -153,7 +141,7 @@ Trust zones:
 | D      | Network starvation forces online-only           | Offline pack for core TTS/STT; degraded-mode UX                            |
 | E      | Malicious app impersonating SaralAccess         | Code-signing; app-links with verified domain                               |
 
-### 2.10 Kiosk
+### 2.9 Kiosk
 
 | STRIDE | Threat                                   | Mitigation                                                           |
 | ------ | ---------------------------------------- | -------------------------------------------------------------------- |

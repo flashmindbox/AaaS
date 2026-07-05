@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS consent.records (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   subject_hash    TEXT NOT NULL,         -- never store raw PII as the subject id
   tenant_id       UUID REFERENCES tenant.tenants (id) ON DELETE SET NULL,
-  purpose         TEXT NOT NULL,         -- e.g. 'speech-to-text', 'exam-scribe-video'
+  purpose         TEXT NOT NULL,         -- e.g. 'speech-to-text', 'model-improvement'
   given_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   withdrawn_at    TIMESTAMPTZ,
   policy_version  TEXT NOT NULL,

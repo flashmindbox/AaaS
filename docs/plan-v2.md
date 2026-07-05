@@ -6,7 +6,7 @@ Status: **active** (supersedes v1 judge-laptop-bundle-only plan).
 
 The v1 plan delivered a vertical-slice demo (TTS + Gateway only, plus a widget) and a PyInstaller bundle. That bundle proved fragile — two separate Windows-encoding bugs broke it during rehearsal — and it only covers 2 of the 6 components pitched in `Aas.pdf`. The hackathon jury will evaluate against the deck, not against whatever a single slice demonstrates, so the v1 scope is insufficient.
 
-This v2 plan delivers all six pitched components as a full working product, with both a cloud-hosted demo (primary) and the local bundle (offline backup).
+This v2 plan delivers the pitched components as a full working product, with both a cloud-hosted demo (primary) and the local bundle (offline backup). (The accessible-examination module has since been descoped to the roadmap — see the table below.)
 
 ## Pitched components vs. planned delivery
 
@@ -16,7 +16,7 @@ This v2 plan delivers all six pitched components as a full working product, with
 | 2 | Text-to-Speech + Screen Reader | Delivered in v1 | Keep; fix any remaining bundle bugs |
 | 3 | Accessibility API Gateway | Delivered in v1 | Extend with `/translate/*`, in-gateway `/admin/api/*`, audit middleware |
 | 4 | Language Translation | Not built | New `services/translate/` — mock bilingual dict first, IndicTrans2 distilled second |
-| 5 | Accessible Examination | Not built | New `apps/exam/` — OpenDyslexic, extra-time, keyboard-only, TTS readout, STT answers |
+| 5 | Accessible Examination | Not built | Descoped — roadmap item (`PLAN.md` Phase 3); the BSE Odisha exam-board demo tenant remains |
 | 6 | Admin Dashboard | Not built (proxy route only) | New `apps/admin/` — tenants, keys, usage, axe-core WCAG 2.1 AA scanner |
 
 ## Strategic pivot: cloud demo + bundle as backup
@@ -30,7 +30,6 @@ This v2 plan delivers all six pitched components as a full working product, with
 ```
 Browser (judge laptop, any OS)
   demo.aaas/{jajpur,utkal,bse}  -> widget in the corner
-  demo.aaas/exam                -> accessible exam module
   demo.aaas/admin               -> admin dashboard
          |
          | HTTPS
@@ -42,7 +41,6 @@ Gateway (services/gateway — extended)
   /admin/api/*  -> in-gateway admin impl (new)
   /widget.js    -> widget bundle
   /demo/*       -> demo site HTML
-  /exam/*       -> exam module HTML
   /admin/*      -> admin dashboard HTML
   Audit middleware: every request -> ring-buffer consumed by admin
   Auth: X-API-Key, in-memory seed tenant
@@ -70,7 +68,7 @@ Each phase ends with a strictly-better working demo than the previous.
 | 0 | TTS bug verification: rerun start.bat post em-dash fix, confirm audio plays | v1 slice works reliably |
 | 1 | Scaffold STT + Translate services (mock engines). Wire gateway proxies. | STT/translate endpoints return sensible mock data; widget integrations work |
 | 2 | Widget extensions: language picker + mic button. Demo-site sprawl: utkal-university, bse-odisha. | Pitch items #1 and #4 are visibly interactive |
-| 3 | Exam module. Admin dashboard. Audit middleware. WCAG scanner (axe-core). | Pitch items #5 and #6 land |
+| 3 | Admin dashboard. Audit middleware. WCAG scanner (axe-core). | Pitch item #6 lands |
 | 4 | Real model swap-in where feasible: IndicTrans2 distilled for translate, faster-whisper for STT English, IndicWav2Vec for STT Odia. | Production-grade outputs where a model is available |
 | 5 | Cloud deploy (docker-compose + caddy). Bundle refresh including STT + Translate. Clean-room rehearsal. | Two independent demo paths proven. |
 
@@ -81,9 +79,8 @@ Each phase ends with a strictly-better working demo than the previous.
 1. Open `demo/utkal-university/`. Widget auto-announces "Accessibility tools available." Priya presses ଅ → "Read this page" → page reads in Odia.
 2. Switch language picker to English → page retranslates → TTS re-reads in English (for her English-speaking helper).
 3. Priya taps the mic, speaks her name in Odia, STT fills the name field.
-4. Navigate to `/exam/`. Opens with OpenDyslexic font, high-contrast, extra-time banner. Each question is read aloud; answers via voice.
-5. Flip to `/admin/`. Tenant list, API key for Utkal, usage chart (Priya's session visible), one-click **Scan WCAG** on the demo site → AA compliance report.
-6. "This is one API — the institution drops our widget and gets TTS, STT, translation, and WCAG monitoring. One integration surface, six compliance wins."
+4. Flip to `/admin/`. Tenant list, API key for Utkal, usage chart (Priya's session visible), one-click **Scan WCAG** on the demo site → AA compliance report.
+5. "This is one API — the institution drops our widget and gets TTS, STT, translation, and WCAG monitoring. One integration surface, six compliance wins."
 
 Every step degrades predictably: TTS fails → error pill, no speech (MMS is the only engine — no browser-voice fallback); STT fails → keyboard; translate fails → original-language readout; admin fails → slides.
 

@@ -5,8 +5,8 @@
 automatically. This doc is what a reviewer, PM, or external auditor uses
 when accepting a piece of work as "accessible enough to ship".
 
-**Scope:** every AaaS-owned surface — the widget, the dashboard, the exam
-app, the mobile app, the kiosk, and any demo site we publish. External
+**Scope:** every AaaS-owned surface — the widget, the dashboard, the
+mobile app, the kiosk, and any demo site we publish. External
 tenant sites are a separate matter — we offer them an audit tool, not a
 compliance guarantee.
 
@@ -20,7 +20,7 @@ explicitly commits (currently: color contrast, which we hold at AAA in
   unit tests per package).
 - Every milestone review does a **manual** pass — the items marked
   "Manual" below must be walked through with actual assistive tech (AT).
-- For the exam app and the kiosk, an **AT user review** is required
+- For the kiosk, an **AT user review** is required
   before ship (i.e. a user who actually relies on AT runs the flow).
 
 Columns:
@@ -151,7 +151,7 @@ or only active when focus is on a specific component.
 
 ### 2.2.1 Timing Adjustable (A) — Manual
 **Done:** no time limits, or the user can extend to at least 10x or
-disable; exam accommodations apply here (extra time per candidate profile).
+disable.
 
 ### 2.2.2 Pause, Stop, Hide (A) — Auto (partial)
 **Tool:** axe (`meta-refresh`).
@@ -266,8 +266,8 @@ field (aria-describedby).
 **Done:** when we know how to fix an error, we say so.
 
 ### 3.3.4 Error Prevention (Legal/Financial/Data) (AA) — Manual
-**Done:** for consequential actions (exam submit, account delete,
-payment) the user can review and confirm, or undo.
+**Done:** for consequential actions (account delete, payment,
+form submission) the user can review and confirm, or undo.
 
 ### 3.3.7 Redundant Entry (A, new in 2.2) — Manual
 **Done:** previously-entered info is not asked for again in the same

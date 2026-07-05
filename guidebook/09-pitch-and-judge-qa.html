@@ -28,7 +28,7 @@
     <p>“Odisha has 42 million Odia speakers and 21 lakh persons with disabilities, yet government portals are English-first and
     unusable for them. Today every institution is expected to fix this alone, and almost none do. Our insight: accessibility is
     <strong>infrastructure</strong>, not 200 separate projects. So we built a single platform — Odia voice, dictation, translation,
-    a dyslexia-aware reading mode, accessible exams, and a WCAG compliance dashboard — behind one API. An institution adds one
+    a dyslexia-aware reading mode, and a WCAG compliance dashboard — behind one API. An institution adds one
     line of code and its users get all of it. It’s open-source, runs on-prem inside India for DPDP compliance, and it’s working
     today. We’re asking you to help us pilot it at one Odisha institution.”</p>
   </div>
@@ -37,7 +37,7 @@
   <div class="stats">
     <div class="stat"><b>42M+</b><span>Odia speakers</span></div>
     <div class="stat"><b>21L+</b><span>PwD in Odisha</span></div>
-    <div class="stat"><b>6</b><span>components, 1 API</span></div>
+    <div class="stat"><b>5</b><span>components, 1 API</span></div>
     <div class="stat"><b>0</b><span>WCAG violations on the demo site</span></div>
   </div>
 
@@ -58,11 +58,11 @@
 
   <h3>“It’s a hackathon project — is the rest vapourware?”</h3>
   <p>Check the repository: a real threat model, a DPDP data-flow map, a machine-enforced WCAG checklist, CI, and an SBOM are all
-  there. The six components run today. We show what’s built and label what’s roadmap.</p>
+  there. The five components run today. We show what’s built and label what’s roadmap.</p>
 
   <h2>What’s built today vs what’s next</h2>
   <ul class="tl">
-    <li class="done"><span class="ph">Done · Foundations &amp; working slice</span><br><span class="small">Design system, CI, threat model, DPDP map, WCAG harness — plus all six components running: TTS, STT, translation, gateway, exam, admin.</span></li>
+    <li class="done"><span class="ph">Done · Foundations &amp; working slice</span><br><span class="small">Design system, CI, threat model, DPDP map, WCAG harness — plus all five components running: TTS, STT, translation, gateway, admin.</span></li>
     <li class="done"><span class="ph">Done · Real websites</span><br><span class="small">Browser extension + widget verified injecting and reading aloud on live third-party sites; translation routed through our own gateway.</span></li>
     <li><span class="ph">Next · Pilot hardening</span><br><span class="small">Real sign-in (Keycloak/DigiLocker), a database for tenants &amp; keys, rate-limits, and a commercially-licensed Odia voice.</span></li>
     <li><span class="ph">Next · Language &amp; assistance breadth</span><br><span class="small">More Indian languages, a screen-reader overlay, sign-language avatar, and a public accuracy benchmark per language.</span></li>

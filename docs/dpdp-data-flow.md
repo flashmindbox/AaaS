@@ -19,8 +19,8 @@ can exercise their rights. This document is the source of truth.
 | ------ | ---------------------------------------------------------------- | --------------------------------------------------------------------- |
 | **C0** | Non-personal / public                                            | Model weights, product docs, translated govt circulars                 |
 | **C1** | Personal — identifies a person                                   | Email, staff name, tenant contact, IP address, OIDC `sub`             |
-| **C2** | Sensitive personal — health, disability, biometric, minor status | Disability category, accommodation profile, scribe audio, face biometric |
-| **C3** | Confidential platform                                            | API key hashes, model IP, pre-release exam papers                      |
+| **C2** | Sensitive personal — health, disability, biometric, minor status | Disability category, accommodation profile, face biometric |
+| **C3** | Confidential platform                                            | API key hashes, model IP                      |
 
 Disability information is C2 — treat every accommodation record, STT audio
 from a disabled candidate, and ISL video stream as C2 by default.
@@ -37,13 +37,12 @@ from a disabled candidate, and ISL video stream as C2 by default.
 | 4 | STT audio                    | C2    | Microphone upload    | Transcription                   | Consent            |
 | 5 | TTS text                     | C1    | API request          | Synthesis                       | Contract           |
 | 6 | OCR uploads                  | C1/C2 | User upload          | Document reading                | Consent            |
-| 7 | Disability / accommodation   | C2    | Profile registration | Exam accommodations             | Consent            |
-| 8 | Scribe recordings            | C2    | Exam session         | Dispute resolution              | Consent            |
-| 9 | Kiosk camera frames          | C2    | Optional, off-by-default | Presence detection only       | Explicit consent   |
-| 10| Audit log events             | C1    | System               | Security, regulatory            | Legal obligation   |
-| 11| Consent records              | C1    | User action          | Proof of consent                | Legal obligation   |
+| 7 | Disability / accommodation   | C2    | Profile registration | Accessibility accommodations    | Consent            |
+| 8 | Kiosk camera frames          | C2    | Optional, off-by-default | Presence detection only       | Explicit consent   |
+| 9 | Audit log events             | C1    | System               | Security, regulatory            | Legal obligation   |
+| 10| Consent records              | C1    | User action          | Proof of consent                | Legal obligation   |
 
-Items 4, 6, 8, 9 are **strictly not retained** beyond the processing window
+Items 4, 6, 8 are **strictly not retained** beyond the processing window
 unless the user opts in to model-improvement contributions, which is a
 separate, granular consent with a clear withdrawal flow.
 
@@ -79,23 +78,7 @@ Data classes: C2 (audio).
 Retention: audio kept in memory only; zero-write unless the user explicitly
 opts in to "help improve the model".
 
-### 3.3 Exam with accommodations
-
-```
-Candidate -> Exam app -> Gateway
-                     -> Exam engine
-                     -> Accommodation profile lookup -> DB (C2)
-                     -> Paper decryption (KEK from KMS)
-                     -> Audio question stream (TTS, C1)
-                     -> Answer capture (STT, C2 audio + C1 transcript)
-                     -> Audit append (C1)
-                     -> Scribe video (C2) to object store, access-logged
-```
-
-Retention: answers retained per exam-board policy (configurable per tenant);
-scribe video retained 180 days default, deletable on request.
-
-### 3.4 Cross-border / cross-zone
+### 3.3 Cross-border / cross-zone
 
 - **No personal data leaves India** without explicit DPDP-compliant
   cross-border approval. All prod infra in Indian regions.
@@ -113,8 +96,6 @@ scribe video retained 180 days default, deletable on request.
 | TTS audio cache              | 24 h                               | 7 d         | LRU / TTL          |
 | OCR uploads                  | 24 h                               | 7 d         | Job completion + TTL |
 | Accommodation profile        | Lifetime of enrolment              | 7 years post-enrolment | Account delete / DSAR |
-| Exam answers                 | Per tenant config (typical 5 yr)   | 10 yr       | Tenant policy      |
-| Scribe video                 | 180 d                              | 1 yr        | TTL                |
 | Audit log                    | 1 y hot, 7 y cold                  | 7 y         | Legal hold allowed |
 | Consent record               | Lifetime of processing + 7 y       | 7 y post    | Purge after retention |
 
@@ -194,7 +175,7 @@ When AaaS processes data on behalf of a tenant institution:
 ## 9. Children and minors
 
 - Users under 18 require verifiable parental consent for C2 collection
-  beyond what is strictly necessary for an exam accommodation.
+  beyond what is strictly necessary for an accessibility accommodation.
 - Profiling and targeted advertising are prohibited for minors (we do not
   do advertising at all — simple blanket policy).
 - Schools are "Data Fiduciaries" for student data; AaaS is their Processor.

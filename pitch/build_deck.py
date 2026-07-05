@@ -253,7 +253,7 @@ notes(s, "The one big idea: shared infrastructure, not another point tool. Two d
 s = slide(); title_bar(s, "Two ways in - the same powers")
 left = [("Institutions integrate", INDIGO, IND_L, [
     "Add one widget <script> line, or call the REST API.",
-    "Their site gains read-aloud, translation, voice-to-fill forms and an accessible exam mode.",
+    "Their site gains read-aloud, translation and voice-to-fill forms.",
     "Central control: API keys, usage metering, WCAG logging.",
 ])]
 right = [("Citizens install the extension", GREEN, GRN_L, [
@@ -356,15 +356,14 @@ footer(s, 8)
 notes(s, "This is a real screenshot, not a mockup. Wikipedia is a deliberately hard target "
           "(strict CSP). If it works here, it works on government portals. Offer to do it live.")
 
-# ============================================================ S9 SIX PARTS
-s = slide(); title_bar(s, "One platform, six parts")
+# ============================================================ S9 FIVE PARTS
+s = slide(); title_bar(s, "One platform, five parts")
 parts = [
     ("1", "Speech-to-Text", "Voice input, dictation", SAFFRON),
     ("2", "Text-to-Speech + Screen Reader", "Neural Odia/Hindi/English", INDIGO),
     ("3", "Accessibility API Gateway", "The plug-and-play surface", MAROON),
     ("4", "Translation - IndicTrans2", "Indic-tuned, Odia-first", GREEN),
-    ("5", "Accessible Exam module", "Extra time, audio, dyslexia fonts", SAFFRON),
-    ("6", "Admin Dashboard", "Tenants, keys, usage, WCAG", INDIGO),
+    ("5", "Admin Dashboard", "Tenants, keys, usage, WCAG", INDIGO),
 ]
 cw, ch = 3.95, 1.55
 for i, (n, t, d, accent) in enumerate(parts):
@@ -378,8 +377,8 @@ for i, (n, t, d, accent) in enumerate(parts):
         (d, {"size": 12.5, "color": MUTED}),
     ], spacing=1.05)
 footer(s, 9)
-notes(s, "Maps directly to the problem statement's six modules. We didn't pick one piece - we "
-          "built the whole accessibility platform, with the exam module and admin oversight as "
+notes(s, "Maps directly to the problem statement's modules. We didn't pick one piece - we "
+          "built the whole accessibility platform, with admin oversight and WCAG logging as "
           "differentiators.")
 
 # ============================================================ S10 TECH
@@ -413,7 +412,7 @@ rows = [
     ("Language", "English / Western-centric", "Odia & Hindi first, via IndicTrans2"),
     ("Data", "Cloud SaaS; content sent to their servers", "On-device & in-country; DPDP-friendly"),
     ("Claim", "\"Auto-makes you compliant\" (criticised)", "Honest: assistive layer + API toolkit"),
-    ("Extras", "Generic toolbar", "Voice-to-fill, exam mode, admin & WCAG logs"),
+    ("Extras", "Generic toolbar", "Voice-to-fill, admin & WCAG logs"),
 ]
 tw, th = 12.0, 4.9
 tbl = s.shapes.add_table(len(rows), 3, Inches(0.7), Inches(1.5), Inches(tw), Inches(th)).table
@@ -463,7 +462,7 @@ rect(s, 0.7, 1.55, 5.9, 4.9, PAPER, line=GOLD, line_w=1.25, rounded=True, radius
 txt(s, 0.95, 1.75, 5.4, 0.5, "Outcomes", size=18, color=MAROON, bold=True)
 bullets(s, 0.95, 2.4, 5.4, 3.8, [
     "Any citizen can hear & read any public page in Odia.",
-    "Exams become accessible for students with disabilities.",
+    "Forms get filled by voice - no typing, no scribe needed.",
     "Departments get measurable WCAG compliance.",
     "Accessibility delivered without rebuilding old sites.",
 ], size=15.5, gap=12)

@@ -39,7 +39,6 @@ On the target laptop, with no AaaS services already running:
 - [ ] Switch the language picker to **English** → click **Read this page** → audio re-reads in English within ~1-2 s. Same prewarm guarantee.
 - [ ] Click **Stop** mid-sentence → audio stops within 0.5 seconds.
 - [ ] Tick **Dyslexia mode** in the widget panel → the demo page visibly reflows: larger body text, warm off-white background (`#fbf7ef`), Comic Sans / system sans fallback on Latin, Noto Sans Oriya kept for Odia paragraphs, line-height clearly looser. Un-tick → page returns to its original styling. Reload the tab → the setting persists (the panel's checkbox comes back ticked and styles re-apply).
-- [ ] Navigate to `/exam/` in the address bar → exam module loads with OpenDyslexic font, questions narrate on focus, keyboard nav works.
 - [ ] On the BSE demo page, scroll to **Result look-up**, fill the form with anything, click **Check result** → an inline "Demo form." note appears below the form with `role="status"` (no browser `alert()` dialog, which would break the flow). Repeat on the Utkal University **Check Results** form.
 - [ ] Navigate to `/admin/` → tenant list renders → click **Scan WCAG** on any tenant → report appears. Open DevTools → Network: confirm `axe.min.js` served from the same origin (starts with `/admin/vendor/`). No request to `cdn.jsdelivr.net` — the offline bundle ships axe v4.11.3 in `apps/admin/vendor/axe.min.js`.
 

@@ -9,7 +9,6 @@ Backend microservices. Each service is independently deployable.
 | `tts/`              | 1     | Python FastAPI — Meta MMS-TTS         |
 | `translate/`        | 2     | Python FastAPI — IndicTrans2          |
 | `screen-reader/`    | 2     | Python FastAPI — VLM alt-text, ARIA   |
-| `exam-engine/`      | 3     | Go — exam delivery + accommodations   |
 | `content-adapter/`  | 2     | Python FastAPI — OCR, simplification  |
 | `admin-api/`        | 1     | Node.js Fastify — tenant CRUD, audit  |
 

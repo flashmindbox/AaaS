@@ -29,7 +29,7 @@ SECTIONS = [
         ("Why not simply use Bhashini, the Government of India's language platform?",
          "Bhashini is an excellent translation / ASR backend — and we are complementary, not "
          "competing. AaaS is the accessibility delivery layer (widget, cross-site extension, "
-         "screen-reader, exam mode, dyslexia rendering) on top of it. <strong>Our translation "
+         "screen-reader, dyslexia rendering) on top of it. <strong>Our translation "
          "engine is pluggable — we can run on Bhashini, AI4Bharat IndicTrans2, or fully "
          "on-device — so we ride India's own rails, not against them.</strong>"),
         ("What stops Google or Microsoft from simply building this?",
@@ -92,8 +92,8 @@ SECTIONS = [
         ("What did you actually build, versus use off the shelf?",
          "We stand openly on open models — Meta MMS-TTS, OpenAI Whisper, AI4Bharat IndicTrans2. "
          "<strong>What we built is the platform: the multi-tenant API gateway, the drop-in widget, "
-         "the cross-site browser extension, the on-device WebAssembly pipeline, the accessible exam "
-         "module, and the admin dashboard</strong> — turning open models into deployable public "
+         "the cross-site browser extension, the on-device WebAssembly pipeline, and the admin "
+         "dashboard</strong> — turning open models into deployable public "
          "accessibility infrastructure."),
     ]),
 ]

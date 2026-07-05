@@ -45,8 +45,7 @@
       <rect class="box blue" x="20" y="20" width="180" height="180"></rect>
       <text class="t b blue" x="110" y="42" text-anchor="middle">Any website</text>
       <rect class="box" x="38" y="56" width="144" height="26"></rect><text class="t" x="110" y="73" text-anchor="middle">Accessibility widget</text>
-      <rect class="box" x="38" y="90" width="144" height="26"></rect><text class="t" x="110" y="107" text-anchor="middle">Browser extension</text>
-      <rect class="box" x="38" y="124" width="144" height="26"></rect><text class="t" x="110" y="141" text-anchor="middle">Accessible exam</text>
+      <rect class="box" x="38" y="107" width="144" height="26"></rect><text class="t" x="110" y="124" text-anchor="middle">Browser extension</text>
       <rect class="box" x="38" y="158" width="144" height="26"></rect><text class="t" x="110" y="175" text-anchor="middle">Admin dashboard</text>
       <!-- gateway -->
       <path class="arrow" d="M200 110 H300" marker-end="url(#ah)"></path>
@@ -70,7 +69,7 @@
     <tbody>
       <tr><td>01</td><td><a href="01-the-problem.html"><strong>The Problem &amp; The Big Idea</strong></a></td><td>Who we serve and why accessibility should be shared infrastructure.</td></tr>
       <tr><td>02</td><td><a href="02-architecture.html"><strong>System Architecture</strong></a></td><td>The gateway, the request lifecycle, and the “mock-first” safety net.</td></tr>
-      <tr><td>03</td><td><a href="03-the-six-components.html"><strong>The Six Components</strong></a></td><td>TTS, STT, Translation, Gateway, Exam, and Admin — what each does.</td></tr>
+      <tr><td>03</td><td><a href="03-the-six-components.html"><strong>The Five Components</strong></a></td><td>TTS, STT, Translation, Gateway, and Admin — what each does.</td></tr>
       <tr><td>04</td><td><a href="04-reaching-real-websites.html"><strong>Reaching Real Websites</strong></a></td><td>How the widget &amp; extension put accessibility on any site.</td></tr>
       <tr><td>05</td><td><a href="05-how-the-ai-works.html"><strong>How the AI Works</strong></a></td><td>Speech and translation explained simply, with the real models.</td></tr>
       <tr><td>06</td><td><a href="06-odia-first-design.html"><strong>Odia-First Design</strong></a></td><td>Typography, dyslexia rules, and why Odia is the reference language.</td></tr>
@@ -126,7 +125,7 @@
 
   <h2>The big idea: accessibility as shared infrastructure</h2>
   <p>India built one payments network (UPI) instead of every bank inventing its own. We apply the same idea to
-  accessibility. Build the hard parts — Odia speech, reading, translation, accessible exams — <strong>once,
+  accessibility. Build the hard parts — Odia speech, reading, translation — <strong>once,
   centrally</strong>, and let any institution “plug in,” the way they plug in payments or SMS today.</p>
 
   <figure class="diagram">
@@ -149,7 +148,7 @@
       <path class="arrow blue" d="M340 140 C 340 124, 540 124, 540 114" marker-end="url(#ah)"></path>
       <rect class="box solid" x="470" y="92" width="210" height="56"></rect>
       <text class="t b white" x="575" y="116" text-anchor="middle">AaaS accessibility grid</text>
-      <text class="t sm white" x="575" y="134" text-anchor="middle" style="fill:#cfe0ff">Odia voice · translation · reading · exams</text>
+      <text class="t sm white" x="575" y="134" text-anchor="middle" style="fill:#cfe0ff">Odia voice · translation · reading</text>
     </svg>
     <figcaption>“Electricity for accessibility”: every institution plugs into the same grid. The grid starts in Odisha and grows outward.</figcaption>
   </figure>
@@ -191,7 +190,7 @@
   never goes dark. Here is how the pieces fit and how a single click becomes spoken Odia.</p>
 
   <h2>The whole system at a glance</h2>
-  <p>Everything a user touches (the widget, the browser extension, the exam, the admin dashboard) talks to a single
+  <p>Everything a user touches (the widget, the browser extension, the admin dashboard) talks to a single
   <strong>API Gateway</strong>. The gateway checks the request, then forwards it to whichever AI service can answer:
   text-to-speech, speech-to-text, or translation. Nothing else is exposed to the internet.</p>
 
@@ -201,13 +200,12 @@
         <marker id="ahb" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1657c8"/></marker></defs>
 
       <!-- clients zone -->
-      <rect class="zone" x="14" y="14" width="180" height="292"></rect>
+      <rect class="zone" x="14" y="14" width="180" height="250"></rect>
       <text class="t sm" x="104" y="32" text-anchor="middle" style="fill:#46505f">CLIENTS (any browser)</text>
       <rect class="box blue" x="30" y="44"  width="148" height="34"></rect><text class="t" x="104" y="65" text-anchor="middle">Widget on a website</text>
       <rect class="box blue" x="30" y="86"  width="148" height="34"></rect><text class="t" x="104" y="107" text-anchor="middle">Browser extension</text>
-      <rect class="box blue" x="30" y="128" width="148" height="34"></rect><text class="t" x="104" y="149" text-anchor="middle">Accessible exam</text>
-      <rect class="box blue" x="30" y="170" width="148" height="34"></rect><text class="t" x="104" y="191" text-anchor="middle">Admin dashboard</text>
-      <rect class="box blue" x="30" y="212" width="148" height="34"></rect><text class="t" x="104" y="233" text-anchor="middle">Demo sites</text>
+      <rect class="box blue" x="30" y="128" width="148" height="34"></rect><text class="t" x="104" y="149" text-anchor="middle">Admin dashboard</text>
+      <rect class="box blue" x="30" y="170" width="148" height="34"></rect><text class="t" x="104" y="191" text-anchor="middle">Demo sites</text>
 
       <!-- gateway -->
       <path class="arrow blue" d="M194 130 H266" marker-end="url(#ahb)"></path>
@@ -231,7 +229,7 @@
       <rect class="box grey" x="266" y="232" width="140" height="60"></rect>
       <text class="t b" x="336" y="254" text-anchor="middle">Static files</text>
       <text class="t sm" x="336" y="270" text-anchor="middle">widget.js, demo,</text>
-      <text class="t sm" x="336" y="283" text-anchor="middle">exam, admin pages</text>
+      <text class="t sm" x="336" y="283" text-anchor="middle">admin pages</text>
       <text class="t sm" x="575" y="238" text-anchor="middle" style="fill:#46505f">Gateway default port: 8000</text>
     </svg>
     <figcaption>One gateway is the public entry point; the three AI services sit behind it and are never exposed directly.</figcaption>
@@ -291,12 +289,12 @@
 
 <!-- 03-the-six-components.html -->
 <section class="sheet">
-  <div class="masthead"><span><b>AaaS</b> · Chapter 03</span><span>The Six Components</span></div>
+  <div class="masthead"><span><b>AaaS</b> · Chapter 03</span><span>The Five Components</span></div>
 
   <p class="kicker">Chapter 03</p>
-  <h1 class="title">The Six Components</h1>
-  <p class="lead">The platform is six cooperating parts. Three are backend AI services; three are things people see and use.
-  Each has one clear job, so any one can be improved or replaced without disturbing the others.</p>
+  <h1 class="title">The Five Components</h1>
+  <p class="lead">The platform is five cooperating parts. Three are backend AI services; two are the front door and the
+  operator’s control room. Each has one clear job, so any one can be improved or replaced without disturbing the others.</p>
 
   <div class="legend">
     <span><i style="background:var(--green)"></i> real engine working today</span>
@@ -311,7 +309,7 @@
   at start-up; Hindi and English load on first use. Runs comfortably on a normal CPU.</p>
 
   <h2>2 · Speech-to-Text (STT) <span class="pill mock">mock → real</span></h2>
-  <p><strong>What it does:</strong> turns a short voice recording into text so people can fill forms or answer exams by speaking.
+  <p><strong>What it does:</strong> turns a short voice recording into text so people can fill forms by speaking.
   <strong>How:</strong> the browser records up to ten seconds and sends the audio to the gateway. The real Odia engine is
   AI4Bharat’s <em>IndicWav2Vec</em>; <em>Whisper</em> is the fallback for English and code-mixed speech. If the (access-gated)
   Odia model or its libraries aren’t present, the service automatically serves a deterministic mock instead.</p>
@@ -334,12 +332,7 @@
   forwards the call to the right service, and also serves the widget file and the web pages — all from one place, which keeps
   cross-site security simple.</p>
 
-  <h2>5 · The Accessible Exam <span class="pill real">real</span></h2>
-  <p><strong>What it does:</strong> a mock board-exam built for disability from the ground up. <strong>How:</strong> Odia questions,
-  a “read this question aloud” button, answer-by-voice, a dyslexia-friendly font toggle, high-contrast and large-text modes,
-  and a <em>+50% extra-time</em> timer per the RPwD Act. It reuses the same TTS and STT services through the gateway.</p>
-
-  <h2>6 · The Admin Dashboard <span class="pill real">real</span></h2>
+  <h2>5 · The Admin Dashboard <span class="pill real">real</span></h2>
   <p><strong>What it does:</strong> the operator’s control room. <strong>How:</strong> it lists tenants and their API keys, shows
   live usage (requests, errors, latency) as a chart, and runs a one-click <strong>WCAG accessibility scan</strong> of any demo
   page using the industry-standard <em>axe-core</em> engine — producing a pass/violation report on the spot.</p>
@@ -358,12 +351,12 @@
   </table>
 
   <div class="callout good">
-    <span class="h">One integration surface, six wins</span>
+    <span class="h">One integration surface, five wins</span>
     <p>An institution drops in <strong>one line of code</strong> and gets read-aloud, dictation, translation, dyslexia
-    support, accessible exams, and WCAG monitoring — without building any of it themselves.</p>
+    support, and WCAG monitoring — without building any of it themselves.</p>
   </div>
 
-  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 03 · The Six Components</span></div>
+  <div class="chapter-foot"><span>AaaS · Accessibility as a Service</span><span>Chapter 03 · The Five Components</span></div>
 </section>
 
 <!-- 04-reaching-real-websites.html -->
@@ -615,7 +608,7 @@
 
   <p class="kicker">Chapter 07</p>
   <h1 class="title">Security, Privacy &amp; Accessibility</h1>
-  <p class="lead">Accessibility tools touch sensitive data — voices, disability records, exam papers. Government won’t adopt a
+  <p class="lead">Accessibility tools touch sensitive data — voices, disability records, personal documents. Government won’t adopt a
   black box. So trust is designed in: minimal data, Indian residency, and accessibility treated as correctness.</p>
 
   <h2>Privacy under the DPDP Act 2023</h2>
@@ -726,8 +719,8 @@
 SETUP-FRIEND.bat
 <span class="c"># every time you want the demo</span>
 RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo/</span></div>
-  <p class="small">Then visit <code>http://127.0.0.1:8000/demo/</code> for the landing page with the three Odisha demo sites,
-  the exam, and the admin dashboard.</p>
+  <p class="small">Then visit <code>http://127.0.0.1:8000/demo/</code> for the landing page with the three Odisha demo sites
+  and the admin dashboard.</p>
 
   <h2>The two-minute judge walkthrough</h2>
   <p>“Priya is a blind student in Jajpur applying to Utkal University.” Every step degrades gracefully if something misbehaves.</p>
@@ -735,9 +728,8 @@ RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo
     <li><b>Open the Utkal University demo.</b> The <span class="odia">ଅ</span> button is in the corner. Press it → “Read this page” → the page reads aloud in Odia.</li>
     <li><b>Switch to English &amp; translate.</b> Flip the language; the page re-reads in English for her English-speaking helper. Translation runs through our own gateway.</li>
     <li><b>Fill a field by voice.</b> Tap the mic, speak a name in Odia, watch it become text in the form.</li>
-    <li><b>Open the exam.</b> It loads with a dyslexia-friendly font, high contrast, and a +50% extra-time banner; each question can be read aloud and answered by voice.</li>
     <li><b>Open the admin dashboard.</b> Show the tenant list, the live usage chart (Priya’s session is visible), and a one-click WCAG scan returning an AA report.</li>
-    <li><b>Land the message.</b> “One integration surface — TTS, dictation, translation, and WCAG monitoring. Six compliance wins from one line of code.”</li>
+    <li><b>Land the message.</b> “One integration surface — TTS, dictation, translation, and WCAG monitoring. Five compliance wins from one line of code.”</li>
   </ol>
 
   <h2>If something breaks (rehearsed fallbacks)</h2>
@@ -780,7 +772,7 @@ RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo
     <p>“Odisha has 42 million Odia speakers and 21 lakh persons with disabilities, yet government portals are English-first and
     unusable for them. Today every institution is expected to fix this alone, and almost none do. Our insight: accessibility is
     <strong>infrastructure</strong>, not 200 separate projects. So we built a single platform — Odia voice, dictation, translation,
-    a dyslexia-aware reading mode, accessible exams, and a WCAG compliance dashboard — behind one API. An institution adds one
+    a dyslexia-aware reading mode, and a WCAG compliance dashboard — behind one API. An institution adds one
     line of code and its users get all of it. It’s open-source, runs on-prem inside India for DPDP compliance, and it’s working
     today. We’re asking you to help us pilot it at one Odisha institution.”</p>
   </div>
@@ -789,7 +781,7 @@ RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo
   <div class="stats">
     <div class="stat"><b>42M+</b><span>Odia speakers</span></div>
     <div class="stat"><b>21L+</b><span>PwD in Odisha</span></div>
-    <div class="stat"><b>6</b><span>components, 1 API</span></div>
+    <div class="stat"><b>5</b><span>components, 1 API</span></div>
     <div class="stat"><b>0</b><span>WCAG violations on the demo site</span></div>
   </div>
 
@@ -810,11 +802,11 @@ RUN-DEMO.bat        <span class="c"># opens 4 windows, then the browser at /demo
 
   <h3>“It’s a hackathon project — is the rest vapourware?”</h3>
   <p>Check the repository: a real threat model, a DPDP data-flow map, a machine-enforced WCAG checklist, CI, and an SBOM are all
-  there. The six components run today. We show what’s built and label what’s roadmap.</p>
+  there. The five components run today. We show what’s built and label what’s roadmap.</p>
 
   <h2>What’s built today vs what’s next</h2>
   <ul class="tl">
-    <li class="done"><span class="ph">Done · Foundations &amp; working slice</span><br><span class="small">Design system, CI, threat model, DPDP map, WCAG harness — plus all six components running: TTS, STT, translation, gateway, exam, admin.</span></li>
+    <li class="done"><span class="ph">Done · Foundations &amp; working slice</span><br><span class="small">Design system, CI, threat model, DPDP map, WCAG harness — plus all five components running: TTS, STT, translation, gateway, admin.</span></li>
     <li class="done"><span class="ph">Done · Real websites</span><br><span class="small">Browser extension + widget verified injecting and reading aloud on live third-party sites; translation routed through our own gateway.</span></li>
     <li><span class="ph">Next · Pilot hardening</span><br><span class="small">Real sign-in (Keycloak/DigiLocker), a database for tenants &amp; keys, rate-limits, and a commercially-licensed Odia voice.</span></li>
     <li><span class="ph">Next · Language &amp; assistance breadth</span><br><span class="small">More Indian languages, a screen-reader overlay, sign-language avatar, and a public accuracy benchmark per language.</span></li>

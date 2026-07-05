@@ -106,8 +106,9 @@ The demo home page has three buttons leading to realistic Odisha demo sites:
    widget (bottom-right). Click it and try the Odia voice, translation,
    reading tools, and dyslexia mode.
 2. **Odisha government benefits portal** — same widget, a different tenant.
-3. **Examination portal** — the accessible exam experience (extended time,
-   audio support, dyslexia-friendly font settings).
+3. **BSE Odisha exam-board site** — the Board of Secondary Education demo
+   tenant (schedules, results, accessibility provisions for PwD candidates),
+   with the same widget.
 
 The **browser extension** is also ready to load — see `apps/extension/README.md`
 for the "Load unpacked" flow in Chrome/Edge.
@@ -152,7 +153,6 @@ separately, AaaS provides plug-and-play APIs:
 - Odia / Hindi / English TTS (Meta MMS-TTS)
 - Odia STT (AI4Bharat IndicWav2Vec)
 - Indic ↔ English translation (Meta NLLB-200)
-- Accessible examination tooling
 - WCAG 2.2 AA compliance dashboard
 
 Built for the Smart Odisha Hackathon '25 by Team SUBARNAREKHA.
