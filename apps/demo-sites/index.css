@@ -206,3 +206,11 @@ h2 { margin: 0 0 0.8rem; font-size: 1.35rem; }
 }
 .foot p { margin: 0.15rem 0; }
 .foot .muted { color: #6a7585; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line, #3b4a63);
+  color: inherit;
+  margin-left: 0.5rem;
+}
+.btn-ghost:hover { border-color: currentColor; }
