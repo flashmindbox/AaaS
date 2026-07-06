@@ -26,6 +26,7 @@ from racing the ``from_pretrained`` call on the same model.
 from __future__ import annotations
 
 import asyncio
+from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
@@ -40,6 +41,12 @@ logger = structlog.get_logger(__name__)
 # Silence spliced between fragments of different languages — same
 # rationale as the inter-chunk silence in MMSEngine.
 _INTER_RUN_SILENCE_MS = 100
+
+# Synthesis is the most expensive call in the stack (0.5–2 s per chunk
+# on CPU) and the most repetitive: the widget re-speaks the same
+# structure prefixes, notice sentences and hover labels constantly.
+# ~256 clips at the typical 50–200 KB each stays well under 50 MB.
+_RESULT_CACHE_MAX = 256
 
 
 class UnsupportedLanguageError(ValueError):
@@ -74,6 +81,9 @@ class MultiLangMMSEngine:
         # One lock *per language* so warm Odia traffic doesn't block
         # while Hindi is loading for the first time.
         self._load_locks: dict[str, asyncio.Lock] = {}
+        # Bounded LRU of finished clips keyed (lang, text). Only
+        # successful results enter; failures always retry.
+        self._results: OrderedDict[tuple[str, str], TTSResult] = OrderedDict()
         # Preserve the "has this been loaded?" signal the /readyz route
         # inspects via ``getattr(engine, "_model", None)``. We proxy that
         # by exposing the default-language engine's ``_model`` attribute
@@ -142,6 +152,18 @@ class MultiLangMMSEngine:
         if lang not in self._language_models:
             # Preserve the old error for unconfigured languages.
             await self._ensure_loaded(lang)
+        cache_key = (lang, text)
+        cached = self._results.get(cache_key)
+        if cached is not None:
+            self._results.move_to_end(cache_key)
+            return cached
+        result = await self._synthesise_uncached(text, lang)
+        self._results[cache_key] = result
+        while len(self._results) > _RESULT_CACHE_MAX:
+            self._results.popitem(last=False)
+        return result
+
+    async def _synthesise_uncached(self, text: str, lang: str) -> TTSResult:
         runs = split_script_runs(text, primary=lang)
         # Only keep runs for languages we can actually speak; foreign
         # scripts we have no model for fall back to the request lang

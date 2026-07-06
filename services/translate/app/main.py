@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from app import __version__
 from app.config import Settings, get_settings
 from app.engine.base import TranslateEngine
+from app.engine.cache import CachingOcrEngine, CachingTranslateEngine
 from app.engine.ocr_base import OcrEngine
 from app.engine.simplify_base import SimplifyEngine
 from app.engine.simplify_rules import RuleSimplifyEngine
@@ -172,11 +173,19 @@ def create_app(
         lifespan=_lifespan,
     )
     app.state.settings = settings
-    app.state.engine = engine if engine is not None else _build_default_engine(settings)
+    # Both slow engines are wrapped in bounded result caches: identical
+    # requests repeat constantly (static pages, demo rehearsals) and
+    # IndicTrans2/Tesseract pay seconds each time. Simplify stays
+    # uncached — the rules run in microseconds.
+    app.state.engine = CachingTranslateEngine(
+        engine if engine is not None else _build_default_engine(settings)
+    )
     # Rule-based, no model weights, no load() — ready at import. An LLM
     # engine can be injected here later without touching the route.
     app.state.simplify_engine = simplify_engine if simplify_engine is not None else RuleSimplifyEngine()
-    app.state.ocr_engine = ocr_engine if ocr_engine is not None else _build_default_ocr_engine(settings)
+    app.state.ocr_engine = CachingOcrEngine(
+        ocr_engine if ocr_engine is not None else _build_default_ocr_engine(settings)
+    )
     app.include_router(health.router)
     app.include_router(translate.router)
     app.include_router(simplify.router)
