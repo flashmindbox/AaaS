@@ -151,11 +151,53 @@
       <aside id="grievance" class="grievance">
         <h2>File a Grievance</h2>
         <p>
-          Use the online grievance portal to report issues with
-          certificates, welfare-scheme payments, or public
-          infrastructure. For citizens who cannot write, voice-recorded
-          grievances in Odia are also accepted.
+          Report issues with certificates, welfare-scheme payments, or
+          public infrastructure. Citizens who cannot type can fill this
+          form by voice: open the ଅ assistant and tap
+          <strong>କହି ଲେଖ · Speak to fill</strong> — it will ask for
+          each answer aloud, in Odia.
         </p>
+        <form id="grievance-form" style="display:grid;gap:0.7rem;max-width:34rem;">
+          <div>
+            <label for="gv-name" style="display:block;font-weight:600;">ପୂରା ନାମ · Full name</label>
+            <input id="gv-name" name="name" type="text" autocomplete="name"
+                   style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="gv-address" style="display:block;font-weight:600;">ଗ୍ରାମ / ଠିକଣା · Village / Address</label>
+            <input id="gv-address" name="address" type="text" autocomplete="street-address"
+                   style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="gv-phone" style="display:block;font-weight:600;">ଫୋନ୍ ନମ୍ବର · Phone number</label>
+            <input id="gv-phone" name="phone" type="tel" autocomplete="tel"
+                   style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="gv-age" style="display:block;font-weight:600;">ବୟସ · Age</label>
+            <input id="gv-age" name="age" type="number" min="1" max="120"
+                   style="width:8rem;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="gv-details" style="display:block;font-weight:600;">ଅଭିଯୋଗ ବିବରଣୀ · Grievance details</label>
+            <textarea id="gv-details" name="details" rows="3"
+                      style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;"></textarea>
+          </div>
+          <div>
+            <button type="button" id="gv-submit"
+                    style="background:#14335d;color:#fff;border:0;border-radius:8px;padding:0.65rem 1.3rem;font-weight:600;cursor:pointer;">
+              ଦାଖଲ କରନ୍ତୁ · Submit (demo)
+            </button>
+            <p id="gv-msg" role="status" style="margin-top:0.5rem;font-weight:600;color:#1b6e3c;"></p>
+          </div>
+        </form>
+        <script>
+          document.getElementById("gv-submit").addEventListener("click", function () {
+            var name = document.getElementById("gv-name").value || "—";
+            document.getElementById("gv-msg").textContent =
+              "ଧନ୍ୟବାଦ " + name + "! Grievance registered (demo) · Reference JJP-2026-0421";
+          });
+        </script>
         <p>Typical resolution time: 30 days.</p>
       </aside>
     </main>

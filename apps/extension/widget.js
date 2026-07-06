@@ -833,6 +833,120 @@
     return out;
   }
 
+  /* ---------- guided voice form fill ----------
+   * "Speak to fill" walks a form field by field: highlight, speak the
+   * label, listen, clean the answer to fit the field type, write it,
+   * move on. Pure helpers live here (smoke-testable); the loop itself
+   * is in mount(). It NEVER submits — the user always presses Submit.
+   */
+
+  /* Odia → Latin romanization for form values. Spoken names and
+   * places must reach English-only forms as the SAME name in Latin
+   * letters ("ପୂର୍ଣ୍ଣଚନ୍ଦ୍ର" -> "Purnnachandra", "ବଡ଼ଚଣା" ->
+   * "Badachana") — meaning-translation turns names into nonsense
+   * ("full moon", "firework") and raw Odia is rejected by most sites.
+   * Rule-based phonetic mapping: consonants carry an inherent 'a'
+   * unless a matra or virama follows; words are title-cased.
+   */
+  const ODIA_VOWELS = {
+    "ଅ": "a", "ଆ": "aa", "ଇ": "i", "ଈ": "i", "ଉ": "u", "ଊ": "u",
+    "ଋ": "ru", "ୠ": "ru", "ଏ": "e", "ଐ": "ai", "ଓ": "o", "ଔ": "au",
+  };
+  const ODIA_CONSONANTS = {
+    "କ": "k", "ଖ": "kh", "ଗ": "g", "ଘ": "gh", "ଙ": "ng",
+    "ଚ": "ch", "ଛ": "chh", "ଜ": "j", "ଝ": "jh", "ଞ": "n",
+    "ଟ": "t", "ଠ": "th", "ଡ": "d", "ଢ": "dh", "ଣ": "n",
+    "ତ": "t", "ଥ": "th", "ଦ": "d", "ଧ": "dh", "ନ": "n",
+    "ପ": "p", "ଫ": "ph", "ବ": "b", "ଭ": "bh", "ମ": "m",
+    "ଯ": "j", "ର": "r", "ଲ": "l", "ଳ": "l", "ଵ": "v", "ୱ": "w",
+    "ଶ": "sh", "ଷ": "sh", "ସ": "s", "ହ": "h", "ୟ": "y",
+    "ଡ଼": "d", "ଢ଼": "rh",
+  };
+  const ODIA_MATRAS = {
+    "ା": "a", "ି": "i", "ୀ": "i", "ୁ": "u", "ୂ": "u",
+    "ୃ": "ru", "ୄ": "ru", "େ": "e", "ୈ": "ai", "ୋ": "o", "ୌ": "au",
+  };
+  const ODIA_SIGNS = { "ଂ": "n", "ଁ": "n", "ଃ": "h", "।": ".", "॥": "." };
+
+  function romanizeOdia(text) {
+    let out = "";
+    let pendingA = false; // a consonant's inherent vowel, not yet emitted
+    const flush = () => {
+      if (pendingA) {
+        out += "a";
+        pendingA = false;
+      }
+    };
+    for (const ch of text || "") {
+      if (ch === "଼") continue; // nukta — modifier only
+      if (ODIA_CONSONANTS[ch] !== undefined) {
+        flush();
+        out += ODIA_CONSONANTS[ch];
+        pendingA = true;
+      } else if (ODIA_MATRAS[ch] !== undefined) {
+        pendingA = false;
+        out += ODIA_MATRAS[ch];
+      } else if (ch === "୍") {
+        pendingA = false; // virama kills the inherent vowel
+      } else if (ODIA_VOWELS[ch] !== undefined) {
+        flush();
+        out += ODIA_VOWELS[ch];
+      } else if (ODIA_SIGNS[ch] !== undefined) {
+        flush();
+        out += ODIA_SIGNS[ch];
+      } else if (ch >= "୦" && ch <= "୯") {
+        flush();
+        out += String(ch.charCodeAt(0) - 0x0b66);
+      } else {
+        flush();
+        out += ch;
+      }
+    }
+    flush();
+    // Title-case each word so names look like names.
+    return out.replace(/(^|[\s,.-])([a-z])/g, (m, sep, c) => sep + c.toUpperCase());
+  }
+
+  // Clean a spoken answer to fit the field it's going into.
+  function normalizeSpokenValue(type, text) {
+    const t = (text || "").trim();
+    if (!t) return t;
+    if (type === "tel" || type === "number") {
+      // "ନଅ ଆଠ ସାତ…" arrives as digits from STT; strip separators the
+      // speaker never intended ("98 76 54" -> "987654").
+      const digits = toWesternDigits(t).replace(/\D+/g, "");
+      return digits || t;
+    }
+    if (type === "email") {
+      return toWesternDigits(t)
+        .toLowerCase()
+        .replace(/\s+(at|@)\s+/g, "@")
+        .replace(/\s+dot\s+/g, ".")
+        .replace(/[\s।]+/g, "")
+        .replace(/\.+$/, "");
+    }
+    // Plain text: drop a trailing danda/period the STT likes to add.
+    return t.replace(/[।.]+$/, "").trim();
+  }
+
+  // The editable, visible, fillable fields on the page, in DOM order.
+  const GUIDED_INPUT_TYPES = ["text", "search", "email", "url", "tel", "number", ""];
+
+  function collectFormFields() {
+    const out = [];
+    document.querySelectorAll("input, textarea").forEach((el) => {
+      if (el.closest("[data-aaas-widget]")) return;
+      if (el.disabled || el.readOnly) return;
+      if (el.tagName === "INPUT") {
+        const type = (el.type || "text").toLowerCase();
+        if (!GUIDED_INPUT_TYPES.includes(type)) return;
+      }
+      if (!isVisible(el)) return;
+      out.push(el);
+    });
+    return out;
+  }
+
   async function probeGateway() {
     try {
       const r = await fetch(`${CONFIG.gateway}/healthz`, {
@@ -3726,6 +3840,11 @@
     window.addEventListener("keydown", (e) => {
       // Escape: always works. Closes panel if open, otherwise stops.
       if (e.key === "Escape") {
+        if (guidedActive) {
+          cancelGuided("Guided fill stopped.");
+          e.preventDefault();
+          return;
+        }
         if (shortcutsOverlay.getAttribute("data-open") === "true") {
           toggleShortcuts(false);
           e.preventDefault();
@@ -3908,29 +4027,20 @@
         const label = result.engine === "mock" ? " (mock)" : "";
         const src = (result.language || "").toLowerCase().split("-")[0];
 
+        // Transliterate, never translate: form values must be the SAME
+        // words in Latin letters ("ପୂର୍ଣ୍ଣଚନ୍ଦ୍ର" -> "Purnnachandra"),
+        // because meaning-translation turns names into nonsense ("full
+        // moon") and raw Odia is rejected by most real forms.
         let fillText = toWesternDigits(result.text || "");
-        let translateFailed = false;
-        if (result.text && src && src !== "en") {
-          try {
-            const raw = await translateChunk(result.text, src, "en");
-            // Strip any `[or->en] ` passthrough that mock emits for
-            // uncovered phrases, then verify the body is actually Latin
-            // script. Off-script output means the translator couldn't
-            // handle this phrase; writing Odia into an English form
-            // would defeat the whole accessibility flow, so we leave
-            // the field empty and surface the failure loudly.
-            const stripped = stripPassthroughAnnotation(raw || "").trim();
-            if (stripped && looksLikeTargetScript(stripped, "en")) {
-              fillText = toWesternDigits(stripped);
-            } else {
-              translateFailed = true;
-              fillText = "";
-            }
-          } catch (err) {
-            console.warn("[AaaS] translate to English failed", err);
-            translateFailed = true;
-            fillText = "";
-          }
+        const translateFailed = false;
+        if (result.text && src === "or") {
+          fillText = romanizeOdia(result.text);
+        }
+        if (fillText && lastEditableEl && lastEditableEl.tagName === "INPUT") {
+          fillText = normalizeSpokenValue(
+            (lastEditableEl.type || "text").toLowerCase(),
+            fillText,
+          );
         }
 
         // Auto-fill the last editable field the user touched. Cooperating
@@ -3939,13 +4049,8 @@
         if (fillText && lastEditableEl) {
           filled = writeToField(lastEditableEl, fillText);
         }
-        const arrow = src && src !== "en" ? " → en" : "";
-        if (translateFailed) {
-          setStatus(
-            `Transcribed (${src})${label} — translation to English unavailable; form field left empty. Install real translate engine for real translations.`,
-            "error",
-          );
-        } else if (filled) {
+        const arrow = src === "or" ? " → romanized" : "";
+        if (filled) {
           setStatus(`Filled field (${src}${arrow})${label}`, "ok");
         } else if (fillText) {
           setStatus(
@@ -3981,7 +4086,162 @@
       }
     }
 
+    /* ----- Guided voice form fill -----
+     * With no field focused, "Speak to fill" walks every field on the
+     * page: highlight + speak the label, listen, clean the answer to
+     * the field type, write it, advance. Esc or tapping the tile again
+     * cancels. It NEVER submits the form. The "aaas-guided-input"
+     * CustomEvent feeds an answer without a mic (testing, kiosks with
+     * keyboards, rehearsals).
+     */
+    let guidedActive = false;
+    let guidedResolve = null;
+    let guidedPendingInput = null;
+
+    document.addEventListener("aaas-guided-input", (ev) => {
+      const text = ((ev.detail && ev.detail.text) || "").toString();
+      if (guidedResolve) {
+        const r = guidedResolve;
+        guidedResolve = null;
+        try { if (recorder.isRecording()) recorder.stop().catch(() => {}); } catch {}
+        r(text);
+      } else if (guidedActive) {
+        // Arrived while the label prompt was still speaking — hold it
+        // for the capture that's about to start.
+        guidedPendingInput = text;
+      }
+    });
+
+    // One spoken answer: resolves with the transcript from the mic
+    // (auto-stop or tile tap) or from an injected event; "" on failure.
+    function captureVoiceText() {
+      if (guidedPendingInput !== null) {
+        const t = guidedPendingInput;
+        guidedPendingInput = null;
+        return Promise.resolve(t);
+      }
+      return new Promise((resolve) => {
+        let settled = false;
+        const finish = (v) => {
+          if (settled) return;
+          settled = true;
+          if (guidedResolve) guidedResolve = null;
+          resolve(v);
+        };
+        guidedResolve = finish;
+        const handleBlob = async (blob) => {
+          try {
+            const r = await transcribe(blob, resolvedLang());
+            transcriptEl.textContent = r.text || "";
+            finish(r.text || "");
+          } catch (err) {
+            console.warn("[AaaS] guided transcribe failed:", err);
+            finish("");
+          }
+        };
+        recorder.start({ onAutoStop: handleBlob }).catch(() => {
+          // Mic unavailable — stay open for injected input only.
+          setStatus("Mic unavailable — waiting for typed input", "error");
+        });
+        guidedStopBlob = handleBlob;
+      });
+    }
+    let guidedStopBlob = null;
+
+    // Speak a short prompt and wait for the audio to finish so the
+    // TTS voice doesn't bleed into the recording.
+    async function speakPrompt(text) {
+      try {
+        await announcer.announce({ text, prefix: "", role: "prompt", element: null });
+        await new Promise((resolve) => {
+          const a = announcer.audio;
+          if (!a.src || a.ended) { resolve(); return; }
+          const done = () => {
+            a.removeEventListener("ended", done);
+            a.removeEventListener("pause", done);
+            a.removeEventListener("error", done);
+            resolve();
+          };
+          a.addEventListener("ended", done);
+          a.addEventListener("pause", done);
+          a.addEventListener("error", done);
+        });
+      } catch {}
+    }
+
+    function cancelGuided(message) {
+      guidedActive = false;
+      guidedPendingInput = null;
+      if (guidedResolve) {
+        const r = guidedResolve;
+        guidedResolve = null;
+        r("");
+      }
+      try { if (recorder.isRecording()) recorder.stop().catch(() => {}); } catch {}
+      micBtn.classList.remove("recording");
+      micBtn.querySelector("span:last-child").textContent = "Speak to fill";
+      if (message) setStatus(message);
+    }
+
+    async function guidedFormFill(fields) {
+      guidedActive = true;
+      micBtn.classList.add("recording");
+      micBtn.querySelector("span:last-child").textContent = "Guided fill — Esc stops";
+      let filled = 0;
+      try {
+        for (const field of fields) {
+          if (!guidedActive) return;
+          const label = getAccessibleName(field) || field.name || "this field";
+          try { field.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
+          try { field.focus(); } catch {}
+          highlightVoiceTarget(field);
+          setStatus(`🎙️ ${label}`);
+          await speakPrompt(label);
+          if (!guidedActive) return;
+          const raw = await captureVoiceText();
+          if (!guidedActive) return;
+          if (!raw.trim()) {
+            setStatus(`Skipped: ${label}`);
+            continue;
+          }
+          // Transliterate, never translate: the spoken Odia is written
+          // as the SAME words in Latin letters ("ପୂର୍ଣ୍ଣଚନ୍ଦ୍ର" ->
+          // "Purnnachandra") — meaning-translation turns names into
+          // nonsense and raw Odia is rejected by most real forms.
+          // Then field-type cleanup (digits for phone/number, at/dot
+          // for email, trailing danda dropped).
+          const type = field.tagName === "INPUT" ? (field.type || "text").toLowerCase() : "textarea";
+          let value = raw;
+          if (dominantScript(raw) === "or") value = romanizeOdia(raw);
+          value = normalizeSpokenValue(type, value);
+          if (writeToField(field, value)) filled++;
+        }
+        setStatus(
+          `Form filled (${filled} field${filled === 1 ? "" : "s"}) — please check the answers and press Submit yourself`,
+          "ok",
+        );
+        speakPrompt("Done. Please check the answers.");
+      } finally {
+        guidedActive = false;
+        micBtn.classList.remove("recording");
+        micBtn.querySelector("span:last-child").textContent = "Speak to fill";
+      }
+    }
+
     micBtn.addEventListener("click", async () => {
+      if (guidedActive) {
+        // Second tap during guided fill: if we're recording an answer,
+        // finish it now; otherwise cancel the walk.
+        if (recorder.isRecording() && guidedStopBlob) {
+          try {
+            const blob = await recorder.stop();
+            guidedStopBlob(blob);
+          } catch {}
+          return;
+        }
+        cancelGuided("Guided fill stopped.");
+        return;
+      }
       if (recorder.isRecording()) {
         if (voiceNavRecording) {
           setStatus("Mic busy — finish the voice command first", "error");
@@ -3994,6 +4254,16 @@
           setStatus(`Mic error: ${err.message}`, "error");
         }
         return;
+      }
+      // No field focused -> guided mode over the page's form fields.
+      const focusedField =
+        lastEditableEl && lastEditableEl.isConnected && isVisible(lastEditableEl);
+      if (!focusedField) {
+        const fields = collectFormFields();
+        if (fields.length >= 2) {
+          guidedFormFill(fields);
+          return;
+        }
       }
       transcriptEl.textContent = "";
       try {
