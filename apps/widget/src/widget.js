@@ -2634,7 +2634,7 @@
           <label class="toggle">
             <input type="checkbox" id="aaas-hover" />
             <span class="toggle-text"><span lang="or">ଛୁଇଁଲେ କୁହେ</span> · Hover to speak</span>
-            <span class="toggle-hint">Speaks whatever your mouse points at</span>
+            <span class="toggle-hint">Speaks what you point at — or select</span>
           </label>
 
           <button class="shortcuts-link" type="button">⌨️ Keyboard shortcuts</button>
@@ -3347,11 +3347,26 @@
       announcer.announce(atom);
     }, 200);
 
-    // `selectionchange` fires many times per drag; debounce 400 ms
-    // before we bother translating + synthesising.
-    const selectionHandler = debounce(() => {
+    // `selectionchange` fires many times per drag; debounce so we only
+    // speak once the selection settles. With "Hover to speak" on, the
+    // WHOLE selection is read — sentence by sentence through the
+    // announcer, translated like everything else — so a citizen can
+    // select a paragraph of a notice and hear all of it. The sequence
+    // stops when the user selects something new, clicks away
+    // (collapsing the selection), hovers another element, presses Esc,
+    // or starts the page reader.
+    const SELECTION_MAX_CHARS = 2000;
+    let selectionReadToken = 0;
+
+    const selectionHandler = debounce(async () => {
       const sel = window.getSelection();
-      if (!sel || sel.isCollapsed) return;
+      if (!sel || sel.isCollapsed) {
+        // Clicking away clears the selection — stop a running readout.
+        selectionReadToken++;
+        return;
+      }
+      if (!hoverToggle.checked) return;
+      if (isReading) return; // never talk over the page reader
       const text = sel.toString().trim();
       if (!text) return;
       // Skip selections that start inside the widget itself.
@@ -3359,10 +3374,36 @@
         ? sel.anchorNode
         : sel.anchorNode?.parentElement;
       if (inWidget(anchor)) return;
-      // Cap selection length so a Ctrl+A doesn't DoS translate.
-      const capped = text.slice(0, CONFIG.maxChars);
-      announcer.announce({ text: capped, prefix: "", role: "selection", element: null });
-    }, 400);
+      // Cap so Ctrl+A on a huge page can't DoS translate + TTS.
+      const capped = text.slice(0, SELECTION_MAX_CHARS);
+      const chunks = splitIntoSentences(capped, CONFIG.maxChars);
+      const token = ++selectionReadToken;
+      for (const chunk of chunks) {
+        if (token !== selectionReadToken || !hoverToggle.checked || isReading) return;
+        await announcer.announce({ text: chunk, prefix: "", role: "selection", element: null });
+        if (token !== selectionReadToken) return;
+        // Wait for this chunk's audio to finish before the next one.
+        // cancel() pauses the element, so an external interrupt also
+        // unblocks the wait.
+        const claimed = announcer._abort;
+        await new Promise((resolve) => {
+          const a = announcer.audio;
+          if (!a.src || a.ended) { resolve(); return; }
+          const done = () => {
+            a.removeEventListener("ended", done);
+            a.removeEventListener("pause", done);
+            a.removeEventListener("error", done);
+            resolve();
+          };
+          a.addEventListener("ended", done);
+          a.addEventListener("pause", done);
+          a.addEventListener("error", done);
+        });
+        // Another announcement (hover, focus, Esc, page read) claimed
+        // the voice mid-sequence — don't fight it for the next chunk.
+        if (!claimed || claimed.signal.aborted) return;
+      }
+    }, 500);
 
     document.addEventListener("focusin", focusHandler, true);
     document.addEventListener("mouseover", hoverHandler, true);
