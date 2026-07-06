@@ -734,6 +734,44 @@
     return out;
   }
 
+  /* ---------- scanned-notice OCR ----------
+   * Government portals publish notices as scans (images / image-only
+   * PDFs) that every text-based feature is blind to. The user picks a
+   * scan, the gateway's /translate/ocr endpoint (Tesseract) extracts
+   * the text, and the result runs through the same simplify→translate
+   * →TTS pipeline as everything else.
+   */
+
+  // Classify an element as an OCR-able target: a visible image, or a
+  // link whose URL path ends in .pdf (query string ignored). Returns
+  // { kind: "image"|"pdf", url } or null.
+  function describeOcrTarget(el) {
+    if (!el || !el.tagName) return null;
+    if (el.tagName === "IMG") {
+      if (!isVisible(el)) return null;
+      const url = el.currentSrc || el.src || "";
+      return url ? { kind: "image", url } : null;
+    }
+    const link = el.closest ? el.closest("a[href]") : null;
+    if (link) {
+      let path = "";
+      try {
+        path = new URL(link.href, document.baseURI).pathname;
+      } catch {
+        return null;
+      }
+      if (/\.pdf$/i.test(path)) return { kind: "pdf", url: link.href };
+    }
+    return null;
+  }
+
+  // Which OCR language hint to send. "auto" maps to ori+eng on the
+  // server, which covers the common Odia/English notice mix — only a
+  // Hindi page needs the explicit hint (hin isn't in the auto set).
+  function ocrLangHint(pageLangNow) {
+    return pageLangNow === "hi" ? "hi" : "auto";
+  }
+
   async function probeGateway() {
     try {
       const r = await fetch(`${CONFIG.gateway}/healthz`, {
@@ -982,6 +1020,65 @@
     }
     .shortcuts-overlay dd { margin: 0; }
     .shortcuts-overlay .close-overlay {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.5rem;
+      background: none;
+      border: 0;
+      color: #8b96a5;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .ocr-overlay {
+      position: absolute;
+      right: 1rem;
+      bottom: 1rem;
+      left: 1rem;
+      background: #1b2530;
+      border: 1px solid #2c3a4c;
+      border-radius: 10px;
+      padding: 0.8rem 0.9rem;
+      font-size: 0.85rem;
+      color: #d0dce8;
+      display: none;
+      z-index: 11;
+    }
+    .ocr-overlay[data-open="true"] { display: block; }
+    .ocr-overlay h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.88rem;
+      color: #e8edf2;
+    }
+    .ocr-overlay .ocr-text {
+      max-height: 11rem;
+      overflow-y: auto;
+      user-select: text;
+      -webkit-user-select: text;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      background: #141c26;
+      border: 1px solid #2c3a4c;
+      border-radius: 8px;
+      padding: 0.5rem 0.6rem;
+    }
+    .ocr-overlay .ocr-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+    .ocr-overlay .ocr-actions button {
+      flex: 1;
+      background: #2563b0;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      padding: 0.45rem 0.5rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .ocr-overlay .ocr-actions button:hover { background: #2f74c8; }
+    .ocr-overlay .close-ocr {
       position: absolute;
       top: 0.3rem;
       right: 0.5rem;
@@ -1566,6 +1663,43 @@
       translateCache.set(k, out);
       persistentCache.put("translate", k, out);
       return out;
+    } finally {
+      t.clear();
+    }
+  }
+
+  // Fetch a scanned document (image or PDF) and run it through the
+  // gateway's OCR endpoint. No cache — scans are picked explicitly
+  // and rarely twice in a session. Throws with a readable message on
+  // any failure; the caller shows it in the status pill.
+  async function ocrFetchAndRecognize(url, lang, { timeoutMs = 60000 } = {}) {
+    const t = withTimeout(timeoutMs);
+    try {
+      const srcResp = await fetch(url, { signal: t.signal });
+      if (!srcResp.ok) {
+        throw new Error(`could not fetch the document (HTTP ${srcResp.status})`);
+      }
+      const blob = await srcResp.blob();
+      if (blob.size > 15000000) {
+        throw new Error("document too large (15 MB max)");
+      }
+      const fd = new FormData();
+      fd.append("file", blob, /\.pdf($|\?)/i.test(url) ? "scan.pdf" : "scan.png");
+      fd.append("lang", lang || "auto");
+      const response = await fetch(`${CONFIG.gateway}/translate/ocr`, {
+        method: "POST",
+        headers: { "X-API-Key": CONFIG.apiKey },
+        body: fd,
+        signal: t.signal,
+      });
+      if (!response.ok) {
+        let detail = `HTTP ${response.status}`;
+        try {
+          detail = (await response.json()).detail || detail;
+        } catch {}
+        throw new Error(detail);
+      }
+      return await response.json();
     } finally {
       t.clear();
     }
@@ -2266,6 +2400,11 @@
         <span class="easyread-label">Easy Read this page</span>
       </button>
 
+      <button class="action ocr" type="button">
+        <span aria-hidden="true">📄</span>
+        <span>Read a scanned notice</span>
+      </button>
+
       <label class="toggle">
         <input type="checkbox" id="aaas-dyslexia" />
         <span class="toggle-text">Dyslexia mode</span>
@@ -2289,6 +2428,16 @@
       <div class="transcript" role="status" aria-live="polite"></div>
       <div class="status" role="status" aria-live="polite">Ready</div>
       <div class="meta"></div>
+
+      <div class="ocr-overlay" role="dialog" aria-label="Scanned notice">
+        <button class="close-ocr" type="button" aria-label="Close notice">×</button>
+        <h4>Scanned notice</h4>
+        <div class="ocr-text" tabindex="0"></div>
+        <div class="ocr-actions">
+          <button class="ocr-read" type="button">🔊 Read aloud</button>
+          <button class="ocr-copy" type="button">Copy</button>
+        </div>
+      </div>
 
       <div class="shortcuts-overlay" role="dialog" aria-label="Keyboard shortcuts">
         <button class="close-overlay" type="button" aria-label="Close shortcuts">×</button>
@@ -3020,6 +3169,12 @@
           e.preventDefault();
           return;
         }
+        const ocrOv = panel.querySelector(".ocr-overlay");
+        if (ocrOv && ocrOv.getAttribute("data-open") === "true") {
+          ocrOv.querySelector(".close-ocr").click();
+          e.preventDefault();
+          return;
+        }
         if (isReading) {
           stopRequested = true;
           if (currentAbort) { try { currentAbort.abort(); } catch {} }
@@ -3470,6 +3625,217 @@
         setStatus("Say a command or a link name…");
       } catch (err) {
         setStatus(`Mic unavailable: ${err.message}`, "error");
+      }
+    });
+
+    /* ----- Scanned-notice OCR -----
+     * Pick mode: the user clicks a scanned image or a PDF link on the
+     * host page; the document goes to /translate/ocr; the recognized
+     * text runs through simplify (+ translate when the picker language
+     * differs) and lands in a result overlay with its own read-aloud.
+     * While picking, ALL host-page clicks are swallowed so a stray
+     * click can't navigate away mid-pick; Esc cancels.
+     */
+    const ocrBtn = panel.querySelector(".ocr");
+    const ocrOverlay = panel.querySelector(".ocr-overlay");
+    const ocrTextEl = ocrOverlay.querySelector(".ocr-text");
+    const ocrReadBtn = ocrOverlay.querySelector(".ocr-read");
+    const ocrCopyBtn = ocrOverlay.querySelector(".ocr-copy");
+    const ocrCloseBtn = ocrOverlay.querySelector(".close-ocr");
+
+    let ocrPicking = false;
+    let _ocrHover = null;
+    let _ocrClick = null;
+    let _ocrKey = null;
+
+    function exitOcrPick(message) {
+      if (!ocrPicking) return;
+      ocrPicking = false;
+      document.removeEventListener("mouseover", _ocrHover, true);
+      document.removeEventListener("click", _ocrClick, true);
+      window.removeEventListener("keydown", _ocrKey, true);
+      _ocrHover = null;
+      _ocrClick = null;
+      _ocrKey = null;
+      document.querySelectorAll("[data-aaas-ocr-hover]").forEach((el) => {
+        el.removeAttribute("data-aaas-ocr-hover");
+      });
+      const st = document.getElementById("__aaas_ocrpick__");
+      if (st) st.remove();
+      if (message) setStatus(message);
+    }
+
+    function enterOcrPick() {
+      if (ocrPicking) {
+        exitOcrPick("Pick cancelled");
+        return;
+      }
+      ocrPicking = true;
+      if (!document.getElementById("__aaas_ocrpick__")) {
+        const st = document.createElement("style");
+        st.id = "__aaas_ocrpick__";
+        st.textContent =
+          "[data-aaas-ocr-hover] { outline: 3px dashed #ffcf33 !important; outline-offset: 3px !important; cursor: crosshair !important; }";
+        (document.head || document.documentElement).appendChild(st);
+      }
+      _ocrHover = (ev) => {
+        document.querySelectorAll("[data-aaas-ocr-hover]").forEach((el) => {
+          el.removeAttribute("data-aaas-ocr-hover");
+        });
+        const t = ev.target;
+        if (!t || !(t instanceof Element) || inWidget(t)) return;
+        if (describeOcrTarget(t)) {
+          const mark = t.tagName === "IMG" ? t : t.closest("a[href]");
+          if (mark) mark.setAttribute("data-aaas-ocr-hover", "");
+        }
+      };
+      _ocrClick = (ev) => {
+        const t = ev.target;
+        if (!t || !(t instanceof Element) || inWidget(t)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const desc = describeOcrTarget(t);
+        if (!desc) {
+          setStatus("Not a scanned image or PDF link — try again (Esc to cancel)", "error");
+          return;
+        }
+        exitOcrPick();
+        runOcrPipeline(desc);
+      };
+      _ocrKey = (ev) => {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          exitOcrPick("Pick cancelled");
+        }
+      };
+      document.addEventListener("mouseover", _ocrHover, true);
+      document.addEventListener("click", _ocrClick, true);
+      window.addEventListener("keydown", _ocrKey, true);
+      setStatus("Click a scanned image or a PDF link (Esc to cancel)");
+    }
+    ocrBtn.addEventListener("click", enterOcrPick);
+
+    let ocrBusy = false;
+    async function runOcrPipeline(desc) {
+      if (ocrBusy) return;
+      ocrBusy = true;
+      ocrBtn.disabled = true;
+      try {
+        setStatus(desc.kind === "pdf" ? "Reading the scanned PDF…" : "Reading the scan…");
+        const result = await ocrFetchAndRecognize(desc.url, ocrLangHint(pageLang));
+        let text = (result.text || "").trim();
+        if (!text) {
+          setStatus("No readable text found in that document", "error");
+          return;
+        }
+        const srcLang = dominantScript(text) || "en";
+        const tgt = resolvedLang() || srcLang;
+        // Simplify first (rule-based, offline). A failure here is not
+        // fatal — the raw OCR text is already the accessibility win.
+        try {
+          setStatus("Simplifying…");
+          const pieces = splitIntoSentences(text, 1500);
+          const simplified = [];
+          for (const piece of pieces) {
+            simplified.push(await simplifyChunk(piece, srcLang));
+          }
+          text = simplified.join(" ");
+        } catch (err) {
+          console.warn("[AaaS] OCR simplify failed:", err);
+        }
+        if (tgt !== srcLang) {
+          try {
+            setStatus(`Translating → ${LANG_DISPLAY[tgt] || tgt}…`);
+            const pieces = splitIntoSentences(text, 800);
+            const translated = [];
+            for (const piece of pieces) {
+              translated.push(
+                stripPassthroughAnnotation(
+                  await translateChunk(piece, srcLang, tgt, { timeoutMs: 20000 }),
+                ),
+              );
+            }
+            text = translated.join(" ");
+          } catch (err) {
+            console.warn("[AaaS] OCR translate failed:", err);
+            setStatus("Could not translate — showing the original text", "error");
+          }
+        }
+        ocrTextEl.textContent = text;
+        ocrOverlay.setAttribute("data-open", "true");
+        ocrTextEl.focus();
+        if (result.engine === "mock") {
+          setStatus("Notice ready (mock OCR — install tesseract for real scans)", "error");
+        } else {
+          setStatus("Notice ready", "ok");
+        }
+      } catch (err) {
+        setStatus(`Could not read the document: ${err.message}`, "error");
+      } finally {
+        ocrBusy = false;
+        ocrBtn.disabled = false;
+      }
+    }
+
+    function closeOcrOverlay() {
+      ocrOverlay.setAttribute("data-open", "false");
+      if (ocrReading) {
+        ocrReading = false;
+        player.stop();
+        ocrReadBtn.textContent = "🔊 Read aloud";
+      }
+    }
+    ocrCloseBtn.addEventListener("click", closeOcrOverlay);
+
+    ocrCopyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(ocrTextEl.textContent || "");
+        setStatus("Copied to clipboard", "ok");
+      } catch {
+        setStatus("Copy failed — select the text manually", "error");
+      }
+    });
+
+    let ocrReading = false;
+    ocrReadBtn.addEventListener("click", async () => {
+      if (ocrReading) {
+        ocrReading = false;
+        player.stop();
+        ocrReadBtn.textContent = "🔊 Read aloud";
+        return;
+      }
+      if (isReading) {
+        setStatus("Already reading the page — press Esc to stop that first", "error");
+        return;
+      }
+      const text = (ocrTextEl.textContent || "").trim();
+      if (!text) return;
+      ocrReading = true;
+      ocrReadBtn.textContent = "⏹ Stop";
+      const lang = dominantScript(text) || resolvedLang() || "en";
+      try {
+        player.reset();
+        const draining = player.drain();
+        const chunks = splitIntoSentences(text, CONFIG.maxChars);
+        let enqueued = 0;
+        for (const chunk of chunks) {
+          if (!ocrReading) break;
+          try {
+            const blob = await synthesise(chunk, lang);
+            if (!ocrReading) break;
+            player.enqueue(blob);
+            enqueued++;
+          } catch (err) {
+            console.warn("[AaaS] OCR TTS chunk failed:", err);
+          }
+        }
+        player.finish();
+        await draining;
+        if (!enqueued) setStatus("TTS unavailable — check the gateway", "error");
+      } finally {
+        ocrReading = false;
+        ocrReadBtn.textContent = "🔊 Read aloud";
       }
     });
   }
