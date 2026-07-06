@@ -192,7 +192,10 @@
   const phraseCache = new LruCache(300);
 
   const translateKey = (src, tgt, text) => `${src}→${tgt}:${text}`;
-  const phraseKey = (lang, text) => `${lang}:${text}`;
+  // v2: TTS now verbalises numbers and splices mixed-script audio
+  // server-side — the version tag orphans stale pre-fix clips in the
+  // persistent cache instead of replaying broken audio forever.
+  const phraseKey = (lang, text) => `v2:${lang}:${text}`;
 
   // Persistent, cross-reload cache (IndexedDB, scoped to the page's origin).
   // The in-memory LruCaches above die with the page; this layer means
