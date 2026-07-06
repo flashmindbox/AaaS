@@ -4549,6 +4549,25 @@
               // nonsense and raw Odia is rejected by most forms.
               value = dominantScript(raw) === "or" ? romanizeOdia(raw) : raw;
               value = normalizeSpokenValue(type, value);
+              // Datalist snap: when the field offers options
+              // (<input list> — department/district pickers), land the
+              // spoken answer on the best-matching option so the form
+              // gets "Cardiology", not a romanized "Kardiolaji".
+              if (value && field.list && field.list.options) {
+                let bestOpt = null;
+                let bestScore = 0.55;
+                for (const opt of Array.from(field.list.options)) {
+                  const sc = Math.max(
+                    scoreVoiceTarget(value, opt.value),
+                    scoreVoiceTarget(raw, opt.value),
+                  );
+                  if (sc > bestScore) {
+                    bestOpt = opt.value;
+                    bestScore = sc;
+                  }
+                }
+                if (bestOpt) value = bestOpt;
+              }
               break;
             }
           }

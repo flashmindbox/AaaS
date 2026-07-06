@@ -91,6 +91,15 @@ def _seed_dev_repository() -> InMemoryTenantRepository:
         region="IN-OD",
     )
     repo.add(ssepd, raw_key="aaas_live_" + "3" * 32, name="ssepd-seed")
+
+    aiims = Tenant(
+        id=UUID("00000000-0000-0000-0000-000000000005"),
+        slug="aiims-bhubaneswar",
+        display_name="AIIMS Bhubaneswar",
+        category="healthcare",
+        region="IN-OD",
+    )
+    repo.add(aiims, raw_key="aaas_live_" + "4" * 32, name="aiims-seed")
     return repo
 
 

@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AIIMS Bhubaneswar · Patient Portal — OPD Appointments</title>
+<meta name="description" content="Book OPD appointments with Cardiology, Nephrology, Neurology and other departments at AIIMS Bhubaneswar. Patient guides, OPD timings and notices." />
+<style>
+  :root { --teal: #0e6b5f; --teal2: #0a4f46; --saffron: #e8862c; --paper: #f4f7f6; --ink: #1f2e2b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--paper); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 1rem; }
+
+  .govbar { background: var(--teal2); color: #d8ece8; font-size: 0.8rem; padding: 0.35rem 0; }
+  .govbar .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+  .govbar .fontbtns button { background: none; border: 1px solid #4a8a7f; color: #d8ece8; border-radius: 4px; margin-left: 4px; cursor: pointer; padding: 0 0.45rem; }
+
+  header.masthead { background: #fff; border-bottom: 4px solid var(--saffron); padding: 1rem 0; }
+  header.masthead .wrap { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .emblem { width: 64px; height: 64px; border-radius: 50%; background: var(--teal); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; flex: none; }
+  .masthead h1 { margin: 0; font-size: 1.3rem; color: var(--teal2); }
+  .masthead .od { margin: 0.15rem 0 0; color: #48605b; font-size: 0.92rem; }
+  .emergency { margin-left: auto; background: #b3261e; color: #fff; border-radius: 10px; padding: 0.5rem 0.9rem; font-weight: 700; text-align: center; }
+  .emergency small { display: block; font-weight: 400; font-size: 0.72rem; }
+
+  nav.mainnav { background: var(--teal); }
+  nav.mainnav ul { list-style: none; display: flex; flex-wrap: wrap; margin: 0; padding: 0; }
+  nav.mainnav a { display: block; color: #fff; text-decoration: none; padding: 0.7rem 1rem; font-weight: 600; font-size: 0.92rem; }
+  nav.mainnav a:hover, nav.mainnav a:focus { background: var(--teal2); }
+
+  .ticker { background: #fff3dd; border-bottom: 1px solid #e3cfa4; padding: 0.45rem 0; font-size: 0.88rem; }
+  .ticker .wrap { display: flex; gap: 0.7rem; align-items: baseline; }
+  .ticker strong { color: #9a6a00; flex: none; }
+  .ticker a { color: var(--teal2); }
+
+  main { padding: 1.4rem 0 2rem; }
+  section { margin-bottom: 2.2rem; }
+  h2 { color: var(--teal2); border-bottom: 2px solid var(--saffron); display: inline-block; padding-bottom: 0.2rem; font-size: 1.25rem; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.8rem; }
+  .stat { background: #fff; border: 1px solid #d3e0dd; border-radius: 10px; padding: 0.9rem; text-align: center; }
+  .stat b { display: block; font-size: 1.5rem; color: var(--teal); }
+  .stat span { font-size: 0.82rem; color: #4f6660; }
+
+  .depts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+  .dept { background: #fff; border: 1px solid #d3e0dd; border-radius: 10px; padding: 1rem; }
+  .dept h3 { margin: 0 0 0.15rem; font-size: 1.02rem; color: var(--teal2); }
+  .dept .od { color: #4f6660; font-size: 0.86rem; margin: 0 0 0.5rem; }
+  .dept p { font-size: 0.88rem; margin: 0.25rem 0; }
+  .dept .doc { color: #333; }
+  .dept .days { color: #7a5a1e; font-size: 0.82rem; }
+  .dept a.book { display: inline-block; margin-top: 0.5rem; font-size: 0.86rem; color: #fff; background: var(--teal); border-radius: 6px; padding: 0.3rem 0.7rem; text-decoration: none; font-weight: 600; }
+
+  .guidelines { background: #fff; border-left: 5px solid var(--saffron); border-radius: 6px; padding: 1rem 1.2rem; }
+  .guidelines p { font-size: 0.95rem; line-height: 1.7; margin: 0.4rem 0; }
+
+  .docsec { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; align-items: start; }
+  figure.scan { margin: 0; background: #fff; border: 1px solid #d3e0dd; border-radius: 10px; padding: 0.8rem; }
+  figure.scan img { max-width: 100%; height: auto; border: 1px solid #c9c2b4; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  figure.scan figcaption { font-size: 0.82rem; color: #4f6660; margin-top: 0.5rem; }
+  .doclist { background: #fff; border: 1px solid #d3e0dd; border-radius: 10px; padding: 1rem; }
+  .doclist li { margin: 0.6rem 0; }
+  .doclist .tag { background: var(--teal); color: #fff; font-size: 0.7rem; border-radius: 4px; padding: 0.1rem 0.4rem; margin-right: 0.5rem; }
+
+  .opd-tabs { background: #fff; border: 1px solid #d3e0dd; border-radius: 10px; overflow: hidden; }
+  .opd-tabs .tabbtns { display: flex; border-bottom: 1px solid #d3e0dd; }
+  .opd-tabs .tabbtns button { flex: 1; background: #ecf3f1; border: 0; padding: 0.6rem; font-weight: 600; cursor: pointer; color: var(--teal2); }
+  .opd-tabs .tabbtns button[aria-selected="true"] { background: #fff; border-bottom: 3px solid var(--saffron); }
+  .tabpanel { padding: 0.4rem 1rem 0.8rem; }
+  .tabpanel[hidden] { display: none; }
+  .tabpanel li { margin: 0.5rem 0; font-size: 0.92rem; }
+
+  form.book { background: #fff; border: 1px solid #d3e0dd; border-radius: 10px; padding: 1.2rem; display: grid; gap: 0.8rem; max-width: 620px; }
+  form.book label { display: block; font-weight: 600; font-size: 0.92rem; margin-bottom: 0.25rem; }
+  form.book input, form.book textarea { width: 100%; padding: 0.55rem; border: 1px solid #b4c4c0; border-radius: 6px; font-size: 0.95rem; }
+  form.book input#bk-age { width: 8rem; }
+  form.book button { background: var(--teal); color: #fff; border: 0; border-radius: 8px; padding: 0.7rem 1.4rem; font-weight: 700; font-size: 1rem; cursor: pointer; justify-self: start; }
+  #bk-msg { font-weight: 600; color: #0a5f34; margin: 0; }
+
+  footer.foot { background: var(--teal2); color: #cfe4df; padding: 1.4rem 0; font-size: 0.88rem; }
+  footer.foot .wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+  footer.foot h3 { color: #fff; font-size: 0.95rem; margin: 0 0 0.4rem; }
+  footer.foot a { color: #ffd98a; }
+</style>
+</head>
+<body>
+
+  <div class="govbar">
+    <div class="wrap">
+      <span>Government of India · Ministry of Health &amp; Family Welfare</span>
+      <span class="fontbtns" aria-label="Text size">
+        Helpline: 0674-247-6789
+        <button type="button" title="Decrease text size">A-</button>
+        <button type="button" title="Normal text size">A</button>
+        <button type="button" title="Increase text size">A+</button>
+      </span>
+    </div>
+  </div>
+
+  <header class="masthead">
+    <div class="wrap">
+      <div class="emblem" aria-hidden="true">⚕</div>
+      <div>
+        <h1>All India Institute of Medical Sciences, Bhubaneswar</h1>
+        <p class="od" lang="or">ଅଖିଳ ଭାରତୀୟ ଆୟୁର୍ବିଜ୍ଞାନ ସଂସ୍ଥାନ, ଭୁବନେଶ୍ୱର · ରୋଗୀ ସେବା ପୋର୍ଟାଲ</p>
+      </div>
+      <div class="emergency">
+        Emergency: 108
+        <small>Casualty open 24×7 · Gate No. 1</small>
+      </div>
+    </div>
+  </header>
+
+  <nav class="mainnav" aria-label="Main navigation">
+    <div class="wrap">
+      <ul>
+        <li><a href="#departments">Departments</a></li>
+        <li><a href="#appointment">Book Appointment</a></li>
+        <li><a href="#opd">OPD Timings</a></li>
+        <li><a href="#documents">Patient Notices</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="ticker" aria-label="Latest updates">
+    <div class="wrap">
+      <strong>Latest:</strong>
+      <span>
+        <a href="assets/opd-notice-scan.png">OPD registration free for patients above 65 and persons with…</a>
+        &nbsp;·&nbsp;
+        <a href="assets/patient-guide-circular.pdf">New patient guide: speciality OPD appointments must be booked…</a>
+      </span>
+    </div>
+  </div>
+
+  <main class="wrap">
+
+    <section aria-label="Key figures">
+      <div class="stats">
+        <div class="stat"><b>960</b><span>hospital beds</span></div>
+        <div class="stat"><b>4500+</b><span>OPD patients every day</span></div>
+        <div class="stat"><b>42</b><span>departments and super-specialities</span></div>
+        <div class="stat"><b>₹ 10</b><span>OPD registration (free above age 65 &amp; PwD)</span></div>
+      </div>
+    </section>
+
+    <section id="departments">
+      <h2>Speciality Departments — OPD</h2>
+      <div class="depts">
+        <article class="dept">
+          <h3>Cardiology</h3>
+          <p class="od" lang="or">ହୃଦ୍‌ରୋଗ ବିଭାଗ</p>
+          <p class="doc">Dr. Pratap Kumar Das · Dr. Snehalata Mishra</p>
+          <p class="days">OPD: Monday · Wednesday · Friday, 9 AM – 1 PM</p>
+          <a class="book" href="#appointment">Book Cardiology appointment →</a>
+        </article>
+        <article class="dept">
+          <h3>Nephrology</h3>
+          <p class="od" lang="or">ବୃକ୍‌କ ରୋଗ ବିଭାଗ</p>
+          <p class="doc">Dr. Ashok Ranjan Nayak · Dr. Ipsita Sahoo</p>
+          <p class="days">OPD: Tuesday · Thursday, 9 AM – 1 PM</p>
+          <a class="book" href="#appointment">Book Nephrology appointment →</a>
+        </article>
+        <article class="dept">
+          <h3>Neurology</h3>
+          <p class="od" lang="or">ସ୍ନାୟୁ ରୋଗ ବିଭାଗ</p>
+          <p class="doc">Dr. Bijay Ketan Panda · Dr. Rashmita Behera</p>
+          <p class="days">OPD: Monday · Thursday, 9 AM – 1 PM</p>
+          <a class="book" href="#appointment">Book Neurology appointment →</a>
+        </article>
+        <article class="dept">
+          <h3>Orthopaedics</h3>
+          <p class="od" lang="or">ଅସ୍ଥି ରୋଗ ବିଭାଗ</p>
+          <p class="doc">Dr. Manas Ranjan Swain · Dr. Jyotsna Patnaik</p>
+          <p class="days">OPD: Daily except Sunday, 9 AM – 1 PM</p>
+          <a class="book" href="#appointment">Book Orthopaedics appointment →</a>
+        </article>
+        <article class="dept">
+          <h3>Ophthalmology</h3>
+          <p class="od" lang="or">ଆଖି ରୋଗ ବିଭାଗ</p>
+          <p class="doc">Dr. Sasmita Parida · Dr. Debashis Rout</p>
+          <p class="days">OPD: Tuesday · Friday, 9 AM – 1 PM</p>
+          <a class="book" href="#appointment">Book Ophthalmology appointment →</a>
+        </article>
+        <article class="dept">
+          <h3>ENT</h3>
+          <p class="od" lang="or">କାନ, ନାକ, ଗଳା ବିଭାଗ</p>
+          <p class="doc">Dr. Prakash Chandra Sahu · Dr. Monalisa Jena</p>
+          <p class="days">OPD: Wednesday · Saturday, 9 AM – 1 PM</p>
+          <a class="book" href="#appointment">Book ENT appointment →</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="appointment">
+      <h2>Book an OPD Appointment</h2>
+      <p>
+        Patients who cannot type can book by voice: open the ଅ assistant
+        and tap <strong>କହି ଲେଖ · Speak to fill</strong> — it asks for
+        each answer aloud, in Odia, and never submits on its own. Say the
+        department's name for the department box — "କାର୍ଡିଓଲୋଜି",
+        "ନେଫ୍ରୋଲୋଜି" — exactly as you would say it.
+      </p>
+      <form class="book" id="opd-form">
+        <div>
+          <label for="bk-name">ରୋଗୀଙ୍କ ପୂରା ନାମ · Patient's full name</label>
+          <input id="bk-name" name="name" type="text" autocomplete="name" />
+        </div>
+        <div>
+          <label for="bk-age">ବୟସ · Age</label>
+          <input id="bk-age" name="age" type="number" min="0" max="120" />
+        </div>
+        <div>
+          <label for="bk-phone">ଫୋନ୍ ନମ୍ବର · Phone number</label>
+          <input id="bk-phone" name="phone" type="tel" autocomplete="tel" />
+        </div>
+        <div>
+          <label for="bk-dept">ବିଭାଗ · Department</label>
+          <input id="bk-dept" name="department" type="text" list="dept-list"
+                 placeholder="e.g. Cardiology / Nephrology" />
+          <datalist id="dept-list">
+            <option value="Cardiology"></option>
+            <option value="Nephrology"></option>
+            <option value="Neurology"></option>
+            <option value="Orthopaedics"></option>
+            <option value="Ophthalmology"></option>
+            <option value="ENT"></option>
+          </datalist>
+        </div>
+        <div>
+          <label for="bk-day">କେଉଁ ଦିନ · Preferred day</label>
+          <input id="bk-day" name="day" type="text" placeholder="e.g. Monday / ସୋମବାର" />
+        </div>
+        <div>
+          <label for="bk-problem">ଅସୁବିଧା ବିବରଣୀ · Describe the problem</label>
+          <textarea id="bk-problem" name="problem" rows="3"></textarea>
+        </div>
+        <button type="button" id="bk-submit">ବୁକ୍ କରନ୍ତୁ · Book appointment (demo)</button>
+        <p id="bk-msg" role="status"></p>
+      </form>
+    </section>
+
+    <section id="patientinfo">
+      <h2>Patient Instructions</h2>
+      <div class="guidelines">
+        <p>
+          It is hereby notified that OPD registration counters shall
+          function w.e.f. 8:00 AM to 11:00 AM on all working days, and the
+          registration fee of Rs. 10 shall be remitted at the counter;
+          patients aged 65 years and above and persons with disabilities
+          are exempted from payment of the said fee and shall be attended
+          on priority.
+        </p>
+        <p>
+          Patients availing speciality OPD services shall furnish the
+          requisite referral slip, if any, at the time of registration,
+          failing which consultation shall be provided subject to
+          availability of slots, in accordance with the stipulated
+          guidelines.
+        </p>
+      </div>
+    </section>
+
+    <section id="documents">
+      <h2>Patient Notices &amp; Scanned Documents</h2>
+      <div class="docsec">
+        <figure class="scan">
+          <img src="assets/opd-notice-scan.png" width="620"
+               alt="Scanned OPD notice No. 512: registration timings and fee exemption for senior citizens and persons with disabilities" />
+          <figcaption>OPD Notice No. 512 (scanned copy, 15 June 2026)</figcaption>
+        </figure>
+        <div class="doclist">
+          <h3>Recent notices</h3>
+          <ul>
+            <li><span class="tag">PDF</span><a href="assets/patient-guide-circular.pdf">Patient guide circular No. 534 (scanned PDF, 2 pages)</a></li>
+            <li><span class="tag">IMG</span><a href="assets/opd-notice-scan.png">OPD registration notice No. 512 (scanned copy)</a></li>
+            <li><span class="tag">WEB</span><a href="#patientinfo">Referral-slip instructions for speciality OPDs</a></li>
+            <li><span class="tag">WEB</span><a href="#opd">Department-wise OPD timings</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="opd">
+      <h2>OPD Timings — Day Finder</h2>
+      <div class="opd-tabs">
+        <div class="tabbtns" role="tablist">
+          <button type="button" role="tab" aria-selected="true" data-tab="d1">Mon – Tue</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="d2">Wed – Thu</button>
+          <button type="button" role="tab" aria-selected="false" data-tab="d3">Fri – Sat</button>
+        </div>
+        <div class="tabpanel" id="d1">
+          <ul>
+            <li><a href="#departments">Monday OPD — Cardiology, Neurology, Orthopaedics</a></li>
+            <li><a href="#departments">Tuesday OPD — Nephrology, Ophthalmology, Orthopaedics</a></li>
+          </ul>
+        </div>
+        <div class="tabpanel" id="d2" hidden>
+          <ul>
+            <li><a href="#departments">Wednesday OPD — Cardiology, ENT, Orthopaedics</a></li>
+            <li><a href="#departments">Thursday OPD — Nephrology, Neurology, Orthopaedics</a></li>
+          </ul>
+        </div>
+        <div class="tabpanel" id="d3" hidden>
+          <ul>
+            <li><a href="#departments">Friday OPD — Cardiology, Ophthalmology, Orthopaedics</a></li>
+            <li><a href="#departments">Saturday OPD — ENT, Orthopaedics</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p>
+        AIIMS Bhubaneswar, Sijua, Patrapada, Bhubaneswar – 751 019.<br />
+        OPD helpline <strong>0674-247-6789</strong> (10 AM – 5 PM) ·
+        Emergency <strong>108</strong> ·
+        Email <a href="mailto:ms@aiimsbhubaneswar.edu.in">ms@aiimsbhubaneswar.edu.in</a>
+      </p>
+      <p lang="or">
+        ଜରୁରୀକାଳୀନ ସେବା ପାଇଁ ୧୦୮ ନମ୍ବରରେ କଲ୍ କରନ୍ତୁ। ଓପିଡି ପଞ୍ଜୀକରଣ ସକାଳ
+        ୮ଟାରୁ ୧୧ଟା ପର୍ଯ୍ୟନ୍ତ। ୬୫ ବର୍ଷରୁ ଅଧିକ ବୟସ୍କ ଏବଂ ଭିନ୍ନକ୍ଷମ ବ୍ୟକ୍ତିଙ୍କ
+        ପାଇଁ ପଞ୍ଜୀକରଣ ମାଗଣା।
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div>
+        <h3>Hospital</h3>
+        <p>AIIMS Bhubaneswar<br />Sijua, Patrapada, 751 019</p>
+      </div>
+      <div>
+        <h3>Quick links</h3>
+        <p>
+          <a href="#departments">Departments</a> ·
+          <a href="#appointment">Book Appointment</a> ·
+          <a href="#opd">OPD Timings</a>
+        </p>
+      </div>
+      <div>
+        <h3>Accessibility</h3>
+        <p>This portal carries the AaaS assistant — the ଅ button reads,
+        translates and listens in Odia.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Demo booking — no server; issues a department-aware token.
+    document.getElementById("bk-submit").addEventListener("click", function () {
+      var name = document.getElementById("bk-name").value || "—";
+      var dept = document.getElementById("bk-dept").value || "General OPD";
+      var day = document.getElementById("bk-day").value || "next OPD day";
+      document.getElementById("bk-msg").textContent =
+        "ଧନ୍ୟବାଦ " + name + "! Appointment requested with " + dept +
+        " for " + day + " (demo) · Token AIIMS-OPD-2026-0342";
+    });
+    // Day-finder tabs — hidden panels, the pattern the voice matcher
+    // must reach into.
+    document.querySelectorAll(".tabbtns button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".tabbtns button").forEach(function (b) {
+          b.setAttribute("aria-selected", String(b === btn));
+        });
+        document.querySelectorAll(".tabpanel").forEach(function (p) {
+          p.hidden = p.id !== btn.dataset.tab;
+        });
+      });
+    });
+    // Working A-/A/A+ buttons — also the one-letter voice-matcher trap.
+    var fsizes = { "A-": "14px", "A": "16px", "A+": "19px" };
+    document.querySelectorAll(".fontbtns button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.body.style.fontSize = fsizes[btn.textContent] || "16px";
+      });
+    });
+  </script>
+
+  <!-- AaaS widget: AIIMS Bhubaneswar tenant seed key.
+       Gateway URL is auto-detected from the widget's script origin. -->
+  <script
+    src="/widget.js"
+    data-key="aaas_live_44444444444444444444444444444444"
+    defer
+  ></script>
+</body>
+</html>

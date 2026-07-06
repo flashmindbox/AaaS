@@ -116,6 +116,52 @@ CIRCULAR_TENDER_P2 = {
     "footer": "",
 }
 
+AIIMS_DIR = REPO / "apps" / "demo-sites" / "aiims-bhubaneswar" / "assets"
+
+NOTICE_AIIMS = {
+    "header": ["AIIMS BHUBANESWAR", "OFFICE OF THE MEDICAL SUPERINTENDENT"],
+    "ref": "No. 512 /OPD     Date: 15.06.2026",
+    "title": "O P D   N O T I C E",
+    "body": [
+        "It is hereby notified that OPD registration counters shall "
+        "function w.e.f. 8:00 AM to 11:00 AM on all working days. The "
+        "registration fee of Rs. 10 shall be remitted at the counter; "
+        "patients aged 65 years and above and persons with disabilities "
+        "are exempted from payment of the said fee and shall be attended "
+        "on priority.",
+        "Patients shall furnish the requisite referral slip, if any, at "
+        "the time of registration. Teleconsultation slots may be availed "
+        "through the Swasthya portal.",
+    ],
+    "footer": "Medical Superintendent",
+}
+
+CIRCULAR_AIIMS_P1 = {
+    "header": ["AIIMS BHUBANESWAR", "PATIENT SERVICES"],
+    "ref": "No. 534 /Guide     Date: 18.06.2026",
+    "title": "P A T I E N T   G U I D E",
+    "body": [
+        "It is hereby notified that appointments for speciality OPDs, "
+        "viz. Cardiology, Nephrology, Neurology and Orthopaedics, shall "
+        "be booked prior to the date of visit. Walk-in patients shall be "
+        "accommodated subject to availability of slots.",
+    ],
+    "footer": "Deputy Director (Admin)",
+}
+
+CIRCULAR_AIIMS_P2 = {
+    "header": ["AIIMS BHUBANESWAR"],
+    "ref": "Page 2 of 2",
+    "title": "",
+    "body": [
+        "Attendants of admitted patients shall furnish the requisite "
+        "gate pass at the entrance. Wheelchair assistance and sign-guided "
+        "navigation shall be provisioned at Gate No. 2 for persons with "
+        "disabilities, in accordance with the stipulated guidelines.",
+    ],
+    "footer": "",
+}
+
 NOTICE_UTKAL = {
     "header": ["UTKAL UNIVERSITY, BHUBANESWAR", "OFFICE OF THE REGISTRAR"],
     "ref": "No. 3172 /Acad.     Date: 22.04.2026",
@@ -270,6 +316,17 @@ def main() -> int:
     utkal_png = UTKAL_DIR / "admission-notice-scan.png"
     render_page(NOTICE_UTKAL).save(utkal_png, "PNG")
     print(f"[notices] wrote {utkal_png} ({utkal_png.stat().st_size:,} bytes)")
+
+    AIIMS_DIR.mkdir(parents=True, exist_ok=True)
+    opd_png = AIIMS_DIR / "opd-notice-scan.png"
+    render_page(NOTICE_AIIMS).save(opd_png, "PNG")
+    print(f"[notices] wrote {opd_png} ({opd_png.stat().st_size:,} bytes)")
+
+    guide_pdf = AIIMS_DIR / "patient-guide-circular.pdf"
+    g1 = render_page(CIRCULAR_AIIMS_P1)
+    g2 = render_page(CIRCULAR_AIIMS_P2)
+    g1.save(guide_pdf, "PDF", resolution=120, save_all=True, append_images=[g2])
+    print(f"[notices] wrote {guide_pdf} ({guide_pdf.stat().st_size:,} bytes, 2 pages)")
     return 0
 
 
