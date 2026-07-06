@@ -57,7 +57,11 @@ const STT_FILES = [
 const WORKER_SRC = `
 const MMS_LANG_REPO = { or: "mms-tts-ory", hi: "mms-tts-hin", en: "mms-tts-eng" };
 const STT_MODEL = "whisper-base";
-const WHISPER_LANG = { or: "odia", hi: "hindi", en: "english" };
+// Whisper's 99 languages do NOT include Odia — never ask it to. Odia
+// speech throws up-front in transcribe() so the widget falls back to
+// the gateway's IndicWav2Vec (the good Odia engine) instead of getting
+// garbage auto-detected text from whisper-base.
+const WHISPER_LANG = { hi: "hindi", en: "english" };
 const BASE = "https://aaas.local/";
 const fileStore = new Map();
 const realFetch = self.fetch.bind(self);
@@ -138,10 +142,25 @@ async function getStt() {
   return _stt;
 }
 async function transcribe(audio, lang) {
+  if (lang === "or") {
+    throw new Error("on-device STT has no Odia model - routing to the gateway engine");
+  }
   const pipe = await getStt();
   const opts = {};
   if (lang && WHISPER_LANG[lang]) { opts.language = WHISPER_LANG[lang]; opts.task = "transcribe"; }
-  const out = await runExclusive(() => pipe(audio, opts));
+  let out;
+  try {
+    out = await runExclusive(() => pipe(audio, opts));
+  } catch (err) {
+    // Some ONNX conversions ship without the tokenizer's language map
+    // and reject ANY named language ('Must be one of: {}') - retry
+    // once with auto-detect rather than failing the whole request.
+    if (opts.language && /not supported/i.test(String(err && err.message))) {
+      out = await runExclusive(() => pipe(audio, {}));
+    } else {
+      throw err;
+    }
+  }
   return { text: ((out && out.text) || "").trim(), language: lang || "en", confidence: null, engine: "whisper-base-ondevice" };
 }
 self.onmessage = async (ev) => {
