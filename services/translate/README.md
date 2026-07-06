@@ -37,6 +37,17 @@ widget handles that transparently.
   ```json
   {"text": "Applicants shall give the required documents with effect from 01.01.2026.", "lang": "en", "engine": "rules"}
   ```
+- `POST /ocr` — scanned notices (multipart: `file` = PNG/JPEG/WebP/PDF, `lang` = or/hi/en/auto)
+  ```
+  curl -F "file=@notice-scan.png" -F "lang=en" .../ocr
+  ```
+  Returns:
+  ```json
+  {"text": "GOVERNMENT OF ODISHA ...", "lang": "en", "engine": "tesseract",
+   "pages": [{"page": 1, "text": "...", "source": "ocr"}]}
+  ```
+  `source` per page: `"text-layer"` (born-digital PDF page — extracted
+  directly, no OCR), `"ocr"` (genuine scan), `"mock"` (fallback engine).
 
 ## Simplification (Easy Read)
 
@@ -58,6 +69,37 @@ gateway changes needed).
 The widget's "Easy Read this page" button calls this per text node;
 when the user's language differs from the page's, it chains
 simplify → `/translate`, so an English notice renders as plain Odia.
+
+## OCR (scanned notices)
+
+`POST /ocr` unlocks the documents government portals actually publish:
+scans of stamped paper (images and image-only PDFs) that read-aloud,
+translate and screen readers are blind to. Engine: **Tesseract** via
+pytesseract — classic CPU OCR, sub-second per page, no torch — behind
+the same Protocol pattern (`app/engine/ocr_base.py`) so Surya or the
+planned `content-adapter` service can slot in later. PDFs (pypdfium2)
+use the embedded text layer when present and only rasterize + OCR
+genuinely scanned pages.
+
+Setup (one-time):
+
+```powershell
+winget install UB-Mannheim.TesseractOCR   # the binary (eng included)
+cd services/translate
+python bundle/prefetch_tessdata.py        # eng/ori/hin -> models/tessdata
+pip install -e ".[dev,ocr]"               # pytesseract, pypdfium2, Pillow
+```
+
+The engine resolves the binary from `AAAS_TRANSLATE_TESSERACT_CMD`,
+PATH, or the standard Windows install dir, and points
+`TESSDATA_PREFIX` at `models/tessdata`. If the binary or the `[ocr]`
+extras are missing, the service logs `translate.ocr_engine_load_failed`
+and swaps in a deterministic **mock** (canned notice text) — OCR being
+unavailable never affects `/readyz` or the translate/simplify routes.
+
+The widget's "Read a scanned notice" button drives this: pick a scan
+on the page → `/ocr` → simplify → translate → result overlay with its
+own read-aloud. Limits: 15 MB per upload, first 10 PDF pages.
 
 ## Backends
 

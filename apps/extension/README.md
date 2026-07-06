@@ -37,6 +37,12 @@ On every page you visit, the extension:
      the whole page (legalese → everyday words, long sentences split);
      chains through translation when the picker language differs from
      the page's. **Needs the gateway** — no Google fallback for this.
+   - **Read a scanned notice** — pick any scanned image or PDF link on
+     the page; the document goes through the gateway's Tesseract OCR,
+     then simplify + translate, and lands in an overlay with its own
+     read-aloud. **Needs the gateway.** Same-origin documents work
+     (the normal government-portal case); cross-origin CDN images may
+     be blocked by the page's CORS.
    - **Language picker** (Auto / Odia / Hindi / English)
    - **Dyslexia mode** toggle — bundles Atkinson Hyperlegible (Latin
      subset, base64-inlined) so the font swap works on any machine;
