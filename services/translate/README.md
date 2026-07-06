@@ -29,6 +29,35 @@ widget handles that transparently.
   ```json
   {"text": "My name is Priya", "src_lang": "or", "tgt_lang": "en", "engine": "nllb"}
   ```
+- `POST /simplify` — plain-language rewriting ("Easy Read" in the widget)
+  ```json
+  {"text": "Applicants shall furnish the requisite documents w.e.f. 01.01.2026.", "lang": "en"}
+  ```
+  Returns:
+  ```json
+  {"text": "Applicants shall give the required documents with effect from 01.01.2026.", "lang": "en", "engine": "rules"}
+  ```
+
+## Simplification (Easy Read)
+
+`POST /simplify` rewrites bureaucratic prose into shorter, plainer
+sentences using a **rule-based engine** (`app/engine/simplify_rules.py`)
+— no ML, no network, no extra install, so it ships in the PyInstaller
+bundle and works fully offline. The pipeline: strip legal boilerplate →
+expand abbreviations (w.e.f., govt., s/o …) → glossary substitution of
+legalese for everyday words (~45 English + ~10 Odia entries, extensible
+one dict line at a time) → split overlong sentences at semicolons and
+conjunctions. Output is idempotent (simplifying twice changes nothing).
+
+The engine sits behind the same Protocol pattern as translation
+(`app/engine/simplify_base.py`), so an LLM-backed simplifier can be
+slotted in later without touching the route or the widget. Reached
+through the gateway at `/translate/simplify` (catch-all proxy — no
+gateway changes needed).
+
+The widget's "Easy Read this page" button calls this per text node;
+when the user's language differs from the page's, it chains
+simplify → `/translate`, so an English notice renders as plain Odia.
 
 ## Backends
 

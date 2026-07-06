@@ -24,10 +24,26 @@ On every page you visit, the extension:
 2. Widget paints a floating ଅ button in the bottom-right corner.
 3. Click → panel with:
    - **Read this page** (Meta MMS-TTS — no browser-voice fallback)
-   - **Translate this page** (Google Translate, in-place)
    - **Speak (fill by voice)** (dispatches `aaas-transcript` event)
+   - **Navigate by voice** (Alt+V) — speak a command or a link name in
+     Odia/Hindi/English; the widget matches it against the page's links
+     and buttons (built-in Odia→English nav glossary + translation),
+     highlights the winner, announces it, then clicks. Refuses and
+     lists candidates when it isn't confident. Scriptable without a
+     mic via the `aaas-voice-command` CustomEvent.
+   - **Translate this page** (in-place; IndicTrans2 via gateway,
+     Google fallback)
+   - **Easy Read this page** — rule-based plain-language rewriting of
+     the whole page (legalese → everyday words, long sentences split);
+     chains through translation when the picker language differs from
+     the page's. **Needs the gateway** — no Google fallback for this.
    - **Language picker** (Auto / Odia / Hindi / English)
-   - **Dyslexia mode** toggle (Odia-aware conjunct-safe spacing)
+   - **Dyslexia mode** toggle — bundles Atkinson Hyperlegible (Latin
+     subset, base64-inlined) so the font swap works on any machine;
+     letter-spacing applies to Latin text only and is explicitly reset
+     on Odia/Hindi subtrees (conjunct-safe).
+   - **Reading ruler** toggle — a line-focus band that follows the
+     pointer (and keyboard focus), dimming everything outside it.
 4. **Translation uses Google Translate** by default. The widget runs in
    the page's MAIN world (no cross-origin access), so requests are relayed
    through the background service worker — the one context that can call
@@ -167,9 +183,12 @@ python scripts/build_extension_models.py
 python scripts/build_bundle.py
 ```
 
-The extension's `widget.js` is overwritten by `scripts/build_bundle.py`
-from `apps/widget/dist/widget.js`, so only edit the widget source
+The extension's `widget.js` is overwritten from
+`apps/widget/dist/widget.js` by **both** `scripts/build_widget.py` and
+`scripts/build_bundle.py`, so only edit the widget source
 (`apps/widget/src/widget.js`) — never the copy under `apps/extension/`.
+After a rebuild, hit ↻ on the extension card in `chrome://extensions`
+to pick up the new file.
 
 `vendor/` and `models/` are gitignored because they're build products
 (~230 MB). A fresh clone ships a gateway-only extension until those
