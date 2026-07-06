@@ -162,37 +162,61 @@ button.mini:hover { background: var(--navy); color: #fff; }
   padding: 0.75rem 1.1rem; box-shadow: 0 2px 6px rgba(20, 51, 93, 0.08);
 }
 .fnode b { color: var(--navy2); font-size: 0.98rem; display: block; }
-.fnode b small { color: var(--muted); font-weight: 400; }
 .fsub { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 0.1rem; }
-.fdetail { display: block; font-size: 0.78rem; color: #7a5a1e; margin-top: 0.25rem; }
+.fdetail { display: block; font-size: 0.78rem; color: #7a5a1e; margin-top: 0.3rem; }
 .ficon { font-size: 1.5rem; }
+.ficon-sm { font-size: 1.05rem; margin-right: 0.15rem; }
+.port {
+  display: inline-block; background: #eef2f8; color: var(--muted);
+  border-radius: 6px; padding: 0 0.4rem; font-size: 0.74rem; font-weight: 600;
+  vertical-align: 0.1em; margin-left: 0.2rem;
+}
 .fnode.browser { border-color: #3a72c4; }
 .fnode.gateway { border-color: var(--saffron); border-width: 2px; background: #fffaf3; }
 
-.gwrow { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.gwrow { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; }
+.tether { width: 1.6rem; border-top: 2px dashed #b9c6d6; flex: none; }
 .fnote {
   font-size: 0.82rem; color: var(--muted); background: #f0f4fa;
   border: 1px dashed #b9c6d6; border-radius: 10px; padding: 0.5rem 0.8rem;
 }
 .fnote b { color: var(--navy); }
 
-/* arrows: a vertical stem with a solid triangle head */
-.farrow { display: grid; justify-items: center; width: 100%; padding: 0.15rem 0; }
-.farrow.one { grid-template-columns: 1fr; }
-.farrow.three { grid-template-columns: 1fr 1fr 1fr; max-width: 880px; }
+/* single arrow: browser -> gateway */
+.farrow { display: grid; justify-items: center; width: 100%; padding: 0.1rem 0; }
 .farrow span { display: block; width: 0; position: relative; height: 30px; border-left: 2.5px solid var(--saffron); }
-.farrow span::after {
+.farrow span::after,
+.fbus .drops span::after {
   content: ""; position: absolute; left: -6.5px; bottom: -2px;
   border-left: 6px solid transparent; border-right: 6px solid transparent;
   border-top: 8px solid var(--saffron);
 }
 
+/* connector bus: gateway -> horizontal rail -> three arrowed drops */
+.fbus { width: 100%; max-width: 880px; }
+.fbus .stem { display: block; width: 0; height: 18px; margin: 0 auto; border-left: 2.5px solid var(--saffron); }
+.fbus .rail {
+  display: block; height: 0; width: 66.67%; margin: 0 auto;
+  border-top: 2.5px solid var(--saffron); border-radius: 2px;
+}
+.fbus .drops { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.fbus .drops span { display: block; width: 0; height: 24px; margin: 0 auto; border-left: 2.5px solid var(--saffron); position: relative; }
+
 .frow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; max-width: 880px; width: 100%; }
-.frow .fnode { display: block; border-top-width: 4px; }
+.frow .fnode {
+  display: block; border-top-width: 4px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.frow .fnode:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(20, 51, 93, 0.16);
+}
 @media (max-width: 760px) {
   .frow { grid-template-columns: 1fr; }
-  .farrow.three { grid-template-columns: 1fr; }
-  .farrow.three span:nth-child(2), .farrow.three span:nth-child(3) { display: none; }
+  .fbus .rail { display: none; }
+  .fbus .drops { grid-template-columns: 1fr; }
+  .fbus .drops span:nth-child(2), .fbus .drops span:nth-child(3) { display: none; }
+  .tether { display: none; }
 }
 
 /* footer */
