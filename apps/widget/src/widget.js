@@ -4312,15 +4312,15 @@
       });
     }
 
-    // Entry point: find the documents FOR the user. One -> just go.
-    // Several -> big chooser. None -> plain words + point-at-it escape.
+    // Entry point: find the documents FOR the user and ALWAYS ask
+    // which one to read — even when there's only one. (An earlier
+    // one-candidate fast path jumped straight to the cached result
+    // with auto-play, which read as "it reopened my previous
+    // session". Predictability beats saving one tap.)
     function openDocFlow() {
+      docSession++; // abandon anything from a previous open
       stopDocReading();
       const candidates = collectOcrCandidates();
-      if (candidates.length === 1) {
-        runOcrPipeline(candidates[0]);
-        return;
-      }
       if (!candidates.length) {
         openDocModal("Read a document to me");
         docBody.innerHTML = '<div class="doc-error"></div>';
@@ -4339,7 +4339,11 @@
     ocrBtn.addEventListener("click", openDocFlow);
 
     function showDocChooser(candidates) {
-      openDocModal("Which document should I read?");
+      openDocModal(
+        candidates.length === 1
+          ? "I found one document — tap it to hear it"
+          : "Which document should I read?",
+      );
       ensureOcrHighlightStyle();
       const MAX_ROWS = 20;
       candidates.slice(0, MAX_ROWS).forEach((c) => {
