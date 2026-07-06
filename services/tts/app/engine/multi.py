@@ -28,12 +28,18 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
+import numpy as np
 import structlog
 
 from app.engine.base import TTSResult
-from app.engine.mms import MMSEngine
+from app.engine.mms import EmptyTokenisationError, MMSEngine
+from app.textnorm import split_script_runs, verbalize_numbers
 
 logger = structlog.get_logger(__name__)
+
+# Silence spliced between fragments of different languages — same
+# rationale as the inter-chunk silence in MMSEngine.
+_INTER_RUN_SILENCE_MS = 100
 
 
 class UnsupportedLanguageError(ValueError):
@@ -123,8 +129,69 @@ class MultiLangMMSEngine:
     # -- protocol --------------------------------------------------------
 
     async def synthesise(self, text: str, lang: str = "or") -> TTSResult:
-        engine = await self._ensure_loaded(lang)
-        return await engine.synthesise(text, lang)
+        """Speak ``text``, handling what the checkpoints can't.
+
+        Each MMS vocabulary is tiny (the Odia one has no digits and no
+        Latin letters — unknown characters are silently DROPPED by the
+        tokeniser), so before synthesis the text is split into script
+        runs and every run has its numbers/symbols verbalised in that
+        run's language. Runs are then spoken by their own checkpoint
+        and spliced — an English school name inside an Odia notice is
+        read by the English voice instead of vanishing.
+        """
+        if lang not in self._language_models:
+            # Preserve the old error for unconfigured languages.
+            await self._ensure_loaded(lang)
+        runs = split_script_runs(text, primary=lang)
+        # Only keep runs for languages we can actually speak; foreign
+        # scripts we have no model for fall back to the request lang
+        # (they'll mostly drop, same as before — nothing worse).
+        runs = [(rl if rl in self._language_models else lang, rt) for rl, rt in runs]
+        if not runs:
+            runs = [(lang, text)]
+        if len(runs) == 1:
+            run_lang, run_text = runs[0]
+            engine = await self._ensure_loaded(run_lang)
+            return await engine.synthesise(verbalize_numbers(run_text, run_lang), run_lang)
+
+        parts: list[np.ndarray] = []
+        sample_rate = self.sample_rate
+        total_duration = 0.0
+        spoken = 0
+        for i, (run_lang, run_text) in enumerate(runs):
+            engine = await self._ensure_loaded(run_lang)
+            try:
+                result = await engine.synthesise(
+                    verbalize_numbers(run_text, run_lang), run_lang
+                )
+            except EmptyTokenisationError:
+                # A run of pure punctuation/OCR junk — skip it rather
+                # than failing the whole utterance.
+                continue
+            sample_rate = result.sample_rate
+            parts.append(np.frombuffer(result.audio, dtype=np.int16))
+            total_duration += result.duration_seconds
+            spoken += 1
+            if i < len(runs) - 1:
+                parts.append(
+                    np.zeros(int(sample_rate * _INTER_RUN_SILENCE_MS / 1000), dtype=np.int16)
+                )
+        if not spoken:
+            raise EmptyTokenisationError(
+                "No fragment of the input could be synthesised by any voice."
+            )
+        pcm = np.concatenate(parts).tobytes()
+        logger.info(
+            "tts.mixed_script",
+            runs=len(runs),
+            spoken=spoken,
+            langs=sorted({rl for rl, _ in runs}),
+        )
+        return TTSResult(
+            audio=pcm,
+            sample_rate=sample_rate,
+            duration_seconds=len(pcm) / (2 * sample_rate),
+        )
 
     # -- introspection (routes/voices) -----------------------------------
 
