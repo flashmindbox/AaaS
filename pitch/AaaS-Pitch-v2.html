@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AaaS — Pitch Deck v2</title>
+<style>
+  /* 16:9 slides, one per printed page. Print via headless Edge/Chrome. */
+  @page { size: 13.333in 7.5in; margin: 0; }
+  * { box-sizing: border-box; margin: 0; }
+  :root {
+    --navy: #14335d; --navy2: #0d2444; --saffron: #f0821e;
+    --green: #157a3c; --red: #b3261e; --paper: #f7f8fb;
+    --line: #dbe2ec; --ink: #1e2936; --muted: #5a6b80;
+    --c-blue: #1a5cc8; --c-maroon: #8a2432; --c-green: #157a3c;
+    --c-saffron: #e07b12; --c-teal: #0e7d70; --c-violet: #6236c9;
+  }
+  body { font-family: "Segoe UI", "Nirmala UI", Arial, sans-serif; color: var(--ink); }
+  .slide {
+    width: 13.333in; height: 7.5in; page-break-after: always;
+    position: relative; background: #fff; overflow: hidden;
+    padding: 0.55in 0.7in 0.5in;
+  }
+  .slide:last-child { page-break-after: avoid; }
+
+  /* chrome shared by all slides */
+  .ribbon { position: absolute; top: 0; left: 0; right: 0; height: 0.09in; display: flex; }
+  .ribbon i { flex: 1; }
+  .ribbon i:nth-child(1) { background: var(--saffron); }
+  .ribbon i:nth-child(2) { background: #fff; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .ribbon i:nth-child(3) { background: var(--green); }
+  .corner {
+    position: absolute; top: 0.35in; right: 0.5in; width: 0.62in; height: 0.62in;
+    background: var(--navy); color: #fff; border-radius: 0.14in;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26pt; font-weight: 700;
+  }
+  .footer {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 0.34in;
+    background: var(--navy2); color: #b9c8de; font-size: 9pt;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 0.7in;
+  }
+  h1.t { font-size: 26pt; color: var(--navy2); margin-bottom: 0.08in; }
+  h1.t em { color: var(--saffron); font-style: normal; }
+  .rule { width: 1.1in; height: 4px; background: var(--saffron); border-radius: 2px; margin-bottom: 0.22in; }
+
+  .chip { display: inline-block; border-radius: 999px; border: 1.5px solid; padding: 0.04in 0.16in; font-weight: 600; font-size: 11pt; background: #fff; }
+  .k-blue { color: var(--c-blue); border-color: var(--c-blue); background: #eef4fd; }
+  .k-saffron { color: var(--c-saffron); border-color: var(--c-saffron); background: #fdf3e7; }
+  .k-green { color: var(--c-green); border-color: var(--c-green); background: #e9f6ee; }
+  .k-maroon { color: var(--c-maroon); border-color: var(--c-maroon); background: #faeded; }
+  .k-teal { color: var(--c-teal); border-color: var(--c-teal); background: #e8f5f3; }
+  .k-violet { color: var(--c-violet); border-color: var(--c-violet); background: #f1ecfb; }
+  .k-navy { color: var(--navy); border-color: var(--navy); background: #eef2f8; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 0.14in; box-shadow: 0 2px 8px rgba(20,51,93,.10); }
+  code, .mono { font-family: Consolas, monospace; }
+
+  /* ---------- slide 1 ---------- */
+  .s1 { text-align: center; padding-top: 1.1in; }
+  .s1 .bigmark {
+    width: 1.7in; height: 1.7in; margin: 0 auto 0.35in; background: var(--navy);
+    color: #fff; border-radius: 0.35in; display: flex; align-items: center;
+    justify-content: center; font-size: 72pt; font-weight: 700;
+    box-shadow: 0 10px 30px rgba(20,51,93,.35);
+  }
+  .s1 h1 { font-size: 40pt; color: var(--navy2); }
+  .s1 h1 span { color: var(--saffron); }
+  .s1 .tag { font-size: 17pt; color: var(--ink); margin: 0.14in 0 0.3in; }
+  .s1 .chips { display: flex; gap: 0.12in; justify-content: center; flex-wrap: nowrap; }
+  .s1 .team { margin-top: 0.4in; color: var(--muted); font-size: 12pt; }
+
+  /* ---------- slide 2 ---------- */
+  .cols2 { display: grid; grid-template-columns: 1fr 1.15fr; gap: 0.5in; align-items: center; height: 5.4in; }
+  .scanbox {
+    background: #f5f2ea; border: 1px solid #c9c2b4; border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18); transform: rotate(-2deg);
+    padding: 0.35in; font-family: Georgia, serif; color: #2a2c34;
+  }
+  .scanbox h3 { text-align: center; font-size: 13pt; letter-spacing: .04em; }
+  .scanbox .ref { font-size: 9pt; margin: 0.12in 0; border-top: 1.5px solid #2a2c34; padding-top: 0.1in; }
+  .scanbox p { font-size: 10pt; line-height: 1.55; }
+  .scanbox .stamp { display: inline-block; border: 2px solid #7a7a97; color: #7a7a97; padding: 0.04in 0.14in; font-size: 9pt; margin-top: 0.16in; font-family: "Segoe UI", sans-serif; }
+  .arun li { font-size: 16pt; margin: 0.14in 0; list-style: none; padding-left: 0.34in; position: relative; }
+  .arun li::before { content: "✗"; color: var(--red); position: absolute; left: 0; font-weight: 700; }
+  .punch { margin-top: 0.3in; font-size: 21pt; font-weight: 700; color: var(--saffron); }
+  .whostat { display: flex; gap: 0.3in; margin-top: 0.28in; }
+  .whostat .st { border-left: 4px solid var(--navy); padding-left: 0.14in; }
+  .whostat b { display: block; font-size: 18pt; color: var(--navy); }
+  .whostat span { font-size: 10pt; color: var(--muted); }
+
+  /* ---------- slide 3 ---------- */
+  .brokengrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.16in; margin: 0.25in 0; }
+  .brokengrid .site {
+    height: 0.85in; background: #eef0f4; border: 1px solid var(--line); border-radius: 0.08in;
+    display: flex; align-items: center; justify-content: center; color: var(--red);
+    font-size: 20pt; font-weight: 700;
+  }
+  .sweep { display: flex; align-items: center; gap: 0.2in; margin-top: 0.25in; }
+  .sweep .arrowline { flex: 1; height: 5px; background: linear-gradient(90deg, var(--red), var(--saffron)); border-radius: 3px; position: relative; }
+  .sweep .arrowline::after { content: ""; position: absolute; right: -2px; top: -7px; border-left: 16px solid var(--saffron); border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
+  .bigline { font-size: 20pt; font-weight: 700; color: var(--navy2); }
+  .s3 li { font-size: 15pt; margin: 0.12in 0; }
+
+  /* ---------- slide 4: widget panel recreation ---------- */
+  .panelmock {
+    width: 3.6in; background: #16202b; border-radius: 0.18in; padding: 0.22in;
+    color: #e8edf2; box-shadow: 0 12px 32px rgba(13,32,54,.4);
+  }
+  .panelmock .ph { display: flex; justify-content: space-between; align-items: center; font-size: 12pt; font-weight: 700; margin-bottom: 0.14in; }
+  .panelmock .ph span:last-child { background: #1d2938; border: 1px solid #4a6a96; border-radius: 0.07in; font-size: 9pt; padding: 0.02in 0.1in; font-weight: 400; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 0.09in; }
+  .tile { background: #1d2938; border: 1px solid #33465e; border-radius: 0.1in; text-align: center; padding: 0.1in 0.04in; }
+  .tile .i { font-size: 15pt; display: block; }
+  .tile .od { font-size: 10.5pt; font-weight: 600; display: block; }
+  .tile .en { font-size: 7.5pt; color: #9fb2c8; display: block; }
+  .panelmock .comfort { margin-top: 0.1in; background: #1d2938; border-radius: 0.08in; font-size: 9pt; color: #cdd9e6; padding: 0.07in 0.12in; }
+  .s4 .feats li { font-size: 14.5pt; margin: 0.1in 0; }
+  .s4 .integr { margin-top: 0.25in; background: #f0f4fa; border: 1.5px dashed var(--navy); border-radius: 0.1in; padding: 0.14in 0.2in; font-size: 13pt; }
+
+  /* ---------- slide 5 ---------- */
+  .demolist { counter-reset: d; margin-top: 0.15in; }
+  .demolist li {
+    list-style: none; counter-increment: d; position: relative; padding: 0.14in 0.2in 0.14in 0.75in;
+    background: #fff; border: 1px solid var(--line); border-radius: 0.12in; margin: 0.12in 0; font-size: 15pt;
+  }
+  .demolist li::before {
+    content: counter(d); position: absolute; left: 0.16in; top: 50%; transform: translateY(-50%);
+    width: 0.42in; height: 0.42in; border-radius: 50%; background: var(--saffron); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14pt;
+  }
+  .demolist li:nth-child(odd)::before { background: var(--navy); }
+  .livechip { position: absolute; top: 0.5in; left: 0.7in; background: var(--red); color: #fff; border-radius: 999px; padding: 0.05in 0.22in; font-weight: 700; font-size: 12pt; letter-spacing: .08em; }
+
+  /* ---------- slide 6: architecture ---------- */
+  .flow { display: grid; justify-items: center; margin-top: 0.1in; }
+  .fnode {
+    display: flex; align-items: center; gap: 0.16in; background: #f7fafd;
+    border: 2px solid var(--navy); border-radius: 0.14in; padding: 0.12in 0.24in;
+    box-shadow: 0 3px 10px rgba(20,51,93,.12);
+  }
+  .fnode .fi { font-size: 20pt; }
+  .fnode b { font-size: 14pt; color: var(--navy2); display: block; }
+  .fnode .sub { font-size: 10pt; color: var(--muted); display: block; }
+  .fnode.browser { border-color: var(--c-blue); }
+  .fnode.gw { border-color: var(--saffron); background: #fffaf3; border-width: 2.5px; }
+  .port { background: #eef2f8; color: var(--muted); border-radius: 0.06in; padding: 0 0.08in; font-size: 9pt; font-weight: 600; }
+  .stem { width: 3px; height: 0.22in; background: var(--saffron); }
+  .stem.arr { position: relative; height: 0.3in; }
+  .stem.arr::after { content: ""; position: absolute; bottom: -2px; left: -6px; border-left: 7.5px solid transparent; border-right: 7.5px solid transparent; border-top: 10px solid var(--saffron); }
+  .gwrow { display: flex; align-items: center; gap: 0.18in; }
+  .keynote { border: 1.5px dashed #b9c6d6; background: #f0f4fa; border-radius: 0.1in; padding: 0.08in 0.16in; font-size: 10.5pt; color: var(--muted); }
+  .keynote b { color: var(--navy); }
+  .tether { width: 0.28in; border-top: 2px dashed #b9c6d6; }
+  .rail { width: 66%; height: 3px; background: var(--saffron); border-radius: 2px; }
+  .drops { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 9in; justify-items: center; }
+  .svcrow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.25in; width: 9in; }
+  .svc { border-top: 5px solid var(--navy); border-radius: 0.12in; background: #f7fafd; border: 1px solid var(--line); border-top-width: 5px; padding: 0.14in 0.18in; }
+  .svc b { font-size: 13pt; color: var(--navy2); }
+  .svc .sub { font-size: 10pt; color: var(--muted); }
+  .svc .plus { font-size: 9.5pt; color: #7a5a1e; margin-top: 0.05in; }
+  .archnote { margin-top: 0.22in; font-size: 12pt; color: var(--muted); text-align: center; }
+
+  /* ---------- slide 7 ---------- */
+  .hard { display: grid; gap: 0.16in; margin-top: 0.1in; }
+  .hrow { display: grid; grid-template-columns: 1fr 0.5in 1fr; align-items: center; gap: 0.1in; }
+  .hbox { border-radius: 0.1in; padding: 0.12in 0.18in; font-size: 12.5pt; }
+  .hbad { background: #fbe4e2; border: 1.5px solid #efb8b4; color: #7c1a14; }
+  .hgood { background: #e2f4e8; border: 1.5px solid #b5dfc3; color: #0d5228; }
+  .harr { text-align: center; color: var(--saffron); font-size: 20pt; font-weight: 700; }
+  .hlabel { font-size: 10pt; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.03in; display: block; }
+
+  /* ---------- slide 8 ---------- */
+  .tengrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.2in; margin-top: 0.12in; }
+  .ten { border-radius: 0.12in; border: 1px solid var(--line); border-top: 5px solid; background: #fff; padding: 0.12in 0.16in; }
+  .ten b { font-size: 13pt; color: var(--navy2); display: block; }
+  .ten span { font-size: 10pt; color: var(--muted); }
+  .statrow { display: flex; gap: 0.2in; margin-top: 0.3in; }
+  .bigstat { flex: 1; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 0.14in; padding: 0.16in; box-shadow: 0 2px 8px rgba(20,51,93,.08); }
+  .bigstat b { display: block; font-size: 24pt; color: var(--navy); }
+  .bigstat span { font-size: 10.5pt; color: var(--muted); }
+
+  /* ---------- slide 9 ---------- */
+  .layers { margin-top: 0.35in; display: grid; justify-items: center; gap: 0; }
+  .citizens { display: flex; gap: 0.5in; font-size: 26pt; margin-bottom: 0.08in; }
+  .layer { width: 8.6in; text-align: center; border-radius: 0.14in; padding: 0.18in; font-size: 15pt; font-weight: 700; }
+  .layer.product { background: var(--saffron); color: #fff; box-shadow: 0 6px 18px rgba(240,130,30,.35); }
+  .layer.engines { background: var(--navy); color: #cfe0f5; margin-top: 0.12in; }
+  .layer small { display: block; font-weight: 400; font-size: 11pt; opacity: .9; }
+  .tagline { text-align: center; margin-top: 0.35in; font-size: 17pt; font-weight: 700; color: var(--navy2); }
+  .tagline em { color: var(--saffron); font-style: normal; }
+
+  /* ---------- slide 10 ---------- */
+  .radial { position: relative; height: 3.5in; margin-top: 0.15in; overflow: hidden; border-radius: 0.12in; }
+  .radial .ray { max-width: 2.35in; }
+  .hub {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    background: var(--navy); color: #fff; border-radius: 0.16in; padding: 0.18in 0.3in;
+    font-weight: 700; font-size: 14pt; text-align: center; box-shadow: 0 8px 24px rgba(20,51,93,.35); z-index: 2;
+  }
+  .hub small { display: block; font-weight: 400; font-size: 9.5pt; color: #b9c8de; }
+  .spoke { position: absolute; border-radius: 0.1in; padding: 0.07in 0.14in; font-size: 10.5pt; font-weight: 600; color: #fff; }
+  .ray { position: absolute; height: 2.5px; background: #b9c6d6; transform-origin: 0 50%; left: 50%; top: 50%; z-index: 1; }
+  .codebox {
+    margin-top: 0.18in; background: #10202f; color: #cfe7d8; border-radius: 0.12in;
+    padding: 0.14in 0.22in; font-family: Consolas, monospace; font-size: 12pt;
+    border-left: 6px solid var(--saffron);
+  }
+  .adoptrow { display: flex; gap: 0.25in; margin-top: 0.18in; font-size: 12.5pt; }
+  .adoptrow span { background: #eef2f8; border-radius: 999px; padding: 0.05in 0.2in; color: var(--navy); font-weight: 600; }
+
+  /* ---------- slide 11 ---------- */
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4in; margin-top: 0.15in; }
+  .twocol h3 { font-size: 15pt; color: var(--navy2); margin-bottom: 0.12in; }
+  .lim li, .next li { font-size: 13.5pt; margin: 0.12in 0; list-style: none; position: relative; padding-left: 0.3in; }
+  .lim li::before { content: "—"; position: absolute; left: 0; color: var(--muted); }
+  .next li::before { content: "→"; position: absolute; left: 0; color: var(--saffron); font-weight: 700; }
+
+  /* ---------- slide 12 ---------- */
+  .s12 { text-align: center; padding-top: 1.5in; }
+  .s12 .bigmark { width: 1.3in; height: 1.3in; margin: 0 auto 0.3in; background: var(--navy); color: #fff; border-radius: 0.28in; display: flex; align-items: center; justify-content: center; font-size: 54pt; font-weight: 700; }
+  .s12 h1 { font-size: 34pt; color: var(--navy2); }
+  .s12 h1 em { color: var(--saffron); font-style: normal; }
+  .s12 .ask { font-size: 18pt; margin-top: 0.25in; color: var(--ink); }
+  .s12 .team { margin-top: 0.45in; color: var(--muted); font-size: 13pt; }
+</style>
+</head>
+<body>
+
+<!-- ============ SLIDE 1 · TITLE ============ -->
+<section class="slide s1">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="bigmark">ଅ</div>
+  <h1><span>AaaS</span> — Accessibility as a Service</h1>
+  <p class="tag">One button on any government website that <b>reads, translates,
+  simplifies, scans and listens — in Odia, by voice.</b></p>
+  <div class="chips">
+    <span class="chip k-blue">🔊 Read aloud</span>
+    <span class="chip k-saffron">🌐 Translate</span>
+    <span class="chip k-green">📖 Easy Read</span>
+    <span class="chip k-maroon">📄 Scanned docs</span>
+    <span class="chip k-teal">🎙️ Voice forms</span>
+    <span class="chip k-violet">🧭 Voice nav</span>
+    <span class="chip k-navy">🅾 OpenDyslexic</span>
+  </div>
+  <p class="team">Team SUBARNAREKHA · Smart Odisha Hackathon '25 · Apache-2.0</p>
+  <div class="footer"><span>AaaS · Team SUBARNAREKHA</span><span>1</span></div>
+</section>
+
+<!-- ============ SLIDE 2 · THE PROBLEM ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">Arun, 68 — farmer near Jajpur</h1>
+  <div class="rule"></div>
+  <div class="cols2">
+    <div class="scanbox">
+      <h3>GOVERNMENT OF ODISHA<br/>SSEPD DEPARTMENT</h3>
+      <p class="ref">No. 2214 /SSEPD &nbsp;&nbsp; Date: 12.05.2026</p>
+      <p>It is hereby notified that the monthly pension payable under the
+      Madhu Babu Pension Yojana shall be enhanced from Rs. 500 to Rs. 1000
+      per month w.e.f. 01.06.2026, subject to furnishing of the requisite
+      life certificate…</p>
+      <span class="stamp">RECEIVED</span>
+    </div>
+    <div>
+      <ul class="arun">
+        <li>Arthritis — he cannot type</li>
+        <li>Speaks only Odia — the portal is in English</li>
+        <li>The notice that matters is a <b>photograph of paper</b></li>
+      </ul>
+      <p class="punch">His government is online. Arun is not.</p>
+      <div class="whostat">
+        <div class="st"><b>21 lakh</b><span>persons with disabilities in Odisha (2011, undercounted)</span></div>
+        <div class="st"><b>4.2 crore</b><span>Odia speakers worldwide</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>The problem</span><span>2</span></div>
+</section>
+
+<!-- ============ SLIDE 3 · WHY IT STAYS BROKEN ============ -->
+<section class="slide s3">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">Why this stays broken</h1>
+  <div class="rule"></div>
+  <ul>
+    <li>Hundreds of portals — each fixes accessibility <b>alone</b>, badly or not at all</li>
+    <li>Overlay widgets tick compliance boxes; they don't help a blind Odia speaker</li>
+    <li>Screen readers can't read a scan — and read <b>English</b> at Odia speakers</li>
+  </ul>
+  <div class="brokengrid">
+    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
+    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
+    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
+    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
+  </div>
+  <div class="sweep">
+    <p class="bigline">Accessibility must be <span style="color:var(--saffron)">infrastructure</span>, not remediation</p>
+    <div class="arrowline"></div>
+  </div>
+  <div class="footer"><span>The insight</span><span>3</span></div>
+</section>
+
+<!-- ============ SLIDE 4 · THE SOLUTION ============ -->
+<section class="slide s4">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">One button. <em>Six capabilities.</em></h1>
+  <div class="rule"></div>
+  <div style="display:grid;grid-template-columns:1fr 3.8in;gap:0.5in;align-items:start;">
+    <div>
+      <ul class="feats" style="list-style:none;">
+        <li>🔊 <b>Read aloud</b> — follow-along highlight, skip / replay</li>
+        <li>🌐 <b>Translate → Odia</b> — whole page, in place, one-tap undo</li>
+        <li>📖 <b>Easy Read</b> — officialese → plain language, offline rules</li>
+        <li>📄 <b>Read documents</b> — OCR scans &amp; PDFs, original + Odia <b>side by side</b></li>
+        <li>🎙️ <b>Speak to fill</b> — asks each field aloud; never presses Submit</li>
+        <li>🧭 <b>Voice command</b> — say a link's name; no dead ends</li>
+      </ul>
+      <div class="integr">
+        Integration = <b>one script tag</b>. Sites not integrated?
+        <b>Our browser extension injects it anyway.</b>
+      </div>
+    </div>
+    <div class="panelmock">
+      <div class="ph"><span>ସହାୟତା · Help</span><span>ଓଡ଼ିଆ ▾</span></div>
+      <div class="tiles">
+        <div class="tile"><span class="i">🔊</span><span class="od">ପଢ଼ି ଶୁଣାଅ</span><span class="en">Read aloud</span></div>
+        <div class="tile"><span class="i">🌐</span><span class="od">ଅନୁବାଦ</span><span class="en">Translate → Odia</span></div>
+        <div class="tile"><span class="i">📖</span><span class="od">ସହଜ ପଢ଼ା</span><span class="en">Easy Read</span></div>
+        <div class="tile"><span class="i">📄</span><span class="od">ଦଲିଲ ପଢ଼</span><span class="en">Read document</span></div>
+        <div class="tile"><span class="i">🎙️</span><span class="od">କହି ଲେଖ</span><span class="en">Speak to fill</span></div>
+        <div class="tile"><span class="i">🧭</span><span class="od">କହି ଚଲାଅ</span><span class="en">Voice command</span></div>
+      </div>
+      <div class="comfort">⚙️ ପଢ଼ିବା ଆରାମ · Reading comfort — OpenDyslexic · ruler · hover-to-speak</div>
+    </div>
+  </div>
+  <div class="footer"><span>The solution</span><span>4</span></div>
+</section>
+
+<!-- ============ SLIDE 5 · LIVE DEMO ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <span class="livechip">● LIVE DEMO</span>
+  <h1 class="t" style="margin-top:0.45in;">Watch Arun use his government</h1>
+  <div class="rule"></div>
+  <ol class="demolist">
+    <li><b>Read aloud</b> — the SSEPD pension page speaks Odia, highlighting each line</li>
+    <li><b>Translate + Easy Read</b> — English officialese becomes plain Odia (and back, ↺)</li>
+    <li><b>The scanned circular</b> — OCR → side-by-side original + Odia, read aloud</li>
+    <li><b>The pension form, by voice</b> — name transliterated, "ଷାଠିଏ ପାଞ୍ଚ" → 65, never auto-submits</li>
+    <li><b>"ଟେଣ୍ଡର"</b> — voice navigation on the <b>real</b> jajpur.odisha.gov.in</li>
+  </ol>
+  <p style="margin-top:0.2in;font-size:14pt;color:var(--muted);">Everything on this laptop — Wi-Fi off. ~4 minutes.</p>
+  <div class="footer"><span>Live demo</span><span>5</span></div>
+</section>
+
+<!-- ============ SLIDE 6 · ARCHITECTURE ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">How a request flows</h1>
+  <div class="rule"></div>
+  <div class="flow">
+    <div class="fnode browser">
+      <span class="fi">💻</span>
+      <span><b>Citizen's browser</b><span class="sub">ଅ widget · 520 KB, Shadow DOM — or the MV3 extension on any website</span></span>
+    </div>
+    <div class="stem arr"></div>
+    <div class="gwrow">
+      <div class="fnode gw">
+        <span class="fi">🛡️</span>
+        <span><b>Gateway <span class="port">:8000</span></b><span class="sub">auth · audit log · static demos · catch-all proxy</span></span>
+      </div>
+      <span class="tether"></span>
+      <div class="keynote"><b>X-API-Key</b> per tenant<br/>one key = one website</div>
+    </div>
+    <div class="stem"></div>
+    <div class="rail"></div>
+    <div class="drops"><div class="stem arr"></div><div class="stem arr"></div><div class="stem arr"></div></div>
+    <div class="svcrow">
+      <div class="svc"><b>🔊 TTS <span class="port">:8001</span></b><div class="sub">Meta MMS voices · or / hi / en</div><div class="plus">+ Odia number verbalisation</div></div>
+      <div class="svc"><b>🎙️ STT <span class="port">:8002</span></b><div class="sub">AI4Bharat IndicWav2Vec</div><div class="plus">Odia speech → text</div></div>
+      <div class="svc"><b>🌐 Translate <span class="port">:8003</span></b><div class="sub">AI4Bharat IndicTrans2</div><div class="plus">+ rule-based simplify · Tesseract OCR</div></div>
+    </div>
+  </div>
+  <p class="archnote">On-prem — OCAC in production, one laptop today · no cloud calls ·
+  every engine has an honest mock fallback · DPDP-friendly: voice processed in memory, discarded</p>
+  <div class="footer"><span>Architecture</span><span>6</span></div>
+</section>
+
+<!-- ============ SLIDE 7 · THE HARD PARTS ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">The models are commodities. <em>This is the product:</em></h1>
+  <div class="rule"></div>
+  <div class="hard">
+    <div class="hrow">
+      <div class="hbox hbad"><span class="hlabel">MMS-TTS is mute on digits</span>"୩୦୦ ଟଙ୍କା" → <b>12 KB of silence</b></div>
+      <div class="harr">→</div>
+      <div class="hbox hgood"><span class="hlabel">we verbalise numbers</span>spoken as <b>"ତିନି ଶହ ଟଙ୍କା"</b> in Odia words</div>
+    </div>
+    <div class="hrow">
+      <div class="hbox hbad"><span class="hlabel">Odia STT hears English phonetically</span>"Contact" → <b>"କଣ୍ଟାକ୍ଟ"</b> — no match</div>
+      <div class="harr">→</div>
+      <div class="hbox hgood"><span class="hlabel">romanise + sound-match</span>"କଣ୍ଟାକ୍ଟ" <b>finds and opens Contact</b></div>
+    </div>
+    <div class="hrow">
+      <div class="hbox hbad"><span class="hlabel">translation destroys names</span>ପୂର୍ଣ୍ଣଚନ୍ଦ୍ର → <b>"full moon"</b> in the name box</div>
+      <div class="harr">→</div>
+      <div class="hbox hgood"><span class="hlabel">transliterate, never translate</span>lands as <b>"Purnnachandra"</b></div>
+    </div>
+    <div class="hrow">
+      <div class="hbox hbad"><span class="hlabel">real sites hide the notices</span>tenders live inside <b>hidden carousels</b></div>
+      <div class="harr">→</div>
+      <div class="hbox hgood"><span class="hlabel">voice nav reaches them</span>hidden links ranked, <b>duplicates collapse</b></div>
+    </div>
+  </div>
+  <div class="footer"><span>What we built</span><span>7</span></div>
+</section>
+
+<!-- ============ SLIDE 8 · PROOF ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">It's real — six kinds of institution, one gateway</h1>
+  <div class="rule"></div>
+  <div class="tengrid">
+    <div class="ten" style="border-top-color:var(--c-blue)"><b>Jajpur Collectorate</b><span>district · grievance form · tender scans</span></div>
+    <div class="ten" style="border-top-color:var(--c-maroon)"><b>Utkal University</b><span>admissions · helpdesk voice form</span></div>
+    <div class="ten" style="border-top-color:var(--c-green)"><b>BSE Odisha</b><span>exam board · scanned circulars</span></div>
+    <div class="ten" style="border-top-color:var(--c-saffron)"><b>National Scholarship Portal</b><span>central govt · "India next"</span></div>
+    <div class="ten" style="border-top-color:var(--c-teal)"><b>AIIMS Bhubaneswar</b><span>hospital · OPD booking by voice</span></div>
+    <div class="ten" style="border-top-color:var(--c-violet)"><b>SSEPD Department</b><span>flagship · every feature on one page</span></div>
+  </div>
+  <div class="statrow">
+    <div class="bigstat"><b>228</b><span>automated checks, five suites</span></div>
+    <div class="bigstat"><b>6</b><span>real gov sites verified via extension</span></div>
+    <div class="bigstat"><b>0</b><span>cloud calls — fully on-prem</span></div>
+    <div class="bigstat"><b>1.7 GB</b><span>offline USB bundle, real OCR inside</span></div>
+  </div>
+  <p style="margin-top:0.2in;font-size:12.5pt;color:var(--muted);">Plus a live operator console: request counters that move during the demo,
+  one-click tenant onboarding that mints a working key, and an API playground judges can press.</p>
+  <div class="footer"><span>Proof</span><span>8</span></div>
+</section>
+
+<!-- ============ SLIDE 9 · BHASHINI ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">"Doesn't Bhashini already do this?"</h1>
+  <div class="rule"></div>
+  <div class="layers">
+    <div class="citizens">👵 👨‍🦯 🧑‍🦽 👴 🧏</div>
+    <div class="layer product">AaaS — the accessibility PRODUCT
+      <small>guided form-filling · name transliteration · side-by-side scanned reading · never-auto-submit safety · no-dead-end voice nav</small>
+    </div>
+    <div class="layer engines">Language ENGINES — Bhashini · AI4Bharat · Meta
+      <small>ASR · translation · TTS, as APIs — we'd plug Bhashini in tomorrow; it makes us stronger</small>
+    </div>
+  </div>
+  <p class="tagline"><em>Bhashini gives India voices.</em><br/>AaaS gives Odisha's disabled citizens hands, eyes and ears.</p>
+  <div class="footer"><span>Positioning</span><span>9</span></div>
+</section>
+
+<!-- ============ SLIDE 10 · ADOPTION ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">Adoption: the UPI pattern</h1>
+  <div class="rule"></div>
+  <div class="radial">
+    <div class="ray" style="width:2.9in; transform: rotate(200deg);"></div>
+    <div class="ray" style="width:3.1in; transform: rotate(240deg);"></div>
+    <div class="ray" style="width:2.7in; transform: rotate(285deg);"></div>
+    <div class="ray" style="width:3.1in; transform: rotate(335deg);"></div>
+    <div class="ray" style="width:2.9in; transform: rotate(20deg);"></div>
+    <div class="ray" style="width:3.0in; transform: rotate(65deg);"></div>
+    <div class="ray" style="width:2.8in; transform: rotate(115deg);"></div>
+    <div class="ray" style="width:3.2in; transform: rotate(155deg);"></div>
+    <div class="hub">AaaS gateway<br/>at OCAC<small>deployed once, state-wide</small></div>
+    <div class="spoke" style="left:12%; top:6%;  background:var(--c-blue)">District portals</div>
+    <div class="spoke" style="left:44%; top:0%;  background:var(--c-maroon)">Universities</div>
+    <div class="spoke" style="left:74%; top:8%;  background:var(--c-green)">Exam boards</div>
+    <div class="spoke" style="left:86%; top:42%; background:var(--c-saffron)">Central portals</div>
+    <div class="spoke" style="left:70%; top:82%; background:var(--c-teal)">Hospitals</div>
+    <div class="spoke" style="left:38%; top:88%; background:var(--c-violet)">Welfare depts</div>
+    <div class="spoke" style="left:8%;  top:76%; background:var(--navy)">Municipalities</div>
+    <div class="spoke" style="left:2%;  top:40%; background:#7a5a1e">Panchayats</div>
+  </div>
+  <div class="codebox">&lt;script src="https://aaas.ocac.gov.in/widget.js" data-key="aaas_live_…" defer&gt;&lt;/script&gt;</div>
+  <div class="adoptrow">
+    <span>One script tag per site</span><span>Apache-2.0 — no lock-in</span>
+    <span>Any SI can operate it</span><span>Other states adopt free</span>
+  </div>
+  <div class="footer"><span>Adoption</span><span>10</span></div>
+</section>
+
+<!-- ============ SLIDE 11 · HONESTY + ROADMAP ============ -->
+<section class="slide">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="corner">ଅ</div>
+  <h1 class="t">Honest today · concrete next</h1>
+  <div class="rule"></div>
+  <div class="twocol">
+    <div>
+      <h3>Limits we'll tell you first</h3>
+      <ul class="lim">
+        <li>OCR: printed notices yes — handwriting no</li>
+        <li>STT wants clear speech — so we retry, and show tappable choices instead of guessing</li>
+        <li>The USB bundle ships mock translation (torch doesn't fit); the laptop runs real IndicTrans2</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Roadmap — no rewrites, just pilots</h3>
+      <ul class="next">
+        <li>Pilot: one district portal + one board site</li>
+        <li>Native-speaker polish of the Odia glossary</li>
+        <li>Bhashini as an alternate engine backend</li>
+        <li>More languages — the engines already support them; it's configuration</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span>Limits &amp; roadmap</span><span>11</span></div>
+</section>
+
+<!-- ============ SLIDE 12 · CLOSE ============ -->
+<section class="slide s12">
+  <div class="ribbon"><i></i><i></i><i></i></div>
+  <div class="bigmark">ଅ</div>
+  <h1><em>Odisha first.</em> India next.</h1>
+  <p class="ask">Arun shouldn't need his grandson to talk to his own government.<br/>
+  <b>One pilot is all we ask.</b></p>
+  <p class="team">Team SUBARNAREKHA · Smart Odisha Hackathon '25 · Apache-2.0</p>
+  <div class="footer"><span>ଧନ୍ୟବାଦ · Thank you</span><span>12</span></div>
+</section>
+
+</body>
+</html>
