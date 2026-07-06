@@ -82,6 +82,15 @@ def _seed_dev_repository() -> InMemoryTenantRepository:
         region="IN-OD",
     )
     repo.add(bse, raw_key="aaas_live_" + "2" * 32, name="bse-seed")
+
+    ssepd = Tenant(
+        id=UUID("00000000-0000-0000-0000-000000000004"),
+        slug="ssepd-odisha",
+        display_name="SSEPD Department, Odisha",
+        category="government",
+        region="IN-OD",
+    )
+    repo.add(ssepd, raw_key="aaas_live_" + "3" * 32, name="ssepd-seed")
     return repo
 
 

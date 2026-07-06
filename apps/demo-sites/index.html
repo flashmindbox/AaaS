@@ -77,12 +77,30 @@
             </header>
             <p>
               The HSC / Madhyama exam board website — schedules, results,
-              and accessibility provisions for PwD candidates, with every
-              page readable aloud in Odia.
+              and the 2-page scanned examination circular for the
+              document reader.
             </p>
             <footer>
               <a class="btn" href="./real-bse/">Open demo →</a>
               <a class="btn btn-ghost" href="./bse-odisha/">Offline copy →</a>
+            </footer>
+          </article>
+
+          <article class="site-card site-jajpur">
+            <header>
+              <span class="pill" data-cat="government">Government · flagship</span>
+              <h3>SSEPD Department</h3>
+              <p lang="or">ସାମାଜିକ ସୁରକ୍ଷା ଓ ଭିନ୍ନକ୍ଷମ ସଶକ୍ତିକରଣ ବିଭାଗ</p>
+            </header>
+            <p>
+              <strong>Every feature has a target here:</strong> pension
+              guidelines for Easy Read, a scanned notice + 2-page PDF for
+              the document reader, the MBPY application form for guided
+              voice filling, tabbed camp schedules for voice command, and
+              rupee amounts that exercise Odia number speech.
+            </p>
+            <footer>
+              <a class="btn" href="./ssepd-odisha/">Open demo →</a>
             </footer>
           </article>
         </div>
@@ -112,27 +130,37 @@
       <section class="about">
         <h2>How to demo</h2>
         <ol>
-          <li>Open any tenant site above.</li>
+          <li>Open a tenant site above — the SSEPD flagship exercises
+            everything on one page.</li>
           <li>
             Click the circular <strong>ଅ</strong> button in the lower-right
-            corner. It opens the AaaS widget.
+            corner. Six tiles open, Odia labels first.
           </li>
           <li>
-            Hit <strong>"Read this page"</strong> — Meta MMS-TTS speaks
-            the visible content (Odia, Hindi, or English). If the gateway
-            is offline, the widget shows an error instead of speaking —
-            there is no browser-voice fallback.
+            <strong>ପଢ଼ି ଶୁଣାଅ · Read aloud</strong> — the page speaks in
+            Odia with a follow-along highlight; ⏮/⏭ skip and replay.
           </li>
           <li>
-            Pick a language (Auto / Odia / Hindi / English). Content in
-            another language is translated through the gateway before
-            synthesis.
+            <strong>ଅନୁବାଦ · Translate</strong> then
+            <strong>ସହଜ ପଢ଼ା · Easy Read</strong> — whole-page Odia, then
+            plain language. Both have one-tap ↺ undo.
           </li>
           <li>
-            Hold <strong>🎙 Record</strong> to speak into the microphone —
-            the gateway returns a transcript. Demo sites that listen for
-            the <code>aaas-transcript</code> event consume it directly to
-            fill form fields.
+            <strong>ଦଲିଲ ପଢ଼ · Read document</strong> — pick the scanned
+            notice or the 2-page PDF; the original and the Odia text appear
+            side by side while it reads aloud.
+          </li>
+          <li>
+            <strong>କହି ଲେଖ · Speak to fill</strong> on the application
+            form — it asks for each field aloud and never presses Submit.
+          </li>
+          <li>
+            <strong>କହି ଚଲାଅ · Voice command</strong> — say a link's name
+            ("ପେନସନ", "କଣ୍ଟାକ୍ଟ"); unsure matches become tappable choices.
+          </li>
+          <li>
+            Under <strong>Reading comfort</strong>: OpenDyslexic
+            "Comfortable letters", the reading ruler, and hover-to-speak.
           </li>
         </ol>
       </section>

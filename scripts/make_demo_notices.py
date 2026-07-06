@@ -8,6 +8,11 @@ they read as photocopied government paper. Outputs:
 - apps/demo-sites/jajpur-collectorate/assets/notice-scan.png
 - apps/demo-sites/bse-odisha/assets/circular-scan.pdf  (image-only PDF,
   2 pages — genuinely no text layer, i.e. a true scan simulation)
+- apps/demo-sites/ssepd-odisha/assets/pension-notice-scan.png  (MBPY
+  pension revision — rupee amounts + dates exercise the TTS number
+  verbalization when read aloud in Odia)
+- apps/demo-sites/ssepd-odisha/assets/udid-camp-circular.pdf  (2-page
+  UDID camp schedule)
 
 English on purpose: the demo beat is scan -> plain Odia speech, and
 PIL cannot shape Odia conjuncts without libraqm. Real Odia scans work
@@ -74,6 +79,53 @@ CIRCULAR_BSE_P2 = {
         "arrangements to all invigilators and shall be liable to furnish "
         "compliance reports expeditiously, in accordance with the "
         "stipulated guidelines.",
+    ],
+    "footer": "",
+}
+
+
+SSEPD_DIR = REPO / "apps" / "demo-sites" / "ssepd-odisha" / "assets"
+
+NOTICE_SSEPD = {
+    "header": ["GOVERNMENT OF ODISHA", "SSEPD DEPARTMENT, BHUBANESWAR"],
+    "ref": "No. 2214 /SSEPD     Date: 12.05.2026",
+    "title": "N O T I F I C A T I O N",
+    "body": [
+        "It is hereby notified that the monthly pension payable under the "
+        "Madhu Babu Pension Yojana shall be enhanced from Rs. 500 to "
+        "Rs. 1000 per month w.e.f. 01.06.2026 in respect of beneficiaries "
+        "aged 60 to 79 years, and to Rs. 1200 per month in respect of "
+        "beneficiaries aged 80 years and above.",
+        "Beneficiaries shall furnish the requisite life certificate at the "
+        "block office prior to 25.05.2026, failing which disbursement "
+        "shall be kept in abeyance until verification is completed.",
+    ],
+    "footer": "By order of the Commissioner-cum-Secretary",
+}
+
+CIRCULAR_UDID_P1 = {
+    "header": ["SSEPD DEPARTMENT, GOVERNMENT OF ODISHA"],
+    "ref": "No. 2290 /UDID     Date: 18.05.2026",
+    "title": "U D I D   C A M P   C I R C U L A R",
+    "body": [
+        "It is hereby notified that Unique Disability ID (UDID) enrolment "
+        "camps shall be conducted w.e.f. 02.06.2026 at all block "
+        "headquarters. Applicants shall furnish one passport photograph, "
+        "the disability certificate and the Aadhaar card at the camp.",
+    ],
+    "footer": "Director, SSEPD",
+}
+
+CIRCULAR_UDID_P2 = {
+    "header": ["SSEPD DEPARTMENT, GOVERNMENT OF ODISHA"],
+    "ref": "Page 2 of 2",
+    "title": "",
+    "body": [
+        "Block Social Security Officers are required to intimate the camp "
+        "schedule to all gram panchayats and shall be liable to furnish "
+        "compliance reports expeditiously, in accordance with the "
+        "stipulated guidelines. Assistance desks for persons with visual "
+        "impairment shall be provisioned at each venue.",
     ],
     "footer": "",
 }
@@ -148,6 +200,17 @@ def main() -> int:
     p2 = render_page(CIRCULAR_BSE_P2)
     p1.save(BSE_OUT, "PDF", resolution=120, save_all=True, append_images=[p2])
     print(f"[notices] wrote {BSE_OUT} ({BSE_OUT.stat().st_size:,} bytes, 2 pages)")
+
+    SSEPD_DIR.mkdir(parents=True, exist_ok=True)
+    pension_png = SSEPD_DIR / "pension-notice-scan.png"
+    render_page(NOTICE_SSEPD).save(pension_png, "PNG")
+    print(f"[notices] wrote {pension_png} ({pension_png.stat().st_size:,} bytes)")
+
+    udid_pdf = SSEPD_DIR / "udid-camp-circular.pdf"
+    u1 = render_page(CIRCULAR_UDID_P1)
+    u2 = render_page(CIRCULAR_UDID_P2)
+    u1.save(udid_pdf, "PDF", resolution=120, save_all=True, append_images=[u2])
+    print(f"[notices] wrote {udid_pdf} ({udid_pdf.stat().st_size:,} bytes, 2 pages)")
     return 0
 
 
