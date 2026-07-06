@@ -74,12 +74,17 @@ a { color: var(--navy); }
 .lede[lang="or"] { color: var(--muted); font-size: 0.98rem; }
 
 .featchips {
-  list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem;
+  list-style: none; display: flex; flex-wrap: nowrap; gap: 0.5rem;
   margin: 1.1rem 0 0; padding: 0;
 }
 .featchips li {
-  border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.85rem;
+  flex: 1 1 0; text-align: center; white-space: nowrap;
+  border-radius: 999px; padding: 0.32rem 0.4rem; font-size: 0.84rem;
   font-weight: 600; border: 1.5px solid; background: #fff;
+}
+@media (max-width: 980px) {
+  .featchips { flex-wrap: wrap; }
+  .featchips li { flex: 1 1 auto; padding: 0.3rem 0.85rem; }
 }
 .fc-read      { color: var(--c-blue);    border-color: var(--c-blue);    background: #eef4fd; }
 .fc-translate { color: var(--c-saffron); border-color: var(--c-saffron); background: #fdf3e7; }
@@ -103,7 +108,7 @@ h2 {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
   gap: 1.2rem; margin-top: 1rem;
 }
-.grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); max-width: 720px; }
+.grid-2 { grid-template-columns: 1fr; }
 .site-card {
   background: var(--card); border: 1px solid var(--line); border-radius: 16px;
   padding: 1.2rem 1.2rem 1.1rem; display: flex; flex-direction: column;
