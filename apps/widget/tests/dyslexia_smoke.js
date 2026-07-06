@@ -98,6 +98,12 @@ if (!cssM) throw new Error("could not find DYSLEXIA_CSS");
 
 const code =
   "const LS_DYSLEXIA = 'aaas.dyslexia.v1';\n" +
+  // Stubs for references the extracted functions make but whose real
+  // implementations need a full DOM (TreeWalker) or the built font.
+  "const ATKINSON_FONT_FACE_CSS = '/* atkinson stub */';\n" +
+  "function detectPageLang() { return 'en'; }\n" +
+  "function tagIndicElements() {}\n" +
+  "function untagIndicElements() {}\n" +
   cssM[0] +
   "\n" +
   extractFn("injectDyslexiaStyles") +
@@ -108,7 +114,7 @@ const code =
   "\n" +
   extractFn("setStoredFlag") +
   "\n" +
-  "module.exports = { injectDyslexiaStyles, removeDyslexiaStyles, getStoredFlag, setStoredFlag, LS_DYSLEXIA };";
+  "module.exports = { injectDyslexiaStyles, removeDyslexiaStyles, getStoredFlag, setStoredFlag, LS_DYSLEXIA, DYSLEXIA_CSS };";
 
 const mod = { exports: {} };
 new Function("module", code)(mod);
@@ -118,6 +124,7 @@ const {
   getStoredFlag,
   setStoredFlag,
   LS_DYSLEXIA,
+  DYSLEXIA_CSS,
 } = mod.exports;
 
 const results = [];
@@ -128,11 +135,15 @@ function check(name, ok) {
 
 injectDyslexiaStyles();
 check("html attribute set after inject", html.attrs["data-aaas-dyslexia"] === "true");
+check("latin attribute set on English page", html.attrs["data-aaas-dyslexia-latin"] === "true");
 check("style element in head after inject", head.children.some((c) => c.id === "__aaas_dyslexia__"));
 check("style textContent non-empty", head.children.find((c) => c.id === "__aaas_dyslexia__").textContent.length > 100);
+check("CSS applies gated letter-spacing", DYSLEXIA_CSS.includes('[data-aaas-dyslexia-latin="true"]') && DYSLEXIA_CSS.includes("letter-spacing: 0.04em"));
+check("CSS resets letter-spacing on Indic elements", DYSLEXIA_CSS.includes("letter-spacing: normal"));
 
 removeDyslexiaStyles();
 check("html attribute removed", !("data-aaas-dyslexia" in html.attrs));
+check("latin attribute removed", !("data-aaas-dyslexia-latin" in html.attrs));
 check("style element removed from head", !head.children.some((c) => c.id === "__aaas_dyslexia__"));
 
 injectDyslexiaStyles();

@@ -50,9 +50,17 @@
   const ORIYA_UNICODE_RANGE =
     "U+0951-0952, U+0964-0965, U+0B01-0B77, U+1CDA, U+1CF2, U+200C-200D, U+20B9, U+25CC";
 
+  // Atkinson Hyperlegible (Braille Institute, OFL) for dyslexia mode.
+  // Latin-only subset; the unicode-range keeps it away from Indic text
+  // so Odia keeps rendering with Noto Sans Oriya.
+  const ATKINSON_WOFF2_BASE64 = "__AAAS_ATKINSON_B64__";
+  const LATIN_UNICODE_RANGE =
+    "U+0000-00FF, U+0131, U+0152-0153, U+2013-2014, U+2018-201D, U+2026";
+
   // localStorage keys. Namespaced so embedders don't clash with us.
   const LS_DYSLEXIA = "aaas.dyslexia.v1";
   const LS_HOVER_SPEAK = "aaas.hover-speak.v1";
+  const LS_RULER = "aaas.ruler.v1";
 
   const CURRENT_SCRIPT = document.currentScript;
   // If the script is served from a http(s) origin (cloud or local
@@ -452,6 +460,280 @@
     return out.length ? out : [trimmed];
   }
 
+  /* ---------- voice navigation ----------
+   * Matches an STT transcript against (a) a small table of global
+   * widget commands per language, then (b) the accessible names of the
+   * page's links and buttons. Dependency-free scoring: exact match,
+   * containment, then token-level fuzzy overlap via edit distance.
+   * Everything here is top-level and pure (rankVoiceTargets works on
+   * plain {name} objects) so voice_match_smoke.js can extract and unit
+   * test it without a DOM.
+   */
+
+  // Two-row iterative Levenshtein distance.
+  function editDistance(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    let prev = new Array(b.length + 1);
+    let curr = new Array(b.length + 1);
+    for (let j = 0; j <= b.length; j++) prev[j] = j;
+    for (let i = 1; i <= a.length; i++) {
+      curr[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      }
+      const tmp = prev;
+      prev = curr;
+      curr = tmp;
+    }
+    return prev[b.length];
+  }
+
+  // Filler a spoken command may carry around the target name: "click
+  // on Citizen Services", "ନାଗରିକ ସେବା ଖୋଲ". Longest-first so "click
+  // on" wins over "click".
+  const VOICE_STRIP_LEADING = [
+    "click on", "click", "open", "go to", "goto", "select", "press",
+    "क्लिक करो", "खोलो", "जाओ",
+  ];
+  const VOICE_STRIP_TRAILING = [
+    "ଖୋଲନ୍ତୁ", "ଖୋଲ", "କରନ୍ତୁ", "କର", "ଯାଆନ୍ତୁ", "ଯାଅ", "ଦବାନ୍ତୁ",
+    "करो", "खोलो", "जाओ",
+  ];
+
+  function normalizeCommandText(text) {
+    let t = toWesternDigits(text || "")
+      .toLowerCase()
+      .replace(/[.,!?;:()"'«»।॥/\-–—]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    for (const lead of VOICE_STRIP_LEADING) {
+      if (t.startsWith(lead + " ")) {
+        t = t.slice(lead.length + 1);
+        break;
+      }
+    }
+    for (const tail of VOICE_STRIP_TRAILING) {
+      if (t.endsWith(" " + tail)) {
+        t = t.slice(0, -(tail.length + 1));
+        break;
+      }
+    }
+    return t.trim();
+  }
+
+  // Global widget actions. Phrases are compared in normalized form, so
+  // trailing verbs the normalizer strips ("କର") are safe to include.
+  const VOICE_COMMANDS = [
+    { action: "read", en: ["read page", "read this page", "read aloud", "read"], or: ["ପୃଷ୍ଠା ପଢ଼", "ପଢ଼ନ୍ତୁ", "ପଢ଼"], hi: ["पेज पढ़ो", "पढ़ो"] },
+    { action: "stop", en: ["stop", "stop reading", "quiet"], or: ["ବନ୍ଦ କର", "ରୁହ"], hi: ["रुको", "बंद करो"] },
+    { action: "translate", en: ["translate", "translate page", "translate this page"], or: ["ଅନୁବାଦ କର", "ଅନୁବାଦ"], hi: ["अनुवाद करो", "अनुवाद"] },
+    { action: "easyread", en: ["easy read", "simplify", "simple words"], or: ["ସହଜ ପଢ଼ା", "ସରଳ କର"], hi: ["आसान पढ़ो", "सरल करो"] },
+    { action: "top", en: ["go to top", "top of page", "scroll up"], or: ["ଉପରକୁ ଯାଅ", "ଉପର"], hi: ["ऊपर जाओ"] },
+    { action: "search", en: ["search", "find"], or: ["ଖୋଜ"], hi: ["खोजो", "ढूंढो"] },
+  ];
+
+  function matchGlobalCommand(text, lang) {
+    const norm = normalizeCommandText(text);
+    if (!norm) return null;
+    const langs = ["en", "or", "hi"].filter((l) => l !== lang);
+    langs.unshift(lang);
+    // Exact first (hint language, then the rest — STT hints can be
+    // wrong), then edit-distance-tolerant on phrases long enough that
+    // a one-letter slip can't jump between commands.
+    for (const l of langs) {
+      for (const cmd of VOICE_COMMANDS) {
+        for (const phrase of cmd[l] || []) {
+          if (normalizeCommandText(phrase) === norm) return cmd.action;
+        }
+      }
+    }
+    for (const l of langs) {
+      for (const cmd of VOICE_COMMANDS) {
+        for (const phrase of cmd[l] || []) {
+          const p = normalizeCommandText(phrase);
+          if (p.length < 4 || norm.length < 4) continue;
+          const sim = 1 - editDistance(norm, p) / Math.max(norm.length, p.length);
+          if (sim >= 0.85) return cmd.action;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Odia -> English token map for common government-site navigation
+  // vocabulary. MT of short nav phrases drifts into synonyms the string
+  // matcher can't recover ("ନାଗରିକ ସେବା" -> "the Civil Service",
+  // "ଅଭିଯୋଗ" -> "Complaint" where the link says "Grievance"), so the
+  // frequent terms are pinned to the wording the sites actually use.
+  // Values may be multi-word. Extend freely during rehearsal.
+  const VOICE_OR_EN_GLOSSARY = {
+    "ନାଗରିକ": "citizen",
+    "ସେବା": "services",
+    "ଯୋଗାଯୋଗ": "contact",
+    "ଅଭିଯୋଗ": "grievance",
+    "ବିଜ୍ଞପ୍ତି": "notifications",
+    "ସୂଚନା": "notice",
+    "ଫଳାଫଳ": "results",
+    "ପ୍ରମାଣପତ୍ର": "certificate",
+    "ଆୟ": "income",
+    "ଜାତି": "caste",
+    "ବାସିନ୍ଦା": "residence",
+    "ଛାତ୍ର": "student",
+    "ଛାତ୍ରଛାତ୍ରୀ": "students",
+    "ବୃତ୍ତି": "scholarship",
+    "ପିଲା": "students",
+    "ପିଲାଙ୍କ": "students",
+    "ପାଇଁ": "for",
+    "ଭିନ୍ନକ୍ଷମ": "disabilities",
+    "ଆବେଦନ": "apply",
+    "ଡାଉନଲୋଡ୍": "download",
+    "ଟେଣ୍ଡର": "tender",
+    "ନିଯୁକ୍ତି": "recruitment",
+    "ସ୍ୱାସ୍ଥ୍ୟ": "health",
+    "ଶିକ୍ଷା": "education",
+    "ରାସନ": "ration",
+    "କାର୍ଡ": "card",
+    "ପେନସନ": "pension",
+    "ଯୋଜନା": "scheme",
+    "ବିଷୟରେ": "about",
+    "ଘର": "home",
+    "ଖବର": "news",
+  };
+
+  // STT slips in Odia mostly scramble matras and viramas, not the base
+  // consonants (ବ୍ୃତି for ବୃତ୍ତି). Stripping the combining marks gives
+  // a consonant skeleton that survives those slips, so fuzzy glossary
+  // lookup compares skeletons when the full forms don't match.
+  function odiaSkeleton(tok) {
+    return tok.replace(/[଼-୍୕-ୗୢ-ୣ]/g, "");
+  }
+
+  // Map an Odia transcript to English via the nav glossary, token by
+  // token. Fuzzy key lookup absorbs small STT slips. Odia tokens with
+  // no glossary hit are dropped rather than passed through — a partial
+  // English phrase matches links, mixed-script noise doesn't. Returns
+  // null when nothing mapped.
+  function glossaryTranslateOdia(normText) {
+    const keys = Object.keys(VOICE_OR_EN_GLOSSARY);
+    const out = [];
+    let mapped = 0;
+    for (const tok of normText.split(" ")) {
+      if (!tok) continue;
+      if (!/[଀-୿]/.test(tok)) {
+        out.push(tok);
+        continue;
+      }
+      let hit = VOICE_OR_EN_GLOSSARY[tok];
+      if (!hit) {
+        const tokSkel = odiaSkeleton(tok);
+        let bestSim = 0;
+        let bestKey = null;
+        for (const k of keys) {
+          const full = 1 - editDistance(tok, k) / Math.max(tok.length, k.length);
+          const kSkel = odiaSkeleton(k);
+          const skel = kSkel && tokSkel
+            ? 1 - editDistance(tokSkel, kSkel) / Math.max(tokSkel.length, kSkel.length)
+            : 0;
+          const sim = Math.max(full, skel);
+          if (sim > bestSim) {
+            bestSim = sim;
+            bestKey = k;
+          }
+        }
+        if (bestSim >= 0.65) hit = VOICE_OR_EN_GLOSSARY[bestKey];
+      }
+      if (hit) {
+        out.push(hit);
+        mapped++;
+      }
+    }
+    return mapped ? out.join(" ") : null;
+  }
+
+  // Score a transcript against one accessible name. 1.0 exact;
+  // 0.75–0.95 containment (scaled by length ratio); otherwise a
+  // token-overlap blend: coverage = how much of the transcript matched,
+  // precision = how much of the name it accounts for.
+  function scoreVoiceTarget(transcript, name) {
+    const t = normalizeCommandText(transcript);
+    const n = normalizeCommandText(name);
+    if (!t || !n) return 0;
+    if (t === n) return 1;
+    if (n.includes(t) || t.includes(n)) {
+      const ratio = Math.min(t.length, n.length) / Math.max(t.length, n.length);
+      return 0.75 + 0.2 * ratio;
+    }
+    const tTokens = t.split(" ");
+    const nTokens = n.split(" ");
+    let sum = 0;
+    for (const tok of tTokens) {
+      let best = 0;
+      for (const cand of nTokens) {
+        let s = 0;
+        if (tok === cand) s = 1;
+        else if (tok.length >= 4 && cand.length >= 4) {
+          s = 1 - editDistance(tok, cand) / Math.max(tok.length, cand.length);
+        }
+        if (s > best) best = s;
+      }
+      if (best >= 0.75) sum += best;
+    }
+    const coverage = Math.min(1, sum / tTokens.length);
+    const precision = Math.min(1, sum / nTokens.length);
+    return 0.7 * coverage + 0.3 * precision;
+  }
+
+  const VOICE_ACT_THRESHOLD = 0.65;
+  const VOICE_SURE_THRESHOLD = 0.85;
+  const VOICE_AMBIGUITY_GAP = 0.1;
+
+  function rankVoiceTargets(transcript, targets) {
+    const ranked = [];
+    for (const target of targets) {
+      const score = scoreVoiceTarget(transcript, target.name || "");
+      if (score > 0.25) {
+        ranked.push({ score, name: target.name, element: target.element || null });
+      }
+    }
+    ranked.sort((a, b) => b.score - a.score);
+    return ranked;
+  }
+
+  // Act on a clearly-best candidate, never on an ambiguous one: a sure
+  // hit clicks, a plausible hit clicks only with daylight to the
+  // runner-up, everything else just reports candidates.
+  function shouldActOnVoiceMatch(ranked) {
+    if (!ranked.length) return false;
+    const top = ranked[0].score;
+    if (top >= VOICE_SURE_THRESHOLD) return true;
+    if (top < VOICE_ACT_THRESHOLD) return false;
+    return ranked.length < 2 || top - ranked[1].score >= VOICE_AMBIGUITY_GAP;
+  }
+
+  const VOICE_TARGET_SELECTOR =
+    'a[href], button, [role="button"], [role="link"], input[type="submit"], input[type="button"], summary';
+
+  function collectVoiceTargets() {
+    const seen = new Set();
+    const out = [];
+    document.querySelectorAll(VOICE_TARGET_SELECTOR).forEach((el) => {
+      if (!isVisible(el)) return;
+      if (el.closest("[data-aaas-widget]")) return;
+      // getAccessibleName skips <input> value; submit buttons name
+      // themselves through it ("<input type=submit value=Search>").
+      const name = getAccessibleName(el) || (el.tagName === "INPUT" ? (el.value || "").trim() : "");
+      if (!name) return;
+      const key = name + "§" + (el.getAttribute("href") || el.tagName);
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push({ name, element: el });
+    });
+    return out;
+  }
+
   async function probeGateway() {
     try {
       const r = await fetch(`${CONFIG.gateway}/healthz`, {
@@ -551,7 +833,8 @@
     button.action.stop:hover { background: #d85860; }
     button.action.mic { background: #2c7a52; }
     button.action.mic:hover { background: #349062; }
-    button.action.mic.recording { background: #c7444c; animation: pulse 1.2s infinite; }
+    button.action.mic.recording,
+    button.action.voice.recording { background: #c7444c; animation: pulse 1.2s infinite; }
     @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(199,68,76,0.35); } }
 
     .transcript {
@@ -575,6 +858,23 @@
     }
     .status.error { color: #ff9898; }
     .status.ok    { color: #8fdba0; }
+    /* Attention-grabbing informational notice ("page is already in
+       Odia") — an amber pill rather than a colour change, so a user
+       who just clicked a button can't miss the answer. */
+    .status.notice {
+      color: #ffd25e;
+      background: rgba(255, 207, 51, 0.12);
+      border: 1px solid rgba(255, 207, 51, 0.5);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      font-weight: 600;
+      animation: aaas-notice-pop 0.35s ease;
+    }
+    @keyframes aaas-notice-pop {
+      0%   { transform: scale(0.94); opacity: 0.3; }
+      55%  { transform: scale(1.03); }
+      100% { transform: scale(1); opacity: 1; }
+    }
 
     .meta {
       margin-top: 0.35rem;
@@ -1234,6 +1534,43 @@
     }
   }
 
+  // Easy Read: rule-based simplification via the translate service's
+  // /simplify route (reached through the gateway's /translate catch-all).
+  // Cache-first like translateChunk, reusing the "translate" IndexedDB
+  // store under a distinct key prefix so no schema bump is needed.
+  // Unlike translate there is no Google fallback — a failed fetch
+  // throws and the caller decides what to show.
+  async function simplifyChunk(text, lang, { signal, timeoutMs = 20000 } = {}) {
+    const k = "simplify§" + lang + ":" + text;
+    const hit = translateCache.get(k);
+    if (hit !== undefined) return hit;
+    const stored = await persistentCache.get("translate", k);
+    if (stored !== undefined) {
+      translateCache.set(k, stored);
+      return stored;
+    }
+    const t = withTimeout(timeoutMs, signal);
+    try {
+      const response = await fetch(`${CONFIG.gateway}/translate/simplify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": CONFIG.apiKey,
+        },
+        body: JSON.stringify({ text, lang }),
+        signal: t.signal,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+      const out = typeof json.text === "string" && json.text ? json.text : text;
+      translateCache.set(k, out);
+      persistentCache.put("translate", k, out);
+      return out;
+    } finally {
+      t.clear();
+    }
+  }
+
   async function transcribe(blob, languageHint) {
     if (ON_DEVICE) {
       const od = await getOnDeviceBackend();
@@ -1617,21 +1954,33 @@
   }
 
   /* ---------- dyslexia mode ----------
-   * Reformats the host page for readers with dyslexia. The bulk of the
-   * benefit comes from spacing (line-height, word-spacing) and contrast,
-   * not from the font itself — so we use a progressive font stack that
-   * picks up OpenDyslexic or Atkinson Hyperlegible if the reader has
-   * installed them, falls back to Comic Sans MS (ships with Windows +
-   * macOS, has several dyslexia-friendly properties like uneven
-   * x-heights), and finally to system-ui. This means the mode *always*
-   * does something visible even on a stock Windows 11 judge laptop.
+   * Reformats the host page for readers with dyslexia. We bundle
+   * Atkinson Hyperlegible (Latin subset, injected below) so the font
+   * swap is guaranteed even on a stock judge laptop; the stack still
+   * prefers OpenDyslexic first for readers who installed it, and falls
+   * back to Comic Sans MS (ships with Windows + macOS, uneven x-heights)
+   * and system-ui.
    *
    * Odia conjunct rendering is fragile: letter-spacing splits the
    * combining marks off the base glyph and the script collapses into
-   * visible "base + mark" pieces. So the [lang|=or] block keeps the
-   * font swap and line-height bump but deliberately forgoes letter-
-   * spacing, and nudges word-spacing instead.
+   * visible "base + mark" pieces. So letter-spacing is only applied
+   * when the page is English-classified (data-aaas-dyslexia-latin,
+   * set by injectDyslexiaStyles), and even then it is explicitly reset
+   * on [lang] Indic subtrees and on elements tagged data-aaas-indic by
+   * tagIndicElements(). The [lang|=or] block keeps the font swap and
+   * line-height bump but deliberately forgoes letter-spacing, and
+   * nudges word-spacing instead.
    */
+  const ATKINSON_FONT_FACE_CSS = `
+    @font-face {
+      font-family: 'Atkinson Hyperlegible';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(data:font/woff2;base64,${ATKINSON_WOFF2_BASE64}) format('woff2');
+      unicode-range: ${LATIN_UNICODE_RANGE};
+    }
+  `;
   const DYSLEXIA_CSS = `
     html[data-aaas-dyslexia="true"] body,
     html[data-aaas-dyslexia="true"] body * {
@@ -1672,6 +2021,24 @@
       line-height: 2 !important;
       word-spacing: 0.12em !important;
     }
+    /* Latin-only letter-spacing. The -latin attribute is set only when
+       the page classifies as English; the reset block below wins on
+       any Indic subtree so conjunct shaping is never disturbed. The
+       resets repeat both html attributes on purpose — they need three
+       attribute selectors to out-rank the two-attribute applying rule
+       (both carry !important, so specificity decides). */
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] body,
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] body * {
+      letter-spacing: 0.04em !important;
+    }
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="or"],
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="or"] *,
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="hi"],
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="hi"] *,
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [data-aaas-indic],
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [data-aaas-indic] * {
+      letter-spacing: normal !important;
+    }
     /* Widget's own shadow DOM is isolated by :host { all: initial; },
        so these rules never reach it. But the widget's own host <div>
        inherits a couple of properties — suppress the spacing there so
@@ -1679,19 +2046,131 @@
     [data-aaas-widget] { line-height: normal !important; }
   `;
 
+  // Safety net for unmarked Odia/Hindi on English-classified pages:
+  // the CSS reset above needs *something* to select, so tag every
+  // element whose text contains Indic codepoints. Runs once per
+  // toggle-on; text injected later isn't re-tagged (re-toggle re-tags).
+  const INDIC_CHAR_RE = /[ऀ-ॿ଀-୿]/;
+
+  function tagIndicElements() {
+    if (!document.body || !document.createTreeWalker) return;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    let node;
+    while ((node = walker.nextNode())) {
+      const parent = node.parentElement;
+      if (!parent || WALKER_SKIP_TAGS.has(parent.tagName)) continue;
+      if (parent.closest("[data-aaas-widget]")) continue;
+      if (INDIC_CHAR_RE.test(node.nodeValue)) {
+        parent.setAttribute("data-aaas-indic", "");
+      }
+    }
+  }
+
+  function untagIndicElements() {
+    document.querySelectorAll("[data-aaas-indic]").forEach((el) => {
+      el.removeAttribute("data-aaas-indic");
+    });
+  }
+
   function injectDyslexiaStyles() {
     document.documentElement.setAttribute("data-aaas-dyslexia", "true");
+    if (detectPageLang() === "en") {
+      document.documentElement.setAttribute("data-aaas-dyslexia-latin", "true");
+      tagIndicElements();
+    }
     if (document.getElementById("__aaas_dyslexia__")) return;
     const el = document.createElement("style");
     el.id = "__aaas_dyslexia__";
-    el.textContent = DYSLEXIA_CSS;
+    el.textContent = ATKINSON_FONT_FACE_CSS + DYSLEXIA_CSS;
     (document.head || document.documentElement).appendChild(el);
   }
 
   function removeDyslexiaStyles() {
     document.documentElement.removeAttribute("data-aaas-dyslexia");
+    document.documentElement.removeAttribute("data-aaas-dyslexia-latin");
+    untagIndicElements();
     const el = document.getElementById("__aaas_dyslexia__");
     if (el) el.remove();
+  }
+
+  /* ---------- reading ruler ----------
+   * A line-focus band for readers who lose their place: one fixed,
+   * pointer-events-none <div> whose huge box-shadow dims everything
+   * outside the band. It lives in the host page (not the shadow root)
+   * so it can cover host content, follows the mouse (rAF-throttled)
+   * and jumps to the keyboard focus. Hidden until the first pointer or
+   * focus event so enabling it doesn't dim a still page, and hidden
+   * again when the pointer leaves the window. Known limitation: the
+   * band freezes while the pointer is inside a cross-origin iframe
+   * (no mousemove events reach us); keyboard focus still tracks.
+   */
+  const RULER_BAND_PX = 110;
+  let _rulerEl = null;
+  let _rulerMove = null;
+  let _rulerFocus = null;
+  let _rulerLeave = null;
+
+  function positionRuler(centerY) {
+    if (!_rulerEl) return;
+    const vh = window.innerHeight || 800;
+    let top = centerY - RULER_BAND_PX / 2;
+    if (top < -RULER_BAND_PX) top = -RULER_BAND_PX;
+    if (top > vh) top = vh;
+    _rulerEl.style.visibility = "visible";
+    _rulerEl.style.transform = "translate3d(0," + top + "px,0)";
+  }
+
+  function enableReadingRuler() {
+    if (_rulerEl) return;
+    const el = document.createElement("div");
+    el.id = "__aaas_ruler__";
+    el.setAttribute("aria-hidden", "true");
+    el.style.cssText =
+      "position:fixed;left:0;right:0;top:0;height:" + RULER_BAND_PX + "px;" +
+      "pointer-events:none;z-index:2147483646;" +
+      "box-shadow:0 0 0 200vmax rgba(15,20,25,0.38);" +
+      "border-top:2px solid rgba(255,207,51,0.85);" +
+      "border-bottom:2px solid rgba(255,207,51,0.85);" +
+      "transform:translate3d(0,-200px,0);" +
+      "transition:transform 80ms linear;" +
+      "visibility:hidden;";
+    (document.body || document.documentElement).appendChild(el);
+    _rulerEl = el;
+    let raf = 0;
+    let lastY = 0;
+    _rulerMove = (ev) => {
+      lastY = ev.clientY;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        positionRuler(lastY);
+      });
+    };
+    _rulerFocus = (ev) => {
+      const t = ev.target;
+      if (!t || !t.getBoundingClientRect) return;
+      if (t.closest && t.closest("[data-aaas-widget]")) return;
+      const r = t.getBoundingClientRect();
+      positionRuler(r.top + r.height / 2);
+    };
+    _rulerLeave = () => {
+      if (_rulerEl) _rulerEl.style.visibility = "hidden";
+    };
+    document.addEventListener("mousemove", _rulerMove, { passive: true });
+    document.addEventListener("focusin", _rulerFocus, true);
+    document.documentElement.addEventListener("mouseleave", _rulerLeave);
+  }
+
+  function disableReadingRuler() {
+    if (!_rulerEl) return;
+    document.removeEventListener("mousemove", _rulerMove);
+    document.removeEventListener("focusin", _rulerFocus, true);
+    document.documentElement.removeEventListener("mouseleave", _rulerLeave);
+    _rulerEl.remove();
+    _rulerEl = null;
+    _rulerMove = null;
+    _rulerFocus = null;
+    _rulerLeave = null;
   }
 
   function getStoredFlag(key) {
@@ -1732,7 +2211,14 @@
     fab.textContent = "ଅ";
     shadow.append(fab);
 
-    const pageLang = detectPageLang();
+    // The page's CURRENT language. Starts as the detected load-time
+    // language, and is reassigned after a successful full-page
+    // translate / Easy Read — the in-place rewrites genuinely change
+    // what language the DOM is in, and every downstream consumer
+    // (read-aloud, Easy Read, voice nav, a second translate click)
+    // must see the new reality or it will re-translate already-Odia
+    // text "from English" and garble the page.
+    let pageLang = detectPageLang();
 
     const panel = document.createElement("div");
     panel.className = "panel";
@@ -1765,9 +2251,19 @@
         <span>Speak (fill by voice)</span>
       </button>
 
+      <button class="action voice" type="button">
+        <span aria-hidden="true">🧭</span>
+        <span>Navigate by voice</span>
+      </button>
+
       <button class="action translate" type="button">
         <span aria-hidden="true">🌐</span>
         <span class="translate-label">Translate this page</span>
+      </button>
+
+      <button class="action easyread" type="button">
+        <span aria-hidden="true">📖</span>
+        <span class="easyread-label">Easy Read this page</span>
       </button>
 
       <label class="toggle">
@@ -1782,6 +2278,12 @@
         <span class="toggle-hint">Speaks whatever your mouse points at</span>
       </label>
 
+      <label class="toggle">
+        <input type="checkbox" id="aaas-ruler" />
+        <span class="toggle-text">Reading ruler</span>
+        <span class="toggle-hint">Focus band that follows your pointer</span>
+      </label>
+
       <button class="shortcuts-link" type="button">⌨️ Keyboard shortcuts</button>
 
       <div class="transcript" role="status" aria-live="polite"></div>
@@ -1794,6 +2296,7 @@
         <dl>
           <dt>Alt+R</dt><dd>Read this page</dd>
           <dt>Alt+M</dt><dd>Speak (fill by voice)</dd>
+          <dt>Alt+V</dt><dd>Navigate by voice</dd>
           <dt>Space</dt><dd>Pause / resume (while reading)</dd>
           <dt>→</dt><dd>Skip to next chunk</dd>
           <dt>←</dt><dd>Replay previous chunk</dd>
@@ -1812,6 +2315,7 @@
     const langSel = panel.querySelector("#aaas-lang");
     const dyslexiaToggle = panel.querySelector("#aaas-dyslexia");
     const hoverToggle = panel.querySelector("#aaas-hover");
+    const rulerToggle = panel.querySelector("#aaas-ruler");
     const shortcutsLink = panel.querySelector(".shortcuts-link");
     const shortcutsOverlay = panel.querySelector(".shortcuts-overlay");
     const overlayClose = shortcutsOverlay.querySelector(".close-overlay");
@@ -1846,9 +2350,27 @@
       applyDyslexia(on);
     });
 
+    function applyRuler(on) {
+      if (on) enableReadingRuler();
+      else disableReadingRuler();
+      rulerToggle.checked = on;
+    }
+    applyRuler(getStoredFlag(LS_RULER));
+    rulerToggle.addEventListener("change", () => {
+      const on = rulerToggle.checked;
+      setStoredFlag(LS_RULER, on);
+      applyRuler(on);
+    });
+
     const setStatus = (msg, kind) => {
       statusEl.textContent = msg;
-      statusEl.className = "status" + (kind ? " " + kind : "");
+      statusEl.className = "status";
+      if (kind) {
+        // Force a reflow between class swaps so the entry animation
+        // replays even when the same notice fires twice in a row.
+        void statusEl.offsetWidth;
+        statusEl.className = "status " + kind;
+      }
     };
 
     const resolvedLang = () => {
@@ -2254,10 +2776,21 @@
 
     let translateInFlight = false;
     async function translatePageInPlace() {
-      if (translateInFlight) return;
-      translateInFlight = true;
+      if (translateInFlight || easyReadInFlight) return;
       const statusEl = panel.querySelector(".status");
       const tgt = resolvedLang() || "or";
+      // The page is already in the target language — either natively
+      // or from an earlier click. Re-translating would feed tgt-language
+      // text back through the engine labelled as pageLang and corrupt
+      // the page, so refuse fast with a friendly status instead.
+      if (tgt === pageLang) {
+        setStatus(
+          `Page is already in ${LANG_DISPLAY[tgt] || tgt} — reload to see the original`,
+          "notice",
+        );
+        return;
+      }
+      translateInFlight = true;
       translateBtn.disabled = true;
       try {
         const nodes = collectTranslatableNodes();
@@ -2269,13 +2802,17 @@
           `Translating 0 / ${nodes.length} → ${LANG_DISPLAY[tgt] || tgt}…`;
         const BATCH = 5;
         let done = 0;
+        let changed = 0;
         for (let i = 0; i < nodes.length; i += BATCH) {
           const slice = nodes.slice(i, i + BATCH);
           await Promise.all(
             slice.map(async (node) => {
               try {
                 const translated = await translateOne(node.nodeValue, tgt);
-                if (translated) node.nodeValue = translated;
+                if (translated) {
+                  node.nodeValue = translated;
+                  changed++;
+                }
               } catch (err) {
                 console.warn("[AaaS] translate node failed:", err);
               }
@@ -2287,12 +2824,101 @@
         }
         statusEl.textContent =
           `Page translated → ${LANG_DISPLAY[tgt] || tgt} (reload to revert)`;
+        // The DOM is now in the target language; let read-aloud,
+        // Easy Read, voice nav and repeat clicks act on that fact.
+        // Guarded so a total failure (gateway down, every node left
+        // untouched) doesn't mislabel an untranslated page.
+        if (changed) pageLang = tgt;
       } finally {
         translateBtn.disabled = false;
         translateInFlight = false;
       }
     }
     translateBtn.addEventListener("click", translatePageInPlace);
+
+    // Easy Read: same in-place rewrite as translate, but through the
+    // rule-based /simplify endpoint — and when the picker's language
+    // differs from the page's, the simplified text is then translated,
+    // so an English notice ends up as plain Odia. Reload to revert,
+    // same as translate; the done-flag stops double-simplification.
+    const easyreadBtn = panel.querySelector(".easyread");
+    let easyReadInFlight = false;
+    let easyReadDone = false;
+
+    // Simplify one text node. The service caps input at 2000 chars, so
+    // longer nodes are pre-split at sentence boundaries and rejoined.
+    async function simplifyOne(text) {
+      if (text.length <= 1800) return simplifyChunk(text, pageLang);
+      const pieces = splitIntoSentences(text, 1500);
+      const out = [];
+      for (const piece of pieces) {
+        out.push(await simplifyChunk(piece, pageLang));
+      }
+      return out.join(" ");
+    }
+
+    async function easyReadPageInPlace() {
+      if (easyReadInFlight || translateInFlight) return;
+      if (easyReadDone) {
+        setStatus("Page is already in Easy Read — reload to see the original", "notice");
+        return;
+      }
+      easyReadInFlight = true;
+      easyreadBtn.disabled = true;
+      const tgt = resolvedLang() || pageLang;
+      const chain = tgt !== pageLang;
+      const suffix = chain ? ` → ${LANG_DISPLAY[tgt] || tgt}` : "";
+      try {
+        const nodes = collectTranslatableNodes();
+        if (!nodes.length) {
+          setStatus("Nothing to simplify on this page");
+          return;
+        }
+        setStatus(`Simplifying 0 / ${nodes.length}${suffix}…`);
+        const BATCH = 5;
+        let done = 0;
+        let succeeded = 0;
+        for (let i = 0; i < nodes.length; i += BATCH) {
+          const slice = nodes.slice(i, i + BATCH);
+          await Promise.all(
+            slice.map(async (node) => {
+              try {
+                let out = await simplifyOne(node.nodeValue);
+                if (chain && out) {
+                  out = stripPassthroughAnnotation(
+                    await translateChunk(out, pageLang, tgt, { timeoutMs: 20000 }),
+                  );
+                }
+                if (out) {
+                  node.nodeValue = out;
+                  succeeded++;
+                }
+              } catch (err) {
+                console.warn("[AaaS] simplify node failed:", err);
+              }
+            }),
+          );
+          // If the entire first batch failed, the gateway is almost
+          // certainly unreachable — bail out instead of grinding
+          // through every node just to fail on each one.
+          if (!succeeded && i === 0) {
+            setStatus("Easy Read unavailable — check that services are running", "error");
+            return;
+          }
+          done += slice.length;
+          setStatus(`Simplifying ${done} / ${nodes.length}${suffix}…`);
+        }
+        easyReadDone = true;
+        // Chained Easy Read leaves the DOM in the target language —
+        // record it so read-aloud / voice nav / translate see reality.
+        if (chain) pageLang = tgt;
+        setStatus(`Page in Easy Read${suffix} (reload to revert)`, "ok");
+      } finally {
+        easyreadBtn.disabled = false;
+        easyReadInFlight = false;
+      }
+    }
+    easyreadBtn.addEventListener("click", easyReadPageInPlace);
 
     /* ----- Hover-speak toggle (persisted) ----- */
     function applyHoverPref(on) {
@@ -2424,6 +3050,12 @@
           e.preventDefault();
           if (panel.getAttribute("data-open") !== "true") togglePanel();
           micBtn.click();
+          return;
+        }
+        if (k === "v") {
+          e.preventDefault();
+          if (panel.getAttribute("data-open") !== "true") togglePanel();
+          voiceBtn.click();
           return;
         }
       }
@@ -2634,6 +3266,10 @@
 
     micBtn.addEventListener("click", async () => {
       if (recorder.isRecording()) {
+        if (voiceNavRecording) {
+          setStatus("Mic busy — finish the voice command first", "error");
+          return;
+        }
         try {
           const blob = await recorder.stop();
           await handleRecorded(blob);
@@ -2649,6 +3285,189 @@
         micBtn.querySelector("span:last-child").textContent =
           `Recording (tap to stop, ${CONFIG.maxRecordSeconds}s max)…`;
         setStatus("Listening…");
+      } catch (err) {
+        setStatus(`Mic unavailable: ${err.message}`, "error");
+      }
+    });
+
+    /* ----- Voice navigation -----
+     * Same Recorder + transcribe() as the form-fill mic, but the
+     * transcript is treated as a command: global widget actions first
+     * (read / stop / translate / easy read / top / search), otherwise
+     * matched against the page's links and buttons. The
+     * "aaas-voice-command" CustomEvent is a mic-free input path — demo
+     * scripts and tests can drive navigation with typed text.
+     */
+    const voiceBtn = panel.querySelector(".voice");
+
+    function highlightVoiceTarget(el) {
+      if (!document.getElementById("__aaas_voicenav__")) {
+        const st = document.createElement("style");
+        st.id = "__aaas_voicenav__";
+        st.textContent =
+          "[data-aaas-voice-target] { outline: 3px solid #ffcf33 !important; outline-offset: 2px !important; }";
+        (document.head || document.documentElement).appendChild(st);
+      }
+      el.setAttribute("data-aaas-voice-target", "");
+      setTimeout(() => el.removeAttribute("data-aaas-voice-target"), 1600);
+    }
+
+    async function executeVoiceCommand(rawText, langHint) {
+      const norm = normalizeCommandText(rawText || "");
+      if (!norm) {
+        setStatus("No speech detected", "error");
+        return;
+      }
+      const lang =
+        dominantScript(rawText) ||
+        (langHint || "").toLowerCase().split("-")[0] ||
+        "en";
+
+      const action = matchGlobalCommand(norm, lang);
+      if (action === "read") {
+        startReadPage();
+        return;
+      }
+      if (action === "stop") {
+        stopRequested = true;
+        if (currentAbort) { try { currentAbort.abort(); } catch {} }
+        player.stop();
+        announcer.cancel();
+        setReadingUI(false, "Stopped.");
+        return;
+      }
+      if (action === "translate") {
+        translatePageInPlace();
+        return;
+      }
+      if (action === "easyread") {
+        easyReadPageInPlace();
+        return;
+      }
+      if (action === "top") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setStatus("Top of page", "ok");
+        return;
+      }
+      if (action === "search") {
+        const search = document.querySelector(
+          'input[type="search"], [role="search"] input, input[name*="search" i], input[type="text"]',
+        );
+        if (search) {
+          search.focus();
+          setStatus("Search box focused — speak again to fill it", "ok");
+        } else {
+          setStatus("No search box on this page", "error");
+        }
+        return;
+      }
+
+      const targets = collectVoiceTargets();
+      if (!targets.length) {
+        setStatus("No links or buttons found on this page", "error");
+        return;
+      }
+      // Cross-language: an Odia command on an English page is matched
+      // three ways — as spoken, through the deterministic nav glossary
+      // (reliable for common terms, immune to MT synonym drift), and
+      // through full machine translation (covers everything else).
+      // `understood` is surfaced in failure statuses so the user can
+      // see how their words came across and rephrase.
+      const candidates = [rawText];
+      const understood = [];
+      if (lang === "or" && pageLang === "en") {
+        const g = glossaryTranslateOdia(norm);
+        if (g) {
+          candidates.push(g);
+          understood.push(g);
+        }
+      }
+      if (lang !== pageLang) {
+        try {
+          const tr = stripPassthroughAnnotation(
+            (await translateChunk(rawText, lang, pageLang, { timeoutMs: 12000 })) || "",
+          ).trim();
+          if (tr && looksLikeTargetScript(tr, pageLang)) {
+            candidates.push(tr);
+            understood.push(tr);
+          }
+        } catch {}
+      }
+      const byElement = new Map();
+      for (const cand of candidates) {
+        for (const r of rankVoiceTargets(cand, targets)) {
+          const prev = byElement.get(r.element);
+          if (!prev || r.score > prev.score) byElement.set(r.element, r);
+        }
+      }
+      const ranked = Array.from(byElement.values()).sort((a, b) => b.score - a.score);
+
+      if (shouldActOnVoiceMatch(ranked)) {
+        const best = ranked[0];
+        try { best.element.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
+        try { best.element.focus(); } catch {}
+        highlightVoiceTarget(best.element);
+        setStatus(`Opening "${best.name}"…`, "ok");
+        // A visible beat between highlight and click so the user sees
+        // what was chosen before any navigation happens.
+        setTimeout(() => { try { best.element.click(); } catch {} }, 600);
+      } else if (ranked.length) {
+        const names = ranked.slice(0, 3).map((r) => `"${r.name}"`).join(" · ");
+        setStatus(`Not sure. Did you mean: ${names}?`, "error");
+      } else {
+        const heard = understood.length
+          ? ` (understood as: ${understood.map((u) => `"${u}"`).join(" / ")})`
+          : "";
+        setStatus(`No link or button matches "${rawText}"${heard}`, "error");
+      }
+    }
+
+    document.addEventListener("aaas-voice-command", (e) => {
+      executeVoiceCommand(e.detail && e.detail.text, e.detail && e.detail.lang);
+    });
+
+    let voiceNavRecording = false;
+    async function handleVoiceRecorded(blob) {
+      voiceNavRecording = false;
+      voiceBtn.classList.remove("recording");
+      voiceBtn.querySelector("span:last-child").textContent = "Navigate by voice";
+      setStatus("Transcribing command…");
+      try {
+        const result = await transcribe(blob, resolvedLang());
+        transcriptEl.textContent = result.text || "(no speech detected)";
+        await executeVoiceCommand(result.text, result.language);
+        if (result.engine === "mock") {
+          setStatus(
+            `${statusEl.textContent} — mock STT hears canned phrases only; enable whisper for live voice`,
+            "error",
+          );
+        }
+      } catch (err) {
+        setStatus(`Could not transcribe: ${err.message}`, "error");
+      }
+    }
+
+    voiceBtn.addEventListener("click", async () => {
+      if (recorder.isRecording()) {
+        if (!voiceNavRecording) {
+          setStatus("Mic busy — finish the form-fill recording first", "error");
+          return;
+        }
+        try {
+          const blob = await recorder.stop();
+          await handleVoiceRecorded(blob);
+        } catch (err) {
+          setStatus(`Mic error: ${err.message}`, "error");
+        }
+        return;
+      }
+      transcriptEl.textContent = "";
+      try {
+        await recorder.start({ onAutoStop: handleVoiceRecorded });
+        voiceNavRecording = true;
+        voiceBtn.classList.add("recording");
+        voiceBtn.querySelector("span:last-child").textContent = "Listening for a command…";
+        setStatus("Say a command or a link name…");
       } catch (err) {
         setStatus(`Mic unavailable: ${err.message}`, "error");
       }

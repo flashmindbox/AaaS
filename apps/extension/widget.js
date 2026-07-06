@@ -50,9 +50,17 @@
   const ORIYA_UNICODE_RANGE =
     "U+0951-0952, U+0964-0965, U+0B01-0B77, U+1CDA, U+1CF2, U+200C-200D, U+20B9, U+25CC";
 
+  // Atkinson Hyperlegible (Braille Institute, OFL) for dyslexia mode.
+  // Latin-only subset; the unicode-range keeps it away from Indic text
+  // so Odia keeps rendering with Noto Sans Oriya.
+  const ATKINSON_WOFF2_BASE64 = "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";
+  const LATIN_UNICODE_RANGE =
+    "U+0000-00FF, U+0131, U+0152-0153, U+2013-2014, U+2018-201D, U+2026";
+
   // localStorage keys. Namespaced so embedders don't clash with us.
   const LS_DYSLEXIA = "aaas.dyslexia.v1";
   const LS_HOVER_SPEAK = "aaas.hover-speak.v1";
+  const LS_RULER = "aaas.ruler.v1";
 
   const CURRENT_SCRIPT = document.currentScript;
   // If the script is served from a http(s) origin (cloud or local
@@ -452,6 +460,280 @@
     return out.length ? out : [trimmed];
   }
 
+  /* ---------- voice navigation ----------
+   * Matches an STT transcript against (a) a small table of global
+   * widget commands per language, then (b) the accessible names of the
+   * page's links and buttons. Dependency-free scoring: exact match,
+   * containment, then token-level fuzzy overlap via edit distance.
+   * Everything here is top-level and pure (rankVoiceTargets works on
+   * plain {name} objects) so voice_match_smoke.js can extract and unit
+   * test it without a DOM.
+   */
+
+  // Two-row iterative Levenshtein distance.
+  function editDistance(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    let prev = new Array(b.length + 1);
+    let curr = new Array(b.length + 1);
+    for (let j = 0; j <= b.length; j++) prev[j] = j;
+    for (let i = 1; i <= a.length; i++) {
+      curr[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      }
+      const tmp = prev;
+      prev = curr;
+      curr = tmp;
+    }
+    return prev[b.length];
+  }
+
+  // Filler a spoken command may carry around the target name: "click
+  // on Citizen Services", "ନାଗରିକ ସେବା ଖୋଲ". Longest-first so "click
+  // on" wins over "click".
+  const VOICE_STRIP_LEADING = [
+    "click on", "click", "open", "go to", "goto", "select", "press",
+    "क्लिक करो", "खोलो", "जाओ",
+  ];
+  const VOICE_STRIP_TRAILING = [
+    "ଖୋଲନ୍ତୁ", "ଖୋଲ", "କରନ୍ତୁ", "କର", "ଯାଆନ୍ତୁ", "ଯାଅ", "ଦବାନ୍ତୁ",
+    "करो", "खोलो", "जाओ",
+  ];
+
+  function normalizeCommandText(text) {
+    let t = toWesternDigits(text || "")
+      .toLowerCase()
+      .replace(/[.,!?;:()"'«»।॥/\-–—]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    for (const lead of VOICE_STRIP_LEADING) {
+      if (t.startsWith(lead + " ")) {
+        t = t.slice(lead.length + 1);
+        break;
+      }
+    }
+    for (const tail of VOICE_STRIP_TRAILING) {
+      if (t.endsWith(" " + tail)) {
+        t = t.slice(0, -(tail.length + 1));
+        break;
+      }
+    }
+    return t.trim();
+  }
+
+  // Global widget actions. Phrases are compared in normalized form, so
+  // trailing verbs the normalizer strips ("କର") are safe to include.
+  const VOICE_COMMANDS = [
+    { action: "read", en: ["read page", "read this page", "read aloud", "read"], or: ["ପୃଷ୍ଠା ପଢ଼", "ପଢ଼ନ୍ତୁ", "ପଢ଼"], hi: ["पेज पढ़ो", "पढ़ो"] },
+    { action: "stop", en: ["stop", "stop reading", "quiet"], or: ["ବନ୍ଦ କର", "ରୁହ"], hi: ["रुको", "बंद करो"] },
+    { action: "translate", en: ["translate", "translate page", "translate this page"], or: ["ଅନୁବାଦ କର", "ଅନୁବାଦ"], hi: ["अनुवाद करो", "अनुवाद"] },
+    { action: "easyread", en: ["easy read", "simplify", "simple words"], or: ["ସହଜ ପଢ଼ା", "ସରଳ କର"], hi: ["आसान पढ़ो", "सरल करो"] },
+    { action: "top", en: ["go to top", "top of page", "scroll up"], or: ["ଉପରକୁ ଯାଅ", "ଉପର"], hi: ["ऊपर जाओ"] },
+    { action: "search", en: ["search", "find"], or: ["ଖୋଜ"], hi: ["खोजो", "ढूंढो"] },
+  ];
+
+  function matchGlobalCommand(text, lang) {
+    const norm = normalizeCommandText(text);
+    if (!norm) return null;
+    const langs = ["en", "or", "hi"].filter((l) => l !== lang);
+    langs.unshift(lang);
+    // Exact first (hint language, then the rest — STT hints can be
+    // wrong), then edit-distance-tolerant on phrases long enough that
+    // a one-letter slip can't jump between commands.
+    for (const l of langs) {
+      for (const cmd of VOICE_COMMANDS) {
+        for (const phrase of cmd[l] || []) {
+          if (normalizeCommandText(phrase) === norm) return cmd.action;
+        }
+      }
+    }
+    for (const l of langs) {
+      for (const cmd of VOICE_COMMANDS) {
+        for (const phrase of cmd[l] || []) {
+          const p = normalizeCommandText(phrase);
+          if (p.length < 4 || norm.length < 4) continue;
+          const sim = 1 - editDistance(norm, p) / Math.max(norm.length, p.length);
+          if (sim >= 0.85) return cmd.action;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Odia -> English token map for common government-site navigation
+  // vocabulary. MT of short nav phrases drifts into synonyms the string
+  // matcher can't recover ("ନାଗରିକ ସେବା" -> "the Civil Service",
+  // "ଅଭିଯୋଗ" -> "Complaint" where the link says "Grievance"), so the
+  // frequent terms are pinned to the wording the sites actually use.
+  // Values may be multi-word. Extend freely during rehearsal.
+  const VOICE_OR_EN_GLOSSARY = {
+    "ନାଗରିକ": "citizen",
+    "ସେବା": "services",
+    "ଯୋଗାଯୋଗ": "contact",
+    "ଅଭିଯୋଗ": "grievance",
+    "ବିଜ୍ଞପ୍ତି": "notifications",
+    "ସୂଚନା": "notice",
+    "ଫଳାଫଳ": "results",
+    "ପ୍ରମାଣପତ୍ର": "certificate",
+    "ଆୟ": "income",
+    "ଜାତି": "caste",
+    "ବାସିନ୍ଦା": "residence",
+    "ଛାତ୍ର": "student",
+    "ଛାତ୍ରଛାତ୍ରୀ": "students",
+    "ବୃତ୍ତି": "scholarship",
+    "ପିଲା": "students",
+    "ପିଲାଙ୍କ": "students",
+    "ପାଇଁ": "for",
+    "ଭିନ୍ନକ୍ଷମ": "disabilities",
+    "ଆବେଦନ": "apply",
+    "ଡାଉନଲୋଡ୍": "download",
+    "ଟେଣ୍ଡର": "tender",
+    "ନିଯୁକ୍ତି": "recruitment",
+    "ସ୍ୱାସ୍ଥ୍ୟ": "health",
+    "ଶିକ୍ଷା": "education",
+    "ରାସନ": "ration",
+    "କାର୍ଡ": "card",
+    "ପେନସନ": "pension",
+    "ଯୋଜନା": "scheme",
+    "ବିଷୟରେ": "about",
+    "ଘର": "home",
+    "ଖବର": "news",
+  };
+
+  // STT slips in Odia mostly scramble matras and viramas, not the base
+  // consonants (ବ୍ୃତି for ବୃତ୍ତି). Stripping the combining marks gives
+  // a consonant skeleton that survives those slips, so fuzzy glossary
+  // lookup compares skeletons when the full forms don't match.
+  function odiaSkeleton(tok) {
+    return tok.replace(/[଼-୍୕-ୗୢ-ୣ]/g, "");
+  }
+
+  // Map an Odia transcript to English via the nav glossary, token by
+  // token. Fuzzy key lookup absorbs small STT slips. Odia tokens with
+  // no glossary hit are dropped rather than passed through — a partial
+  // English phrase matches links, mixed-script noise doesn't. Returns
+  // null when nothing mapped.
+  function glossaryTranslateOdia(normText) {
+    const keys = Object.keys(VOICE_OR_EN_GLOSSARY);
+    const out = [];
+    let mapped = 0;
+    for (const tok of normText.split(" ")) {
+      if (!tok) continue;
+      if (!/[଀-୿]/.test(tok)) {
+        out.push(tok);
+        continue;
+      }
+      let hit = VOICE_OR_EN_GLOSSARY[tok];
+      if (!hit) {
+        const tokSkel = odiaSkeleton(tok);
+        let bestSim = 0;
+        let bestKey = null;
+        for (const k of keys) {
+          const full = 1 - editDistance(tok, k) / Math.max(tok.length, k.length);
+          const kSkel = odiaSkeleton(k);
+          const skel = kSkel && tokSkel
+            ? 1 - editDistance(tokSkel, kSkel) / Math.max(tokSkel.length, kSkel.length)
+            : 0;
+          const sim = Math.max(full, skel);
+          if (sim > bestSim) {
+            bestSim = sim;
+            bestKey = k;
+          }
+        }
+        if (bestSim >= 0.65) hit = VOICE_OR_EN_GLOSSARY[bestKey];
+      }
+      if (hit) {
+        out.push(hit);
+        mapped++;
+      }
+    }
+    return mapped ? out.join(" ") : null;
+  }
+
+  // Score a transcript against one accessible name. 1.0 exact;
+  // 0.75–0.95 containment (scaled by length ratio); otherwise a
+  // token-overlap blend: coverage = how much of the transcript matched,
+  // precision = how much of the name it accounts for.
+  function scoreVoiceTarget(transcript, name) {
+    const t = normalizeCommandText(transcript);
+    const n = normalizeCommandText(name);
+    if (!t || !n) return 0;
+    if (t === n) return 1;
+    if (n.includes(t) || t.includes(n)) {
+      const ratio = Math.min(t.length, n.length) / Math.max(t.length, n.length);
+      return 0.75 + 0.2 * ratio;
+    }
+    const tTokens = t.split(" ");
+    const nTokens = n.split(" ");
+    let sum = 0;
+    for (const tok of tTokens) {
+      let best = 0;
+      for (const cand of nTokens) {
+        let s = 0;
+        if (tok === cand) s = 1;
+        else if (tok.length >= 4 && cand.length >= 4) {
+          s = 1 - editDistance(tok, cand) / Math.max(tok.length, cand.length);
+        }
+        if (s > best) best = s;
+      }
+      if (best >= 0.75) sum += best;
+    }
+    const coverage = Math.min(1, sum / tTokens.length);
+    const precision = Math.min(1, sum / nTokens.length);
+    return 0.7 * coverage + 0.3 * precision;
+  }
+
+  const VOICE_ACT_THRESHOLD = 0.65;
+  const VOICE_SURE_THRESHOLD = 0.85;
+  const VOICE_AMBIGUITY_GAP = 0.1;
+
+  function rankVoiceTargets(transcript, targets) {
+    const ranked = [];
+    for (const target of targets) {
+      const score = scoreVoiceTarget(transcript, target.name || "");
+      if (score > 0.25) {
+        ranked.push({ score, name: target.name, element: target.element || null });
+      }
+    }
+    ranked.sort((a, b) => b.score - a.score);
+    return ranked;
+  }
+
+  // Act on a clearly-best candidate, never on an ambiguous one: a sure
+  // hit clicks, a plausible hit clicks only with daylight to the
+  // runner-up, everything else just reports candidates.
+  function shouldActOnVoiceMatch(ranked) {
+    if (!ranked.length) return false;
+    const top = ranked[0].score;
+    if (top >= VOICE_SURE_THRESHOLD) return true;
+    if (top < VOICE_ACT_THRESHOLD) return false;
+    return ranked.length < 2 || top - ranked[1].score >= VOICE_AMBIGUITY_GAP;
+  }
+
+  const VOICE_TARGET_SELECTOR =
+    'a[href], button, [role="button"], [role="link"], input[type="submit"], input[type="button"], summary';
+
+  function collectVoiceTargets() {
+    const seen = new Set();
+    const out = [];
+    document.querySelectorAll(VOICE_TARGET_SELECTOR).forEach((el) => {
+      if (!isVisible(el)) return;
+      if (el.closest("[data-aaas-widget]")) return;
+      // getAccessibleName skips <input> value; submit buttons name
+      // themselves through it ("<input type=submit value=Search>").
+      const name = getAccessibleName(el) || (el.tagName === "INPUT" ? (el.value || "").trim() : "");
+      if (!name) return;
+      const key = name + "§" + (el.getAttribute("href") || el.tagName);
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push({ name, element: el });
+    });
+    return out;
+  }
+
   async function probeGateway() {
     try {
       const r = await fetch(`${CONFIG.gateway}/healthz`, {
@@ -551,7 +833,8 @@
     button.action.stop:hover { background: #d85860; }
     button.action.mic { background: #2c7a52; }
     button.action.mic:hover { background: #349062; }
-    button.action.mic.recording { background: #c7444c; animation: pulse 1.2s infinite; }
+    button.action.mic.recording,
+    button.action.voice.recording { background: #c7444c; animation: pulse 1.2s infinite; }
     @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(199,68,76,0.35); } }
 
     .transcript {
@@ -575,6 +858,23 @@
     }
     .status.error { color: #ff9898; }
     .status.ok    { color: #8fdba0; }
+    /* Attention-grabbing informational notice ("page is already in
+       Odia") — an amber pill rather than a colour change, so a user
+       who just clicked a button can't miss the answer. */
+    .status.notice {
+      color: #ffd25e;
+      background: rgba(255, 207, 51, 0.12);
+      border: 1px solid rgba(255, 207, 51, 0.5);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      font-weight: 600;
+      animation: aaas-notice-pop 0.35s ease;
+    }
+    @keyframes aaas-notice-pop {
+      0%   { transform: scale(0.94); opacity: 0.3; }
+      55%  { transform: scale(1.03); }
+      100% { transform: scale(1); opacity: 1; }
+    }
 
     .meta {
       margin-top: 0.35rem;
@@ -1234,6 +1534,43 @@
     }
   }
 
+  // Easy Read: rule-based simplification via the translate service's
+  // /simplify route (reached through the gateway's /translate catch-all).
+  // Cache-first like translateChunk, reusing the "translate" IndexedDB
+  // store under a distinct key prefix so no schema bump is needed.
+  // Unlike translate there is no Google fallback — a failed fetch
+  // throws and the caller decides what to show.
+  async function simplifyChunk(text, lang, { signal, timeoutMs = 20000 } = {}) {
+    const k = "simplify§" + lang + ":" + text;
+    const hit = translateCache.get(k);
+    if (hit !== undefined) return hit;
+    const stored = await persistentCache.get("translate", k);
+    if (stored !== undefined) {
+      translateCache.set(k, stored);
+      return stored;
+    }
+    const t = withTimeout(timeoutMs, signal);
+    try {
+      const response = await fetch(`${CONFIG.gateway}/translate/simplify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": CONFIG.apiKey,
+        },
+        body: JSON.stringify({ text, lang }),
+        signal: t.signal,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+      const out = typeof json.text === "string" && json.text ? json.text : text;
+      translateCache.set(k, out);
+      persistentCache.put("translate", k, out);
+      return out;
+    } finally {
+      t.clear();
+    }
+  }
+
   async function transcribe(blob, languageHint) {
     if (ON_DEVICE) {
       const od = await getOnDeviceBackend();
@@ -1617,21 +1954,33 @@
   }
 
   /* ---------- dyslexia mode ----------
-   * Reformats the host page for readers with dyslexia. The bulk of the
-   * benefit comes from spacing (line-height, word-spacing) and contrast,
-   * not from the font itself — so we use a progressive font stack that
-   * picks up OpenDyslexic or Atkinson Hyperlegible if the reader has
-   * installed them, falls back to Comic Sans MS (ships with Windows +
-   * macOS, has several dyslexia-friendly properties like uneven
-   * x-heights), and finally to system-ui. This means the mode *always*
-   * does something visible even on a stock Windows 11 judge laptop.
+   * Reformats the host page for readers with dyslexia. We bundle
+   * Atkinson Hyperlegible (Latin subset, injected below) so the font
+   * swap is guaranteed even on a stock judge laptop; the stack still
+   * prefers OpenDyslexic first for readers who installed it, and falls
+   * back to Comic Sans MS (ships with Windows + macOS, uneven x-heights)
+   * and system-ui.
    *
    * Odia conjunct rendering is fragile: letter-spacing splits the
    * combining marks off the base glyph and the script collapses into
-   * visible "base + mark" pieces. So the [lang|=or] block keeps the
-   * font swap and line-height bump but deliberately forgoes letter-
-   * spacing, and nudges word-spacing instead.
+   * visible "base + mark" pieces. So letter-spacing is only applied
+   * when the page is English-classified (data-aaas-dyslexia-latin,
+   * set by injectDyslexiaStyles), and even then it is explicitly reset
+   * on [lang] Indic subtrees and on elements tagged data-aaas-indic by
+   * tagIndicElements(). The [lang|=or] block keeps the font swap and
+   * line-height bump but deliberately forgoes letter-spacing, and
+   * nudges word-spacing instead.
    */
+  const ATKINSON_FONT_FACE_CSS = `
+    @font-face {
+      font-family: 'Atkinson Hyperlegible';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(data:font/woff2;base64,${ATKINSON_WOFF2_BASE64}) format('woff2');
+      unicode-range: ${LATIN_UNICODE_RANGE};
+    }
+  `;
   const DYSLEXIA_CSS = `
     html[data-aaas-dyslexia="true"] body,
     html[data-aaas-dyslexia="true"] body * {
@@ -1672,6 +2021,24 @@
       line-height: 2 !important;
       word-spacing: 0.12em !important;
     }
+    /* Latin-only letter-spacing. The -latin attribute is set only when
+       the page classifies as English; the reset block below wins on
+       any Indic subtree so conjunct shaping is never disturbed. The
+       resets repeat both html attributes on purpose — they need three
+       attribute selectors to out-rank the two-attribute applying rule
+       (both carry !important, so specificity decides). */
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] body,
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] body * {
+      letter-spacing: 0.04em !important;
+    }
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="or"],
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="or"] *,
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="hi"],
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="hi"] *,
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [data-aaas-indic],
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [data-aaas-indic] * {
+      letter-spacing: normal !important;
+    }
     /* Widget's own shadow DOM is isolated by :host { all: initial; },
        so these rules never reach it. But the widget's own host <div>
        inherits a couple of properties — suppress the spacing there so
@@ -1679,19 +2046,131 @@
     [data-aaas-widget] { line-height: normal !important; }
   `;
 
+  // Safety net for unmarked Odia/Hindi on English-classified pages:
+  // the CSS reset above needs *something* to select, so tag every
+  // element whose text contains Indic codepoints. Runs once per
+  // toggle-on; text injected later isn't re-tagged (re-toggle re-tags).
+  const INDIC_CHAR_RE = /[ऀ-ॿ଀-୿]/;
+
+  function tagIndicElements() {
+    if (!document.body || !document.createTreeWalker) return;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    let node;
+    while ((node = walker.nextNode())) {
+      const parent = node.parentElement;
+      if (!parent || WALKER_SKIP_TAGS.has(parent.tagName)) continue;
+      if (parent.closest("[data-aaas-widget]")) continue;
+      if (INDIC_CHAR_RE.test(node.nodeValue)) {
+        parent.setAttribute("data-aaas-indic", "");
+      }
+    }
+  }
+
+  function untagIndicElements() {
+    document.querySelectorAll("[data-aaas-indic]").forEach((el) => {
+      el.removeAttribute("data-aaas-indic");
+    });
+  }
+
   function injectDyslexiaStyles() {
     document.documentElement.setAttribute("data-aaas-dyslexia", "true");
+    if (detectPageLang() === "en") {
+      document.documentElement.setAttribute("data-aaas-dyslexia-latin", "true");
+      tagIndicElements();
+    }
     if (document.getElementById("__aaas_dyslexia__")) return;
     const el = document.createElement("style");
     el.id = "__aaas_dyslexia__";
-    el.textContent = DYSLEXIA_CSS;
+    el.textContent = ATKINSON_FONT_FACE_CSS + DYSLEXIA_CSS;
     (document.head || document.documentElement).appendChild(el);
   }
 
   function removeDyslexiaStyles() {
     document.documentElement.removeAttribute("data-aaas-dyslexia");
+    document.documentElement.removeAttribute("data-aaas-dyslexia-latin");
+    untagIndicElements();
     const el = document.getElementById("__aaas_dyslexia__");
     if (el) el.remove();
+  }
+
+  /* ---------- reading ruler ----------
+   * A line-focus band for readers who lose their place: one fixed,
+   * pointer-events-none <div> whose huge box-shadow dims everything
+   * outside the band. It lives in the host page (not the shadow root)
+   * so it can cover host content, follows the mouse (rAF-throttled)
+   * and jumps to the keyboard focus. Hidden until the first pointer or
+   * focus event so enabling it doesn't dim a still page, and hidden
+   * again when the pointer leaves the window. Known limitation: the
+   * band freezes while the pointer is inside a cross-origin iframe
+   * (no mousemove events reach us); keyboard focus still tracks.
+   */
+  const RULER_BAND_PX = 110;
+  let _rulerEl = null;
+  let _rulerMove = null;
+  let _rulerFocus = null;
+  let _rulerLeave = null;
+
+  function positionRuler(centerY) {
+    if (!_rulerEl) return;
+    const vh = window.innerHeight || 800;
+    let top = centerY - RULER_BAND_PX / 2;
+    if (top < -RULER_BAND_PX) top = -RULER_BAND_PX;
+    if (top > vh) top = vh;
+    _rulerEl.style.visibility = "visible";
+    _rulerEl.style.transform = "translate3d(0," + top + "px,0)";
+  }
+
+  function enableReadingRuler() {
+    if (_rulerEl) return;
+    const el = document.createElement("div");
+    el.id = "__aaas_ruler__";
+    el.setAttribute("aria-hidden", "true");
+    el.style.cssText =
+      "position:fixed;left:0;right:0;top:0;height:" + RULER_BAND_PX + "px;" +
+      "pointer-events:none;z-index:2147483646;" +
+      "box-shadow:0 0 0 200vmax rgba(15,20,25,0.38);" +
+      "border-top:2px solid rgba(255,207,51,0.85);" +
+      "border-bottom:2px solid rgba(255,207,51,0.85);" +
+      "transform:translate3d(0,-200px,0);" +
+      "transition:transform 80ms linear;" +
+      "visibility:hidden;";
+    (document.body || document.documentElement).appendChild(el);
+    _rulerEl = el;
+    let raf = 0;
+    let lastY = 0;
+    _rulerMove = (ev) => {
+      lastY = ev.clientY;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        positionRuler(lastY);
+      });
+    };
+    _rulerFocus = (ev) => {
+      const t = ev.target;
+      if (!t || !t.getBoundingClientRect) return;
+      if (t.closest && t.closest("[data-aaas-widget]")) return;
+      const r = t.getBoundingClientRect();
+      positionRuler(r.top + r.height / 2);
+    };
+    _rulerLeave = () => {
+      if (_rulerEl) _rulerEl.style.visibility = "hidden";
+    };
+    document.addEventListener("mousemove", _rulerMove, { passive: true });
+    document.addEventListener("focusin", _rulerFocus, true);
+    document.documentElement.addEventListener("mouseleave", _rulerLeave);
+  }
+
+  function disableReadingRuler() {
+    if (!_rulerEl) return;
+    document.removeEventListener("mousemove", _rulerMove);
+    document.removeEventListener("focusin", _rulerFocus, true);
+    document.documentElement.removeEventListener("mouseleave", _rulerLeave);
+    _rulerEl.remove();
+    _rulerEl = null;
+    _rulerMove = null;
+    _rulerFocus = null;
+    _rulerLeave = null;
   }
 
   function getStoredFlag(key) {
@@ -1732,7 +2211,14 @@
     fab.textContent = "ଅ";
     shadow.append(fab);
 
-    const pageLang = detectPageLang();
+    // The page's CURRENT language. Starts as the detected load-time
+    // language, and is reassigned after a successful full-page
+    // translate / Easy Read — the in-place rewrites genuinely change
+    // what language the DOM is in, and every downstream consumer
+    // (read-aloud, Easy Read, voice nav, a second translate click)
+    // must see the new reality or it will re-translate already-Odia
+    // text "from English" and garble the page.
+    let pageLang = detectPageLang();
 
     const panel = document.createElement("div");
     panel.className = "panel";
@@ -1765,9 +2251,19 @@
         <span>Speak (fill by voice)</span>
       </button>
 
+      <button class="action voice" type="button">
+        <span aria-hidden="true">🧭</span>
+        <span>Navigate by voice</span>
+      </button>
+
       <button class="action translate" type="button">
         <span aria-hidden="true">🌐</span>
         <span class="translate-label">Translate this page</span>
+      </button>
+
+      <button class="action easyread" type="button">
+        <span aria-hidden="true">📖</span>
+        <span class="easyread-label">Easy Read this page</span>
       </button>
 
       <label class="toggle">
@@ -1782,6 +2278,12 @@
         <span class="toggle-hint">Speaks whatever your mouse points at</span>
       </label>
 
+      <label class="toggle">
+        <input type="checkbox" id="aaas-ruler" />
+        <span class="toggle-text">Reading ruler</span>
+        <span class="toggle-hint">Focus band that follows your pointer</span>
+      </label>
+
       <button class="shortcuts-link" type="button">⌨️ Keyboard shortcuts</button>
 
       <div class="transcript" role="status" aria-live="polite"></div>
@@ -1794,6 +2296,7 @@
         <dl>
           <dt>Alt+R</dt><dd>Read this page</dd>
           <dt>Alt+M</dt><dd>Speak (fill by voice)</dd>
+          <dt>Alt+V</dt><dd>Navigate by voice</dd>
           <dt>Space</dt><dd>Pause / resume (while reading)</dd>
           <dt>→</dt><dd>Skip to next chunk</dd>
           <dt>←</dt><dd>Replay previous chunk</dd>
@@ -1812,6 +2315,7 @@
     const langSel = panel.querySelector("#aaas-lang");
     const dyslexiaToggle = panel.querySelector("#aaas-dyslexia");
     const hoverToggle = panel.querySelector("#aaas-hover");
+    const rulerToggle = panel.querySelector("#aaas-ruler");
     const shortcutsLink = panel.querySelector(".shortcuts-link");
     const shortcutsOverlay = panel.querySelector(".shortcuts-overlay");
     const overlayClose = shortcutsOverlay.querySelector(".close-overlay");
@@ -1846,9 +2350,27 @@
       applyDyslexia(on);
     });
 
+    function applyRuler(on) {
+      if (on) enableReadingRuler();
+      else disableReadingRuler();
+      rulerToggle.checked = on;
+    }
+    applyRuler(getStoredFlag(LS_RULER));
+    rulerToggle.addEventListener("change", () => {
+      const on = rulerToggle.checked;
+      setStoredFlag(LS_RULER, on);
+      applyRuler(on);
+    });
+
     const setStatus = (msg, kind) => {
       statusEl.textContent = msg;
-      statusEl.className = "status" + (kind ? " " + kind : "");
+      statusEl.className = "status";
+      if (kind) {
+        // Force a reflow between class swaps so the entry animation
+        // replays even when the same notice fires twice in a row.
+        void statusEl.offsetWidth;
+        statusEl.className = "status " + kind;
+      }
     };
 
     const resolvedLang = () => {
@@ -2254,10 +2776,21 @@
 
     let translateInFlight = false;
     async function translatePageInPlace() {
-      if (translateInFlight) return;
-      translateInFlight = true;
+      if (translateInFlight || easyReadInFlight) return;
       const statusEl = panel.querySelector(".status");
       const tgt = resolvedLang() || "or";
+      // The page is already in the target language — either natively
+      // or from an earlier click. Re-translating would feed tgt-language
+      // text back through the engine labelled as pageLang and corrupt
+      // the page, so refuse fast with a friendly status instead.
+      if (tgt === pageLang) {
+        setStatus(
+          `Page is already in ${LANG_DISPLAY[tgt] || tgt} — reload to see the original`,
+          "notice",
+        );
+        return;
+      }
+      translateInFlight = true;
       translateBtn.disabled = true;
       try {
         const nodes = collectTranslatableNodes();
@@ -2269,13 +2802,17 @@
           `Translating 0 / ${nodes.length} → ${LANG_DISPLAY[tgt] || tgt}…`;
         const BATCH = 5;
         let done = 0;
+        let changed = 0;
         for (let i = 0; i < nodes.length; i += BATCH) {
           const slice = nodes.slice(i, i + BATCH);
           await Promise.all(
             slice.map(async (node) => {
               try {
                 const translated = await translateOne(node.nodeValue, tgt);
-                if (translated) node.nodeValue = translated;
+                if (translated) {
+                  node.nodeValue = translated;
+                  changed++;
+                }
               } catch (err) {
                 console.warn("[AaaS] translate node failed:", err);
               }
@@ -2287,12 +2824,101 @@
         }
         statusEl.textContent =
           `Page translated → ${LANG_DISPLAY[tgt] || tgt} (reload to revert)`;
+        // The DOM is now in the target language; let read-aloud,
+        // Easy Read, voice nav and repeat clicks act on that fact.
+        // Guarded so a total failure (gateway down, every node left
+        // untouched) doesn't mislabel an untranslated page.
+        if (changed) pageLang = tgt;
       } finally {
         translateBtn.disabled = false;
         translateInFlight = false;
       }
     }
     translateBtn.addEventListener("click", translatePageInPlace);
+
+    // Easy Read: same in-place rewrite as translate, but through the
+    // rule-based /simplify endpoint — and when the picker's language
+    // differs from the page's, the simplified text is then translated,
+    // so an English notice ends up as plain Odia. Reload to revert,
+    // same as translate; the done-flag stops double-simplification.
+    const easyreadBtn = panel.querySelector(".easyread");
+    let easyReadInFlight = false;
+    let easyReadDone = false;
+
+    // Simplify one text node. The service caps input at 2000 chars, so
+    // longer nodes are pre-split at sentence boundaries and rejoined.
+    async function simplifyOne(text) {
+      if (text.length <= 1800) return simplifyChunk(text, pageLang);
+      const pieces = splitIntoSentences(text, 1500);
+      const out = [];
+      for (const piece of pieces) {
+        out.push(await simplifyChunk(piece, pageLang));
+      }
+      return out.join(" ");
+    }
+
+    async function easyReadPageInPlace() {
+      if (easyReadInFlight || translateInFlight) return;
+      if (easyReadDone) {
+        setStatus("Page is already in Easy Read — reload to see the original", "notice");
+        return;
+      }
+      easyReadInFlight = true;
+      easyreadBtn.disabled = true;
+      const tgt = resolvedLang() || pageLang;
+      const chain = tgt !== pageLang;
+      const suffix = chain ? ` → ${LANG_DISPLAY[tgt] || tgt}` : "";
+      try {
+        const nodes = collectTranslatableNodes();
+        if (!nodes.length) {
+          setStatus("Nothing to simplify on this page");
+          return;
+        }
+        setStatus(`Simplifying 0 / ${nodes.length}${suffix}…`);
+        const BATCH = 5;
+        let done = 0;
+        let succeeded = 0;
+        for (let i = 0; i < nodes.length; i += BATCH) {
+          const slice = nodes.slice(i, i + BATCH);
+          await Promise.all(
+            slice.map(async (node) => {
+              try {
+                let out = await simplifyOne(node.nodeValue);
+                if (chain && out) {
+                  out = stripPassthroughAnnotation(
+                    await translateChunk(out, pageLang, tgt, { timeoutMs: 20000 }),
+                  );
+                }
+                if (out) {
+                  node.nodeValue = out;
+                  succeeded++;
+                }
+              } catch (err) {
+                console.warn("[AaaS] simplify node failed:", err);
+              }
+            }),
+          );
+          // If the entire first batch failed, the gateway is almost
+          // certainly unreachable — bail out instead of grinding
+          // through every node just to fail on each one.
+          if (!succeeded && i === 0) {
+            setStatus("Easy Read unavailable — check that services are running", "error");
+            return;
+          }
+          done += slice.length;
+          setStatus(`Simplifying ${done} / ${nodes.length}${suffix}…`);
+        }
+        easyReadDone = true;
+        // Chained Easy Read leaves the DOM in the target language —
+        // record it so read-aloud / voice nav / translate see reality.
+        if (chain) pageLang = tgt;
+        setStatus(`Page in Easy Read${suffix} (reload to revert)`, "ok");
+      } finally {
+        easyreadBtn.disabled = false;
+        easyReadInFlight = false;
+      }
+    }
+    easyreadBtn.addEventListener("click", easyReadPageInPlace);
 
     /* ----- Hover-speak toggle (persisted) ----- */
     function applyHoverPref(on) {
@@ -2424,6 +3050,12 @@
           e.preventDefault();
           if (panel.getAttribute("data-open") !== "true") togglePanel();
           micBtn.click();
+          return;
+        }
+        if (k === "v") {
+          e.preventDefault();
+          if (panel.getAttribute("data-open") !== "true") togglePanel();
+          voiceBtn.click();
           return;
         }
       }
@@ -2634,6 +3266,10 @@
 
     micBtn.addEventListener("click", async () => {
       if (recorder.isRecording()) {
+        if (voiceNavRecording) {
+          setStatus("Mic busy — finish the voice command first", "error");
+          return;
+        }
         try {
           const blob = await recorder.stop();
           await handleRecorded(blob);
@@ -2649,6 +3285,189 @@
         micBtn.querySelector("span:last-child").textContent =
           `Recording (tap to stop, ${CONFIG.maxRecordSeconds}s max)…`;
         setStatus("Listening…");
+      } catch (err) {
+        setStatus(`Mic unavailable: ${err.message}`, "error");
+      }
+    });
+
+    /* ----- Voice navigation -----
+     * Same Recorder + transcribe() as the form-fill mic, but the
+     * transcript is treated as a command: global widget actions first
+     * (read / stop / translate / easy read / top / search), otherwise
+     * matched against the page's links and buttons. The
+     * "aaas-voice-command" CustomEvent is a mic-free input path — demo
+     * scripts and tests can drive navigation with typed text.
+     */
+    const voiceBtn = panel.querySelector(".voice");
+
+    function highlightVoiceTarget(el) {
+      if (!document.getElementById("__aaas_voicenav__")) {
+        const st = document.createElement("style");
+        st.id = "__aaas_voicenav__";
+        st.textContent =
+          "[data-aaas-voice-target] { outline: 3px solid #ffcf33 !important; outline-offset: 2px !important; }";
+        (document.head || document.documentElement).appendChild(st);
+      }
+      el.setAttribute("data-aaas-voice-target", "");
+      setTimeout(() => el.removeAttribute("data-aaas-voice-target"), 1600);
+    }
+
+    async function executeVoiceCommand(rawText, langHint) {
+      const norm = normalizeCommandText(rawText || "");
+      if (!norm) {
+        setStatus("No speech detected", "error");
+        return;
+      }
+      const lang =
+        dominantScript(rawText) ||
+        (langHint || "").toLowerCase().split("-")[0] ||
+        "en";
+
+      const action = matchGlobalCommand(norm, lang);
+      if (action === "read") {
+        startReadPage();
+        return;
+      }
+      if (action === "stop") {
+        stopRequested = true;
+        if (currentAbort) { try { currentAbort.abort(); } catch {} }
+        player.stop();
+        announcer.cancel();
+        setReadingUI(false, "Stopped.");
+        return;
+      }
+      if (action === "translate") {
+        translatePageInPlace();
+        return;
+      }
+      if (action === "easyread") {
+        easyReadPageInPlace();
+        return;
+      }
+      if (action === "top") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setStatus("Top of page", "ok");
+        return;
+      }
+      if (action === "search") {
+        const search = document.querySelector(
+          'input[type="search"], [role="search"] input, input[name*="search" i], input[type="text"]',
+        );
+        if (search) {
+          search.focus();
+          setStatus("Search box focused — speak again to fill it", "ok");
+        } else {
+          setStatus("No search box on this page", "error");
+        }
+        return;
+      }
+
+      const targets = collectVoiceTargets();
+      if (!targets.length) {
+        setStatus("No links or buttons found on this page", "error");
+        return;
+      }
+      // Cross-language: an Odia command on an English page is matched
+      // three ways — as spoken, through the deterministic nav glossary
+      // (reliable for common terms, immune to MT synonym drift), and
+      // through full machine translation (covers everything else).
+      // `understood` is surfaced in failure statuses so the user can
+      // see how their words came across and rephrase.
+      const candidates = [rawText];
+      const understood = [];
+      if (lang === "or" && pageLang === "en") {
+        const g = glossaryTranslateOdia(norm);
+        if (g) {
+          candidates.push(g);
+          understood.push(g);
+        }
+      }
+      if (lang !== pageLang) {
+        try {
+          const tr = stripPassthroughAnnotation(
+            (await translateChunk(rawText, lang, pageLang, { timeoutMs: 12000 })) || "",
+          ).trim();
+          if (tr && looksLikeTargetScript(tr, pageLang)) {
+            candidates.push(tr);
+            understood.push(tr);
+          }
+        } catch {}
+      }
+      const byElement = new Map();
+      for (const cand of candidates) {
+        for (const r of rankVoiceTargets(cand, targets)) {
+          const prev = byElement.get(r.element);
+          if (!prev || r.score > prev.score) byElement.set(r.element, r);
+        }
+      }
+      const ranked = Array.from(byElement.values()).sort((a, b) => b.score - a.score);
+
+      if (shouldActOnVoiceMatch(ranked)) {
+        const best = ranked[0];
+        try { best.element.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
+        try { best.element.focus(); } catch {}
+        highlightVoiceTarget(best.element);
+        setStatus(`Opening "${best.name}"…`, "ok");
+        // A visible beat between highlight and click so the user sees
+        // what was chosen before any navigation happens.
+        setTimeout(() => { try { best.element.click(); } catch {} }, 600);
+      } else if (ranked.length) {
+        const names = ranked.slice(0, 3).map((r) => `"${r.name}"`).join(" · ");
+        setStatus(`Not sure. Did you mean: ${names}?`, "error");
+      } else {
+        const heard = understood.length
+          ? ` (understood as: ${understood.map((u) => `"${u}"`).join(" / ")})`
+          : "";
+        setStatus(`No link or button matches "${rawText}"${heard}`, "error");
+      }
+    }
+
+    document.addEventListener("aaas-voice-command", (e) => {
+      executeVoiceCommand(e.detail && e.detail.text, e.detail && e.detail.lang);
+    });
+
+    let voiceNavRecording = false;
+    async function handleVoiceRecorded(blob) {
+      voiceNavRecording = false;
+      voiceBtn.classList.remove("recording");
+      voiceBtn.querySelector("span:last-child").textContent = "Navigate by voice";
+      setStatus("Transcribing command…");
+      try {
+        const result = await transcribe(blob, resolvedLang());
+        transcriptEl.textContent = result.text || "(no speech detected)";
+        await executeVoiceCommand(result.text, result.language);
+        if (result.engine === "mock") {
+          setStatus(
+            `${statusEl.textContent} — mock STT hears canned phrases only; enable whisper for live voice`,
+            "error",
+          );
+        }
+      } catch (err) {
+        setStatus(`Could not transcribe: ${err.message}`, "error");
+      }
+    }
+
+    voiceBtn.addEventListener("click", async () => {
+      if (recorder.isRecording()) {
+        if (!voiceNavRecording) {
+          setStatus("Mic busy — finish the form-fill recording first", "error");
+          return;
+        }
+        try {
+          const blob = await recorder.stop();
+          await handleVoiceRecorded(blob);
+        } catch (err) {
+          setStatus(`Mic error: ${err.message}`, "error");
+        }
+        return;
+      }
+      transcriptEl.textContent = "";
+      try {
+        await recorder.start({ onAutoStop: handleVoiceRecorded });
+        voiceNavRecording = true;
+        voiceBtn.classList.add("recording");
+        voiceBtn.querySelector("span:last-child").textContent = "Listening for a command…";
+        setStatus("Say a command or a link name…");
       } catch (err) {
         setStatus(`Mic unavailable: ${err.message}`, "error");
       }

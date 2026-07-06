@@ -1,0 +1,155 @@
+// Unit-tests the pure voice-navigation matcher functions by regex
+// extraction from src/widget.js (same approach as dyslexia_smoke.js).
+// No DOM shim needed — everything under test is pure.
+//
+// Run:  node apps/widget/tests/voice_match_smoke.js
+
+const fs = require("fs");
+const path = require("path");
+
+const WIDGET = path.resolve(__dirname, "..", "src", "widget.js");
+const src = fs.readFileSync(WIDGET, "utf-8");
+
+function extractFn(name) {
+  const re = new RegExp("function\\s+" + name + "[\\s\\S]*?^  \\}", "m");
+  const m = src.match(re);
+  if (!m) throw new Error("could not extract " + name);
+  return m[0];
+}
+
+function extractConst(name) {
+  const re = new RegExp("const " + name + " = [\\s\\S]*?;\\n", "m");
+  const m = src.match(re);
+  if (!m) throw new Error("could not extract " + name);
+  return m[0];
+}
+
+const code =
+  extractConst("VOICE_STRIP_LEADING") +
+  extractConst("VOICE_STRIP_TRAILING") +
+  extractConst("VOICE_COMMANDS") +
+  extractConst("VOICE_OR_EN_GLOSSARY") +
+  extractConst("VOICE_ACT_THRESHOLD") +
+  extractConst("VOICE_SURE_THRESHOLD") +
+  extractConst("VOICE_AMBIGUITY_GAP") +
+  extractFn("toWesternDigits") +
+  "\n" +
+  extractFn("editDistance") +
+  "\n" +
+  extractFn("normalizeCommandText") +
+  "\n" +
+  extractFn("matchGlobalCommand") +
+  "\n" +
+  extractFn("odiaSkeleton") +
+  "\n" +
+  extractFn("glossaryTranslateOdia") +
+  "\n" +
+  extractFn("scoreVoiceTarget") +
+  "\n" +
+  extractFn("rankVoiceTargets") +
+  "\n" +
+  extractFn("shouldActOnVoiceMatch") +
+  "\n" +
+  "module.exports = { editDistance, normalizeCommandText, matchGlobalCommand, glossaryTranslateOdia, scoreVoiceTarget, rankVoiceTargets, shouldActOnVoiceMatch };";
+
+const mod = { exports: {} };
+new Function("module", code)(mod);
+const {
+  editDistance,
+  normalizeCommandText,
+  matchGlobalCommand,
+  glossaryTranslateOdia,
+  scoreVoiceTarget,
+  rankVoiceTargets,
+  shouldActOnVoiceMatch,
+} = mod.exports;
+
+const results = [];
+function check(name, ok) {
+  results.push({ name, ok });
+  console.log((ok ? "  PASS " : "  FAIL ") + name);
+}
+
+// --- editDistance ---
+check("editDistance identical", editDistance("abc", "abc") === 0);
+check("editDistance one edit", editDistance("kitten", "sitten") === 1);
+check("editDistance empty", editDistance("", "abc") === 3);
+
+// --- normalizeCommandText ---
+check(
+  "strips punctuation + leading filler",
+  normalizeCommandText("Click on Citizen Services!") === "citizen services",
+);
+check(
+  "strips longest leading filler first",
+  normalizeCommandText("click on tenders") === "tenders",
+);
+check(
+  "strips trailing Odia verb",
+  normalizeCommandText("ନାଗରିକ ସେବା ଖୋଲ") === "ନାଗରିକ ସେବା",
+);
+check("westernizes Odia digits", normalizeCommandText("ଫଳାଫଳ ୨୦୨୬") === "ଫଳାଫଳ 2026");
+check("empty input", normalizeCommandText("") === "");
+
+// --- matchGlobalCommand ---
+check("Odia translate command", matchGlobalCommand("ଅନୁବାଦ କର", "or") === "translate");
+check("English read command", matchGlobalCommand("read this page", "en") === "read");
+check("cross-language lookup (en phrase, or hint)", matchGlobalCommand("stop", "or") === "stop");
+check("fuzzy tolerates a slip", matchGlobalCommand("translat page", "en") === "translate");
+check("garbage is not a command", matchGlobalCommand("purple monkey dishwasher", "en") === null);
+
+// --- glossaryTranslateOdia ---
+check(
+  "glossary maps common nav phrase",
+  glossaryTranslateOdia("ନାଗରିକ ସେବା") === "citizen services",
+);
+check(
+  "glossary fuzzy-recovers an STT slip",
+  (glossaryTranslateOdia("ଛାତ୍ର ବ୍ୃତି") || "").includes("scholarship"),
+);
+check("glossary returns null for unmapped Odia", glossaryTranslateOdia("ଭିଲଡ଼ର") === null);
+check(
+  "glossary-driven ranking finds the target",
+  (() => {
+    const g = glossaryTranslateOdia("ଭିନ୍ନକ୍ଷମ ପିଲାଙ୍କ ପାଇଁ ଛାତ୍ର ବୃତ୍ତି");
+    const r = rankVoiceTargets(g, [
+      { name: "Post-matric scholarship for students with disabilities — last date 30 April", element: null },
+      { name: "Contact", element: null },
+    ]);
+    return r.length > 0 && r[0].name.includes("scholarship") && shouldActOnVoiceMatch(r);
+  })(),
+);
+
+// --- scoreVoiceTarget ---
+check("exact name scores 1", scoreVoiceTarget("citizen services", "Citizen Services") === 1);
+const containScore = scoreVoiceTarget("services", "Citizen Services");
+check("contained name scores 0.75-0.95", containScore >= 0.75 && containScore <= 0.95);
+check(
+  "fuzzy transcript clears act threshold",
+  scoreVoiceTarget("citzen services", "Citizen Services") >= 0.65,
+);
+check("unrelated pair scores low", scoreVoiceTarget("weather report", "Citizen Services") < 0.4);
+
+// --- rankVoiceTargets + decision rule ---
+const TARGETS = [
+  { name: "Citizen Services", element: null },
+  { name: "Contact Us", element: null },
+  { name: "Tenders", element: null },
+];
+
+const good = rankVoiceTargets("citizen services", TARGETS);
+check("good transcript ranks the right target first", good[0] && good[0].name === "Citizen Services");
+check("good transcript acts", shouldActOnVoiceMatch(good) === true);
+
+const ambiguous = rankVoiceTargets("services contact", TARGETS);
+check("ambiguous transcript does not act", shouldActOnVoiceMatch(ambiguous) === false);
+
+check("empty ranking does not act", shouldActOnVoiceMatch([]) === false);
+
+const noise = rankVoiceTargets("purple monkey dishwasher", TARGETS);
+check("noise matches nothing", noise.length === 0);
+
+const fails = results.filter((r) => !r.ok);
+console.log("");
+console.log(fails.length === 0 ? "OK — all " + results.length + " checks passed" : "FAIL — " + fails.length + " of " + results.length + " failed");
+process.exit(fails.length === 0 ? 0 : 1);
