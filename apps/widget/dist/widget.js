@@ -4143,6 +4143,7 @@
           stopRequested = true;
           if (currentAbort) { try { currentAbort.abort(); } catch {} }
           player.stop();
+          highlightReadingElement(null);
           setReadingUI(false, "Stopped.");
           e.preventDefault();
           return;
