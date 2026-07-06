@@ -1998,9 +1998,13 @@
       this.stopped = false;
       this.feedDone = false;
       this._resume = null;
-      // Ring buffer of recently-played blobs for ← (replay previous).
-      this.history = [];
-      this.historyMax = 3;
+      // Past blobs in play order — the rewind trail for ← / ⏮. Each
+      // replayPrevious() pops the cursor back one section, so repeated
+      // clicks walk all the way to the beginning of the session.
+      this.past = [];
+      this.pastMax = 100;
+      this._currentBlob = null;
+      this._replayRequested = false;
       // onAdvance fires when drain() moves to the next blob. UI uses
       // this to update the "playing N/M" progress chip.
       this.onAdvance = null;
@@ -2013,7 +2017,9 @@
       this.stopped = false;
       this.feedDone = false;
       this._resume = null;
-      this.history = [];
+      this.past = [];
+      this._currentBlob = null;
+      this._replayRequested = false;
       this._skipRequested = false;
     }
     _wake() {
@@ -2062,11 +2068,18 @@
       if (this._onAdvance) this._onAdvance();
       return true;
     }
-    // Push the last-played blob back onto the front of the queue.
+    // Step the playback cursor back one section. Pops the rewind
+    // trail (so repeated presses keep going further back) and
+    // re-queues the interrupted current section, restoring the
+    // natural order: previous -> current -> rest.
     replayPrevious() {
-      if (!this.history.length) return false;
-      const prev = this.history[this.history.length - 1];
+      if (!this.past.length) return false;
+      const prev = this.past.pop();
+      if (this._currentBlob) this.queue.unshift(this._currentBlob);
       this.queue.unshift(prev);
+      // The interrupted section was re-queued, not finished — drain's
+      // finally must NOT append it to the rewind trail.
+      this._replayRequested = true;
       this._skipRequested = true;
       try { this.audio.pause(); } catch {}
       if (this._onAdvance) this._onAdvance();
@@ -2093,6 +2106,7 @@
             continue;
           }
           const blob = this.queue.shift();
+          this._currentBlob = blob;
           const url = URL.createObjectURL(blob);
           this._currentUrl = url;
           this.audio.src = url;
@@ -2115,11 +2129,17 @@
             this._onAdvance = null;
             URL.revokeObjectURL(url);
             if (this._currentUrl === url) this._currentUrl = null;
-            // Push to history unless we're unwinding a stop.
-            if (!this.stopped) {
-              this.history.push(blob);
-              while (this.history.length > this.historyMax) this.history.shift();
+            if (this._replayRequested) {
+              // Rewind interrupt: this section was re-queued and will
+              // play again — keeping it out of the trail is what makes
+              // repeated ⏮ presses walk backward instead of
+              // ping-ponging with the section they cancelled.
+              this._replayRequested = false;
+            } else if (!this.stopped) {
+              this.past.push(blob);
+              while (this.past.length > this.pastMax) this.past.shift();
             }
+            if (this._currentBlob === blob) this._currentBlob = null;
           }
         }
       } finally {
