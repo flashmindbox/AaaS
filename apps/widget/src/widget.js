@@ -4242,6 +4242,9 @@
           resolve(v);
         };
         guidedResolve = finish;
+        // Safety: a stray recording from an interrupted capture must
+        // not collide with this one.
+        try { if (recorder.isRecording()) recorder.stop().catch(() => {}); } catch {}
         const handleBlob = async (blob) => {
           try {
             const r = await transcribe(blob, resolvedLang());
@@ -4296,60 +4299,127 @@
       if (message) setStatus(message);
     }
 
+    // A short high tone that means "speak NOW" — the audible cue
+    // between the label prompt ending and the mic opening.
+    let _beepCtx = null;
+    function readyBeep() {
+      try {
+        _beepCtx = _beepCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const osc = _beepCtx.createOscillator();
+        const gain = _beepCtx.createGain();
+        osc.frequency.value = 880;
+        gain.gain.value = 0.08;
+        osc.connect(gain);
+        gain.connect(_beepCtx.destination);
+        osc.start();
+        osc.stop(_beepCtx.currentTime + 0.15);
+      } catch {}
+    }
+
     async function guidedFormFill(fields) {
+      if (isReading) {
+        setStatus("Stop the page reader first (Esc)", "error");
+        return;
+      }
       guidedActive = true;
       micBtn.classList.add("recording");
       micBtn.querySelector("span:last-child").textContent = "Guided fill — Esc stops";
+      ensureVoiceTargetStyle();
+      // Only ask for EMPTY fields — re-running the guided fill after a
+      // miss asks just for the blanks instead of everything again.
+      const empty = fields.filter((f) => !(f.value || "").trim());
+      const prefilled = fields.length - empty.length;
+      const total = empty.length;
       let filled = 0;
+      let lastForm = null;
       try {
-        for (const field of fields) {
+        if (!total) {
+          setStatus("Every field already has an answer — check them and press Submit", "notice");
+          return;
+        }
+        for (let idx = 0; idx < empty.length; idx++) {
+          const field = empty[idx];
           if (!guidedActive) return;
+          lastForm = field.form || lastForm;
           const label = getAccessibleName(field) || field.name || "this field";
+          const type = field.tagName === "INPUT" ? (field.type || "text").toLowerCase() : "textarea";
           try { field.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
           try { field.focus(); } catch {}
-          highlightVoiceTarget(field);
-          setStatus(`🎙️ ${label}`);
-          await speakPrompt(label);
-          if (!guidedActive) return;
-          const raw = await captureVoiceText();
-          if (!guidedActive) return;
-          if (!raw.trim()) {
-            setStatus(`Skipped: ${label}`);
+          // Highlight stays for the field's WHOLE turn (the shared
+          // helper auto-clears after 1.6s — too short for a listen).
+          field.setAttribute("data-aaas-voice-target", "");
+          let value = "";
+          // Numbers get one automatic retry — mishearing a phone digit
+          // is common and re-asking beats leaving a blank.
+          const attempts = type === "tel" || type === "number" ? 2 : 1;
+          for (let attempt = 0; attempt < attempts; attempt++) {
+            if (!guidedActive) return;
+            setStatus(`🎙️ ${label} (${idx + 1}/${total})`);
+            await speakPrompt(attempt === 0 ? label : `${label}. ପୁଣି କୁହନ୍ତୁ`);
+            if (!guidedActive) return;
+            readyBeep();
+            setStatus(`👂 ${label} (${idx + 1}/${total}) — listening…`);
+            const raw = await captureVoiceText();
+            if (!guidedActive) return;
+            if (!raw.trim()) continue;
+            if (type === "tel" || type === "number") {
+              // Parse the RAW transcript (spoken-number words live
+              // there); romanization would only blur them.
+              value = normalizeSpokenValue(type, raw);
+              if (value) break;
+            } else {
+              // Transliterate, never translate: same words, Latin
+              // letters — meaning-translation turns names into
+              // nonsense and raw Odia is rejected by most forms.
+              value = dominantScript(raw) === "or" ? romanizeOdia(raw) : raw;
+              value = normalizeSpokenValue(type, value);
+              break;
+            }
+          }
+          field.removeAttribute("data-aaas-voice-target");
+          if (!value) {
+            setStatus(`Left empty: ${label} — tap Speak to fill again to retry the blanks`, "error");
             continue;
           }
-          // Transliterate, never translate: the spoken Odia is written
-          // as the SAME words in Latin letters ("ପୂର୍ଣ୍ଣଚନ୍ଦ୍ର" ->
-          // "Purnnachandra") — meaning-translation turns names into
-          // nonsense and raw Odia is rejected by most real forms.
-          // Then field-type cleanup (digits for phone/number, at/dot
-          // for email, trailing danda dropped).
-          const type = field.tagName === "INPUT" ? (field.type || "text").toLowerCase() : "textarea";
-          let value;
-          if (type === "tel" || type === "number") {
-            // Numbers parse from the RAW transcript (word forms live
-            // there); romanization would only blur them.
-            value = normalizeSpokenValue(type, raw);
-            if (!value) {
-              setStatus(`Couldn't hear a number for "${label}" — left empty`, "error");
-              continue;
-            }
-          } else {
-            value = dominantScript(raw) === "or" ? romanizeOdia(raw) : raw;
-            value = normalizeSpokenValue(type, value);
+          if (writeToField(field, value)) {
+            filled++;
+            setStatus(`✓ ${label}: ${value}`, "ok");
+            await new Promise((r) => setTimeout(r, 450)); // let the ✓ register
           }
-          if (writeToField(field, value)) filled++;
         }
+        const note = prefilled ? ` · ${prefilled} already filled` : "";
         setStatus(
-          `Form filled (${filled} field${filled === 1 ? "" : "s"}) — please check the answers and press Submit yourself`,
+          `Form filled (${filled}/${total})${note} — check the answers and press Submit yourself`,
           "ok",
         );
         speakPrompt("Done. Please check the answers.");
+        // Park focus on the submit control so pressing Enter submits
+        // when — and only when — the USER decides.
+        try {
+          const submit =
+            lastForm &&
+            (lastForm.querySelector('button[type="submit"], input[type="submit"]') ||
+              lastForm.querySelector("button"));
+          if (submit) submit.focus();
+        } catch {}
       } finally {
         guidedActive = false;
+        document.querySelectorAll("[data-aaas-voice-target]").forEach((el) => {
+          el.removeAttribute("data-aaas-voice-target");
+        });
         micBtn.classList.remove("recording");
         micBtn.querySelector("span:last-child").textContent = "Speak to fill";
       }
     }
+
+    // Snapshot what's focused BEFORE the tile steals focus: this — not
+    // a stale "last focused field ever" — decides single-field vs
+    // guided mode. (The old check made guided mode unreachable once
+    // any field had ever been focused on the page.)
+    let micFieldWasFocused = false;
+    micBtn.addEventListener("pointerdown", () => {
+      micFieldWasFocused = isEditableTarget(document.activeElement);
+    });
 
     micBtn.addEventListener("click", async () => {
       if (guidedActive) {
@@ -4378,10 +4448,13 @@
         }
         return;
       }
-      // No field focused -> guided mode over the page's form fields.
-      const focusedField =
-        lastEditableEl && lastEditableEl.isConnected && isVisible(lastEditableEl);
-      if (!focusedField) {
+      // No field focused right now -> guided mode over the page's
+      // form fields. (Alt+M keeps the field focused through the
+      // keydown, so the live activeElement check covers keyboard use;
+      // pointerdown covers mouse/touch before focus moves.)
+      const fieldNow = micFieldWasFocused || isEditableTarget(document.activeElement);
+      micFieldWasFocused = false;
+      if (!fieldNow) {
         const fields = collectFormFields();
         if (fields.length >= 2) {
           guidedFormFill(fields);
@@ -4409,14 +4482,17 @@
      */
     const voiceBtn = panel.querySelector(".voice");
 
+    function ensureVoiceTargetStyle() {
+      if (document.getElementById("__aaas_voicenav__")) return;
+      const st = document.createElement("style");
+      st.id = "__aaas_voicenav__";
+      st.textContent =
+        "[data-aaas-voice-target] { outline: 3px solid #ffcf33 !important; outline-offset: 2px !important; }";
+      (document.head || document.documentElement).appendChild(st);
+    }
+
     function highlightVoiceTarget(el) {
-      if (!document.getElementById("__aaas_voicenav__")) {
-        const st = document.createElement("style");
-        st.id = "__aaas_voicenav__";
-        st.textContent =
-          "[data-aaas-voice-target] { outline: 3px solid #ffcf33 !important; outline-offset: 2px !important; }";
-        (document.head || document.documentElement).appendChild(st);
-      }
+      ensureVoiceTargetStyle();
       el.setAttribute("data-aaas-voice-target", "");
       setTimeout(() => el.removeAttribute("data-aaas-voice-target"), 1600);
     }
