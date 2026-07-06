@@ -131,25 +131,32 @@ h2 {
   color: #fff; background: var(--navy);
 }
 
-/* per-category accents */
+/* per-category accents — primary button solid, secondary outlined,
+   so the two links in a card read as an alternating pair */
 .accent-blue    { border-top-color: var(--c-blue); }
 .accent-blue    .pill { background: var(--c-blue); }
-.accent-blue    .btn { background: var(--c-blue); }
+.accent-blue    .btn:not(.btn-ghost) { background: var(--c-blue); }
+.accent-blue    .btn-ghost { color: var(--c-blue); border-color: var(--c-blue); }
 .accent-maroon  { border-top-color: var(--c-maroon); }
 .accent-maroon  .pill { background: var(--c-maroon); }
-.accent-maroon  .btn { background: var(--c-maroon); }
+.accent-maroon  .btn:not(.btn-ghost) { background: var(--c-maroon); }
+.accent-maroon  .btn-ghost { color: var(--c-maroon); border-color: var(--c-maroon); }
 .accent-green   { border-top-color: var(--c-green); }
 .accent-green   .pill { background: var(--c-green); }
-.accent-green   .btn { background: var(--c-green); }
+.accent-green   .btn:not(.btn-ghost) { background: var(--c-green); }
+.accent-green   .btn-ghost { color: var(--c-green); border-color: var(--c-green); }
 .accent-saffron { border-top-color: var(--c-saffron); }
 .accent-saffron .pill { background: var(--c-saffron); }
-.accent-saffron .btn { background: var(--c-saffron); }
+.accent-saffron .btn:not(.btn-ghost) { background: var(--c-saffron); }
+.accent-saffron .btn-ghost { color: var(--c-saffron); border-color: var(--c-saffron); }
 .accent-teal    { border-top-color: var(--c-teal); }
 .accent-teal    .pill { background: var(--c-teal); }
-.accent-teal    .btn { background: var(--c-teal); }
+.accent-teal    .btn:not(.btn-ghost) { background: var(--c-teal); }
+.accent-teal    .btn-ghost { color: var(--c-teal); border-color: var(--c-teal); }
 .accent-violet  { border-top-color: var(--c-violet); }
 .accent-violet  .pill { background: var(--c-violet); }
-.accent-violet  .btn { background: var(--c-violet); }
+.accent-violet  .btn:not(.btn-ghost) { background: var(--c-violet); }
+.accent-violet  .btn-ghost { color: var(--c-violet); border-color: var(--c-violet); }
 .accent-navy    { border-top-color: var(--navy); }
 
 .flagship {
@@ -165,9 +172,9 @@ h2 {
 }
 .btn:hover { filter: brightness(1.12); }
 .btn-ghost {
-  background: #fff; color: var(--ink); border: 1.5px solid var(--line);
+  background: #fff !important; color: var(--ink); border: 1.5px solid var(--line);
 }
-.btn-ghost:hover { border-color: var(--navy); filter: none; }
+.btn-ghost:hover { filter: none; box-shadow: 0 2px 8px rgba(20, 51, 93, 0.15); }
 .btn-dark { background: var(--navy2); }
 
 /* how to demo */
