@@ -2697,14 +2697,6 @@
         spoken = tgtPrefix + (atom.text || "");
       }
       if (ac.signal.aborted) return;
-      console.debug("[AaaS/hover]", {
-        visible: atom.text,
-        role: atom.role,
-        src,
-        tgt,
-        spoken,
-        lang,
-      });
       try {
         const blob = await synthesise(spoken, lang, { signal: ac.signal });
         if (ac.signal.aborted) return;
@@ -4317,7 +4309,6 @@
         // because meaning-translation turns names into nonsense ("full
         // moon") and raw Odia is rejected by most real forms.
         let fillText = toWesternDigits(result.text || "");
-        const translateFailed = false;
         if (result.text && src === "or") {
           fillText = romanizeOdia(result.text);
         }
@@ -4354,7 +4345,9 @@
               language: result.language,
               engine: result.engine,
               filled,
-              translateFailed,
+              // kept for event-shape compat; the fill path romanizes
+              // instead of translating, so this can no longer fail
+              translateFailed: false,
             },
           })
         );
@@ -4965,6 +4958,16 @@
       docBody.textContent = "";
       docActions.textContent = "";
       docModal.setAttribute("data-open", "true");
+      // Move focus INTO the dialog so keyboard and screen-reader users
+      // land where the action is; callers that render rows/buttons
+      // afterwards re-focus their first control.
+      setTimeout(() => {
+        if (docModal.getAttribute("data-open") !== "true") return;
+        const target =
+          docModal.querySelector(".doc-row, .doc-primary, button:not(.docmodal-close):not(.docmodal-max)") ||
+          docModal.querySelector(".docmodal-close");
+        try { target.focus(); } catch {}
+      }, 150);
     }
 
     function docButton(label, className, onClick) {
