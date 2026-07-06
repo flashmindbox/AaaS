@@ -81,7 +81,7 @@
   .scanbox p { font-size: 10pt; line-height: 1.55; }
   .scanbox .stamp { display: inline-block; border: 2px solid #7a7a97; color: #7a7a97; padding: 0.04in 0.14in; font-size: 9pt; margin-top: 0.16in; font-family: "Segoe UI", sans-serif; }
   .arun li { font-size: 16pt; margin: 0.14in 0; list-style: none; padding-left: 0.34in; position: relative; }
-  .arun li::before { content: "✗"; color: var(--red); position: absolute; left: 0; font-weight: 700; }
+  .arun li::before { content: "×"; color: var(--red); position: absolute; left: 0; font-weight: 700; font-size: 19pt; line-height: 1; top: 0.02in; }
   .punch { margin-top: 0.3in; font-size: 21pt; font-weight: 700; color: var(--saffron); }
   .whostat { display: flex; gap: 0.3in; margin-top: 0.28in; }
   .whostat .st { border-left: 4px solid var(--navy); padding-left: 0.14in; }
@@ -99,11 +99,17 @@
   .site .ln.s { width: 55%; }
   .site .ln.m { width: 78%; }
   .site .x {
-    position: absolute; right: 0.08in; bottom: 0.07in; width: 0.3in; height: 0.3in;
-    background: var(--red); color: #fff; border-radius: 50%; font-size: 12pt; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
+    position: absolute; right: 0.08in; bottom: 0.07in; width: 0.28in; height: 0.28in;
+    background: var(--red); border-radius: 50%;
     box-shadow: 0 2px 6px rgba(179,38,30,.4);
   }
+  /* the cross is drawn, not typed — no font fallback surprises */
+  .site .x::before, .site .x::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 0.15in; height: 0.035in; background: #fff; border-radius: 2px;
+  }
+  .site .x::before { transform: translate(-50%, -50%) rotate(45deg); }
+  .site .x::after  { transform: translate(-50%, -50%) rotate(-45deg); }
   .sweep { display: flex; align-items: center; gap: 0.2in; margin-top: 0.25in; }
   .sweep .arrowline { flex: 1; height: 5px; background: linear-gradient(90deg, var(--red), var(--saffron)); border-radius: 3px; position: relative; }
   .sweep .arrowline::after { content: ""; position: absolute; right: -2px; top: -7px; border-left: 16px solid var(--saffron); border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
@@ -302,18 +308,18 @@
     <li>Screen readers can't read a scan — and read <b>English</b> at Odia speakers</li>
   </ul>
   <div class="brokengrid">
-    <div class="site"><i class="bar" style="background:#1a5cc8"></i><i class="ln m"></i><i class="ln s"></i><i class="ln"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#8a2432"></i><i class="ln"></i><i class="ln m"></i><i class="ln s"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#157a3c"></i><i class="ln s"></i><i class="ln"></i><i class="ln m"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#e07b12"></i><i class="ln m"></i><i class="ln"></i><i class="ln s"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#0e7d70"></i><i class="ln"></i><i class="ln s"></i><i class="ln m"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#6236c9"></i><i class="ln s"></i><i class="ln m"></i><i class="ln"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#5a6b80"></i><i class="ln"></i><i class="ln m"></i><i class="ln s"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#14335d"></i><i class="ln m"></i><i class="ln s"></i><i class="ln"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#b3261e"></i><i class="ln s"></i><i class="ln"></i><i class="ln m"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#1a5cc8"></i><i class="ln"></i><i class="ln s"></i><i class="ln m"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#157a3c"></i><i class="ln m"></i><i class="ln"></i><i class="ln s"></i><span class="x">✗</span></div>
-    <div class="site"><i class="bar" style="background:#e07b12"></i><i class="ln s"></i><i class="ln m"></i><i class="ln"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#1a5cc8"></i><i class="ln m"></i><i class="ln s"></i><i class="ln"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#8a2432"></i><i class="ln"></i><i class="ln m"></i><i class="ln s"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#157a3c"></i><i class="ln s"></i><i class="ln"></i><i class="ln m"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#e07b12"></i><i class="ln m"></i><i class="ln"></i><i class="ln s"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#0e7d70"></i><i class="ln"></i><i class="ln s"></i><i class="ln m"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#6236c9"></i><i class="ln s"></i><i class="ln m"></i><i class="ln"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#5a6b80"></i><i class="ln"></i><i class="ln m"></i><i class="ln s"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#14335d"></i><i class="ln m"></i><i class="ln s"></i><i class="ln"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#b3261e"></i><i class="ln s"></i><i class="ln"></i><i class="ln m"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#1a5cc8"></i><i class="ln"></i><i class="ln s"></i><i class="ln m"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#157a3c"></i><i class="ln m"></i><i class="ln"></i><i class="ln s"></i><span class="x"></span></div>
+    <div class="site"><i class="bar" style="background:#e07b12"></i><i class="ln s"></i><i class="ln m"></i><i class="ln"></i><span class="x"></span></div>
   </div>
   <div class="sweep">
     <p class="bigline">Accessibility must be <span style="color:var(--saffron)">infrastructure</span>, not remediation</p>
