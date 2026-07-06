@@ -54,9 +54,11 @@ const code =
   "\n" +
   extractFn("rankVoiceTargets") +
   "\n" +
+  extractFn("sameVoiceName") +
+  "\n" +
   extractFn("shouldActOnVoiceMatch") +
   "\n" +
-  "module.exports = { editDistance, normalizeCommandText, matchGlobalCommand, glossaryTranslateOdia, scoreVoiceTarget, rankVoiceTargets, shouldActOnVoiceMatch };";
+  "module.exports = { editDistance, normalizeCommandText, matchGlobalCommand, glossaryTranslateOdia, scoreVoiceTarget, rankVoiceTargets, shouldActOnVoiceMatch, sameVoiceName };";
 
 const mod = { exports: {} };
 new Function("module", code)(mod);
@@ -68,6 +70,7 @@ const {
   scoreVoiceTarget,
   rankVoiceTargets,
   shouldActOnVoiceMatch,
+  sameVoiceName,
 } = mod.exports;
 
 const results = [];
@@ -142,6 +145,10 @@ check("phonetic 'Kantakta' finds Contact", kantakta >= 0.65);
 const notif = scoreVoiceTarget("Notiphikesana", "Notifications");
 check("phonetic 'Notiphikesana' finds Notifications", notif >= 0.65);
 check("phonetic still rejects unrelated", scoreVoiceTarget("Kantakta", "Tenders") < 0.5);
+check(
+  "one-letter site buttons (A-, A+) never match by containment",
+  scoreVoiceTarget("likara sapa notisa", "A-") < 0.3 && scoreVoiceTarget("tenders", "A") < 0.3,
+);
 check("phonetic global command: 'rid pej' -> read", matchGlobalCommand("rid pej", "en") === "read");
 
 // --- rankVoiceTargets + decision rule ---
@@ -159,6 +166,57 @@ const ambiguous = rankVoiceTargets("services contact", TARGETS);
 check("ambiguous transcript does not act", shouldActOnVoiceMatch(ambiguous) === false);
 
 check("empty ranking does not act", shouldActOnVoiceMatch([]) === false);
+
+// --- real-site cases: duplicate names + hidden targets ---
+check(
+  "same-name tie (header+footer copies) still acts",
+  shouldActOnVoiceMatch([
+    { score: 0.7, name: "Tenders" },
+    { score: 0.7, name: "Tenders" },
+    { score: 0.4, name: "Contact" },
+  ]) === true,
+);
+check(
+  "different-name near-tie stays cautious",
+  shouldActOnVoiceMatch([
+    { score: 0.7, name: "Tenders" },
+    { score: 0.68, name: "Notices" },
+  ]) === false,
+);
+check(
+  "visible target outranks identical hidden one",
+  (() => {
+    const r = rankVoiceTargets("tenders", [
+      { name: "Tenders", element: null, hidden: true },
+      { name: "Tenders", element: null },
+    ]);
+    return r.length === 2 && r[0].hidden === false && r[1].hidden === true;
+  })(),
+);
+check(
+  "truncated ticker copy counts as the same link",
+  sameVoiceName(
+    "NOTICE INVITING APPLICATIONS FOR SETTLEMENT OF COUNTRY LIQUOR SHOPS FOR JAJPUR DISTRICT FOR 2026-27",
+    "NOTICE INVITING APPLICATIONS FOR SETTLEMENT OF COUNTRY LIQUOR SHOPS FOR…",
+  ) === true,
+);
+check(
+  "different notices stay distinct",
+  sameVoiceName(
+    "Public notice on lease cases under Danagadi Tahasil.",
+    "Public Notice for allotment of homestead land",
+  ) === false,
+);
+check(
+  "hidden carousel notice is now reachable",
+  (() => {
+    const r = rankVoiceTargets("liquor shop notice", [
+      { name: "NOTICE INVITING APPLICATIONS FOR SETTLEMENT OF COUNTRY LIQUOR SHOPS FOR JAJPUR DISTRICT", element: null, hidden: true },
+      { name: "Home", element: null },
+    ]);
+    return r.length > 0 && /LIQUOR/.test(r[0].name);
+  })(),
+);
 
 const noise = rankVoiceTargets("purple monkey dishwasher", TARGETS);
 check("noise matches nothing", noise.length === 0);

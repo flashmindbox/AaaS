@@ -729,13 +729,16 @@
     const n = normalizeCommandText(name);
     if (!t || !n) return 0;
     if (t === n) return 1;
-    if (n.includes(t) || t.includes(n)) {
+    // Containment needs substance on BOTH sides: one-letter names
+    // ("A", "A-" font-size buttons on gov sites) are contained in
+    // every transcript and must never match this way.
+    if (Math.min(t.length, n.length) >= 3 && (n.includes(t) || t.includes(n))) {
       const ratio = Math.min(t.length, n.length) / Math.max(t.length, n.length);
       return 0.75 + 0.2 * ratio;
     }
     const tq = phoneticSquash(t).replace(/\s+/g, "");
     const nq = phoneticSquash(n).replace(/\s+/g, "");
-    if (tq && nq && (nq.includes(tq) || tq.includes(nq))) {
+    if (tq && nq && Math.min(tq.length, nq.length) >= 3 && (nq.includes(tq) || tq.includes(nq))) {
       const ratio = Math.min(tq.length, nq.length) / Math.max(tq.length, nq.length);
       return 0.72 + 0.2 * ratio;
     }
@@ -767,13 +770,34 @@
   function rankVoiceTargets(transcript, targets) {
     const ranked = [];
     for (const target of targets) {
-      const score = scoreVoiceTarget(transcript, target.name || "");
+      // Hidden targets carry a small penalty so a visible match always
+      // outranks an identically-named hidden one.
+      let score = scoreVoiceTarget(transcript, target.name || "");
+      if (target.hidden) score *= 0.92;
       if (score > 0.25) {
-        ranked.push({ score, name: target.name, element: target.element || null });
+        ranked.push({
+          score,
+          name: target.name,
+          element: target.element || null,
+          hidden: !!target.hidden,
+        });
       }
     }
     ranked.sort((a, b) => b.score - a.score);
     return ranked;
+  }
+
+  // Real sites render the same link several times — header + footer
+  // copies, and news tickers that repeat a notice with its title
+  // truncated ("NOTICE INVITING… COUNTRY LIQUO…"). Same name, or one
+  // name being a truncation of the other, means same intent.
+  function sameVoiceName(a, b) {
+    const na = normalizeCommandText(a || "");
+    const nb = normalizeCommandText(b || "");
+    if (!na || !nb) return false;
+    if (na === nb) return true;
+    const min = Math.min(na.length, nb.length);
+    return min >= 20 && na.slice(0, min - 3) === nb.slice(0, min - 3);
   }
 
   // Act on a clearly-best candidate, never on an ambiguous one: a sure
@@ -784,7 +808,10 @@
     const top = ranked[0].score;
     if (top >= VOICE_SURE_THRESHOLD) return true;
     if (top < VOICE_ACT_THRESHOLD) return false;
-    return ranked.length < 2 || top - ranked[1].score >= VOICE_AMBIGUITY_GAP;
+    // Duplicate-name runner-ups are the same intent, not ambiguity —
+    // measure the gap to the first genuinely DIFFERENT rival.
+    const rival = ranked.find((r) => !sameVoiceName(r.name, ranked[0].name));
+    return !rival || top - rival.score >= VOICE_AMBIGUITY_GAP;
   }
 
   const VOICE_TARGET_SELECTOR =
@@ -794,7 +821,14 @@
     const seen = new Set();
     const out = [];
     document.querySelectorAll(VOICE_TARGET_SELECTOR).forEach((el) => {
-      if (!isVisible(el)) return;
+      const visible = isVisible(el);
+      // Real government sites keep their most-asked-for links (notices,
+      // tenders) inside carousel slides and dropdown menus — hidden at
+      // any given moment. A hidden <a href> still navigates on click,
+      // and the user asked for it BY NAME, so anchors join the pool
+      // flagged hidden (ranked at a penalty). Hidden buttons stay
+      // excluded — their click behavior is unpredictable.
+      if (!visible && !(el.tagName === "A" && el.getAttribute("href"))) return;
       if (el.closest("[data-aaas-widget]")) return;
       // getAccessibleName skips <input> value; submit buttons name
       // themselves through it ("<input type=submit value=Search>").
@@ -803,7 +837,7 @@
       const key = name + "§" + (el.getAttribute("href") || el.tagName);
       if (seen.has(key)) return;
       seen.add(key);
-      out.push({ name, element: el });
+      out.push({ name, element: el, hidden: !visible });
     });
     return out;
   }
@@ -1280,9 +1314,14 @@
       font-size: 0.85rem;
       text-align: left;
       cursor: pointer;
+      /* Long notice titles must WRAP — truncation makes two different
+         notices look identical. Cap at three lines. */
+      white-space: normal;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
     .voice-choices button:hover { background: #24344a; border-color: #ffcf33; }
 
@@ -4617,7 +4656,13 @@
       hint.className = "vc-hint";
       hint.textContent = "ଗୋଟିଏ ବାଛନ୍ତୁ · Not sure — tap the one you meant:";
       voiceChoicesEl.append(hint);
-      ranked.slice(0, 3).forEach((r) => {
+      // Same name twice (header + footer copies, ticker truncations)
+      // would render as identical buttons — offer each NAME once.
+      const kept = [];
+      for (const r of ranked) {
+        if (!kept.some((k) => sameVoiceName(k.name, r.name))) kept.push(r);
+      }
+      kept.slice(0, 3).forEach((r) => {
         const b = document.createElement("button");
         b.type = "button";
         b.textContent = r.name;
