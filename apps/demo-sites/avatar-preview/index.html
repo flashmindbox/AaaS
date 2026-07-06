@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AaaS · Sign Language Avatar — Concept Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #0d141c;
+    color: #e8edf2;
+    min-height: 100vh;
+  }
+  header {
+    padding: 1.1rem 1.4rem 0.9rem;
+    border-bottom: 1px solid #22303f;
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 1.15rem; font-weight: 700; }
+  .pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #ffd25e;
+    background: rgba(255, 207, 51, 0.12);
+    border: 1px solid rgba(255, 207, 51, 0.5);
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+  }
+  header .sub { flex-basis: 100%; color: #8b96a5; font-size: 0.85rem; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr);
+    gap: 1.1rem;
+    padding: 1.1rem 1.4rem 2rem;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  .stage {
+    position: relative;
+    background: radial-gradient(120% 90% at 50% 20%, #1d2b3d 0%, #131c27 55%, #0e1620 100%);
+    border: 1px solid #2c3a4c;
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: 560px;
+  }
+  .stage canvas { display: block; width: 100%; height: 100%; }
+  .caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 0.9rem 1rem 1rem;
+    text-align: center;
+    background: linear-gradient(transparent, rgba(9, 13, 18, 0.92) 40%);
+    pointer-events: none;
+  }
+  .caption .letter {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffd25e;
+    min-height: 2.9rem;
+  }
+  .caption .word { font-size: 1rem; color: #cdd9e5; letter-spacing: 0.25em; text-transform: uppercase; }
+  .caption .word b { color: #ffd25e; }
+  .caption .gloss { font-size: 0.85rem; color: #8b96a5; margin-top: 0.25rem; }
+
+  .panel {
+    background: #16202b;
+    border: 1px solid #31415a;
+    border-radius: 16px;
+    padding: 1.1rem 1.2rem;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .panel h2 { font-size: 0.95rem; color: #e8edf2; }
+  .panel .hint { font-size: 0.8rem; color: #8b96a5; margin-top: 0.2rem; }
+  .signs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  button.sign {
+    background: #1d2938;
+    border: 1px solid #31415a;
+    border-radius: 10px;
+    color: #e8edf2;
+    padding: 0.65rem 0.6rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.3;
+  }
+  button.sign small { display: block; color: #9fb2c8; font-size: 0.72rem; }
+  button.sign:hover { background: #24344a; border-color: #4a6a96; }
+  button.sign.active { border-color: #ffcf33; background: #2a3850; }
+  .spell-row { display: flex; gap: 0.5rem; }
+  .spell-row input {
+    flex: 1;
+    background: #101820;
+    border: 1px solid #2c3a4c;
+    border-radius: 10px;
+    color: #e8edf2;
+    padding: 0.65rem 0.7rem;
+    font-size: 0.95rem;
+  }
+  .spell-row button {
+    background: #2563b0;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.65rem 0.9rem;
+    cursor: pointer;
+  }
+  .spell-row button:hover { background: #2f74c8; }
+  .notice-demo {
+    background: #101820;
+    border: 1px solid #2c3a4c;
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+    font-size: 0.85rem;
+    color: #cdd9e5;
+    line-height: 1.55;
+  }
+  .notice-demo b { color: #ffd25e; }
+  .notice-demo button {
+    margin-top: 0.55rem;
+    width: 100%;
+    background: #2563b0;
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.55rem;
+    cursor: pointer;
+  }
+  .notes { border-top: 1px solid #22303f; padding-top: 0.8rem; }
+  .notes h3 { font-size: 0.8rem; color: #9fb2c8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+  .notes ul { list-style: none; font-size: 0.82rem; color: #aebccb; line-height: 1.65; }
+  .notes li::before { content: "→ "; color: #ffcf33; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧏 Sign Language Avatar</h1>
+  <span class="pill">CONCEPT PREVIEW</span>
+  <span class="sub">
+    How the AaaS signing avatar will work. The stylised character is a stand-in —
+    the final version uses a realistic human model and expert-reviewed ISL poses.
+    The pose engine, fingerspelling and phrase-sign player below are the real mechanics.
+  </span>
+</header>
+
+<div class="layout">
+  <div class="stage">
+    <canvas id="c"></canvas>
+    <div class="caption">
+      <div class="letter" id="cap-letter"></div>
+      <div class="word" id="cap-word"></div>
+      <div class="gloss" id="cap-gloss">Namaskar! Tap a sign, or fingerspell any word.</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div>
+      <h2>Phrase signs</h2>
+      <div class="hint">The demo vocabulary — each is a pose-keyframe sequence (JSON, no animation software).</div>
+    </div>
+    <div class="signs" id="signs"></div>
+
+    <div>
+      <h2>Fingerspelling</h2>
+      <div class="hint">Unlimited vocabulary: unknown words are spelled letter by letter.</div>
+    </div>
+    <div class="spell-row">
+      <input id="spell-input" maxlength="14" placeholder="Type a word… e.g. JAJPUR" />
+      <button id="spell-btn">Sign it</button>
+    </div>
+
+    <div class="notice-demo">
+      <b>The demo beat:</b> the same scanned notice that AaaS reads aloud in Odia
+      also gets signed — phrase signs where we have them, fingerspelling for the rest.
+      <button id="notice-btn">▶ Sign the scholarship notice</button>
+    </div>
+
+    <div class="notes">
+      <h3>Final version adds</h3>
+      <ul>
+        <li>Realistic human character (licensed VRM model, full hand rig)</li>
+        <li>ISL poses refined by the team in an in-browser pose editor</li>
+        <li>Lives inside the accessibility widget on every page</li>
+        <li>Roadmap: Bhashini ISL engine drives the same avatar</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script src="three.min.js"></script>
+<script>
+/* ==========================================================================
+   AaaS signing-avatar concept. Everything below is the REAL architecture in
+   miniature: a jointed character, poses as plain data (joint rotations),
+   signs as keyframe sequences, and an interpolating player. The production
+   build swaps the primitive character for a rigged human glTF/VRM — the
+   data model and player stay the same.
+   ========================================================================== */
+
+(function () {
+  "use strict";
+
+  /* ---------- scene ---------- */
+  const canvas = document.getElementById("c");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 20);
+  camera.position.set(0, 1.34, 2.55);
+  camera.lookAt(0, 1.24, 0);
+
+  scene.add(new THREE.AmbientLight(0x8ea6c0, 0.65));
+  const key = new THREE.DirectionalLight(0xfff2dd, 0.95);
+  key.position.set(1.4, 2.4, 2.2);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x4a7dc0, 0.5);
+  rim.position.set(-1.6, 1.4, -1.4);
+  scene.add(rim);
+
+  const MAT = {
+    skin: new THREE.MeshStandardMaterial({ color: 0xc98f6b, roughness: 0.65 }),
+    shirt: new THREE.MeshStandardMaterial({ color: 0x2563b0, roughness: 0.8 }),
+    shirtDark: new THREE.MeshStandardMaterial({ color: 0x1d4e8c, roughness: 0.8 }),
+    hair: new THREE.MeshStandardMaterial({ color: 0x1d1712, roughness: 0.9 }),
+    eye: new THREE.MeshBasicMaterial({ color: 0x14100c }),
+  };
+
+  function box(w, h, d, mat, x, y, z) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x || 0, y || 0, z || 0);
+    return m;
+  }
+  function sphere(r, mat, x, y, z, sx, sy, sz) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 18), mat);
+    m.position.set(x || 0, y || 0, z || 0);
+    m.scale.set(sx || 1, sy || 1, sz || 1);
+    return m;
+  }
+
+  /* ---------- character (pivot groups = joints) ---------- */
+  const J = {}; // joint registry: name -> Object3D whose rotation we pose
+
+  const root = new THREE.Group();
+  scene.add(root);
+
+  const spine = new THREE.Group();
+  spine.position.y = 0.95;
+  root.add(spine);
+  J.spine = spine;
+
+  // torso: kurta-style
+  spine.add(sphere(0.22, MAT.shirt, 0, 0.3, 0, 0.98, 1.35, 0.66));
+  spine.add(sphere(0.19, MAT.shirtDark, 0, 0.04, 0, 1.04, 0.62, 0.74));
+
+  const neck = new THREE.Group();
+  neck.position.set(0, 0.62, 0);
+  spine.add(neck);
+  neck.add(box(0.09, 0.09, 0.09, MAT.skin, 0, 0.02, 0));
+
+  const head = new THREE.Group();
+  head.position.set(0, 0.1, 0);
+  neck.add(head);
+  J.head = head;
+  head.add(sphere(0.155, MAT.skin, 0, 0.1, 0, 0.92, 1.05, 0.95));
+  head.add(sphere(0.155, MAT.hair, 0, 0.13, -0.028, 0.96, 1.02, 0.94)); // hair shell
+  head.add(sphere(0.02, MAT.eye, -0.055, 0.11, 0.128));
+  head.add(sphere(0.02, MAT.eye, 0.055, 0.11, 0.128));
+  head.add(box(0.028, 0.04, 0.02, MAT.skin, 0, 0.06, 0.15)); // nose
+  head.add(box(0.06, 0.012, 0.01, MAT.eye, 0, 0.01, 0.142)); // mouth
+
+  function buildArm(side) {
+    const s = side === "L" ? 1 : -1;
+    const shoulder = new THREE.Group();
+    shoulder.position.set(s * 0.24, 0.52, 0);
+    spine.add(shoulder);
+    shoulder.add(sphere(0.075, MAT.shirt, 0, 0, 0));
+    // upper arm extends DOWN (-Y) from the shoulder pivot
+    shoulder.add(box(0.085, 0.27, 0.085, MAT.shirt, 0, -0.145, 0));
+
+    const elbow = new THREE.Group();
+    elbow.position.set(0, -0.29, 0);
+    shoulder.add(elbow);
+    elbow.add(box(0.07, 0.24, 0.07, MAT.skin, 0, -0.13, 0));
+
+    const wrist = new THREE.Group();
+    wrist.position.set(0, -0.27, 0);
+    elbow.add(wrist);
+    // palm: flat box; local -Y = toward fingers, +Z = palm-forward normal
+    wrist.add(box(0.085, 0.095, 0.03, MAT.skin, 0, -0.05, 0));
+
+    const fingers = [];
+    const fingerX = [-0.033, -0.011, 0.011, 0.033]; // index..pinky across palm
+    for (let f = 0; f < 4; f++) {
+      const segs = [];
+      let parent = wrist;
+      let px = fingerX[f] * s, py = -0.1;
+      for (let k = 0; k < 3; k++) {
+        const seg = new THREE.Group();
+        seg.position.set(k === 0 ? px : 0, k === 0 ? py : -0.034, 0);
+        parent.add(seg);
+        seg.add(box(0.016, 0.034, 0.018, MAT.skin, 0, -0.017, 0));
+        segs.push(seg);
+        parent = seg;
+      }
+      fingers.push(segs);
+    }
+    // thumb: from palm side, angled
+    const thumb = [];
+    let tParent = wrist;
+    for (let k = 0; k < 2; k++) {
+      const seg = new THREE.Group();
+      if (k === 0) {
+        seg.position.set(s * -0.055, -0.045, 0.012);
+        seg.rotation.z = s * 0.9;
+      } else {
+        seg.position.set(0, -0.04, 0);
+      }
+      tParent.add(seg);
+      seg.add(box(0.02, 0.04, 0.02, MAT.skin, 0, -0.02, 0));
+      thumb.push(seg);
+      tParent = seg;
+    }
+
+    J[side + "shoulder"] = shoulder;
+    J[side + "elbow"] = elbow;
+    J[side + "wrist"] = wrist;
+    J[side + "fingers"] = fingers;
+    J[side + "thumb"] = thumb;
+  }
+  buildArm("L");
+  buildArm("R");
+
+  /* ---------- pose model ----------
+     A pose is plain data. Arms: euler targets per joint. Hands: curl 0..1
+     per finger + spread + thumb curl. This is byte-for-byte the format
+     the production pose editor will save. */
+
+  const REST = {
+    Lshoulder: [0.12, 0, -0.1], Lelbow: [0.25, 0, 0], Lwrist: [0, 0, 0],
+    Rshoulder: [0.12, 0, 0.1], Relbow: [0.25, 0, 0], Rwrist: [0, 0, 0],
+    head: [0, 0, 0], spine: [0, 0, 0],
+    Lhand: { curl: [0.25, 0.25, 0.25, 0.25], thumb: 0.2, spread: 0 },
+    Rhand: { curl: [0.25, 0.25, 0.25, 0.25], thumb: 0.2, spread: 0 },
+  };
+
+  // Signing space: upper arms near the body, elbows bent so the hands
+  // sit in front of the chest, fingers up, palms toward the viewer.
+  const SIGN_L = { Lshoulder: [-0.45, 0.25, -0.25], Lelbow: [-1.55, 0, 0], Lwrist: [-1.05, 0, 0] };
+  const SIGN_R = { Rshoulder: [-0.45, -0.25, 0.25], Relbow: [-1.55, 0, 0], Rwrist: [-1.05, 0, 0] };
+
+  function applyHand(side, hand, t) {
+    const fingers = J[side + "fingers"];
+    for (let f = 0; f < 4; f++) {
+      const curl = hand.curl[f];
+      for (let k = 0; k < 3; k++) {
+        const target = -curl * (k === 0 ? 1.15 : 1.35);
+        const g = fingers[f][k];
+        g.rotation.x += (target - g.rotation.x) * t;
+      }
+      const spread = (hand.spread || 0) * (f - 1.5) * 0.22 * (side === "L" ? 1 : -1);
+      fingers[f][0].rotation.z += (spread - fingers[f][0].rotation.z) * t;
+    }
+    const thumb = J[side + "thumb"];
+    const tc = hand.thumb;
+    thumb[0].rotation.x += (-tc * 1.1 - thumb[0].rotation.x) * t;
+    thumb[1].rotation.x += (-tc * 1.2 - thumb[1].rotation.x) * t;
+  }
+
+  let current = null; // active pose target
+  function setPose(p) { current = p; }
+
+  function applyPose(t) {
+    if (!current) return;
+    for (const name of ["Lshoulder", "Lelbow", "Lwrist", "Rshoulder", "Relbow", "Rwrist", "head", "spine"]) {
+      const e = current[name] || REST[name];
+      const j = J[name];
+      j.rotation.x += (e[0] - j.rotation.x) * t;
+      j.rotation.y += (e[1] - j.rotation.y) * t;
+      j.rotation.z += (e[2] - j.rotation.z) * t;
+    }
+    applyHand("L", current.Lhand || REST.Lhand, t);
+    applyHand("R", current.Rhand || REST.Rhand, t);
+  }
+
+  function pose(overrides) {
+    return Object.assign({}, REST, overrides);
+  }
+  function signPose(overrides) {
+    return Object.assign({}, REST, SIGN_L, SIGN_R, overrides);
+  }
+
+  /* ---------- hand alphabet (indicative one-hand poses) ----------
+     curl: [index, middle, ring, pinky]; thumb 0..1. These are rough
+     stand-ins so the mechanics are visible — the team replaces them
+     with accurate two-handed ISL letter poses in the pose editor. */
+  const ALPHA = {
+    A: { curl: [1, 1, 1, 1], thumb: 0.1, spread: 0 },
+    B: { curl: [0, 0, 0, 0], thumb: 0.9, spread: 0 },
+    C: { curl: [0.5, 0.5, 0.5, 0.5], thumb: 0.4, spread: 0 },
+    D: { curl: [0, 1, 1, 1], thumb: 0.6, spread: 0 },
+    E: { curl: [0.85, 0.85, 0.85, 0.85], thumb: 0.7, spread: 0 },
+    F: { curl: [0.9, 0, 0, 0], thumb: 0.6, spread: 0.4 },
+    G: { curl: [0, 1, 1, 1], thumb: 0.2, spread: 0 },
+    H: { curl: [0, 0, 1, 1], thumb: 0.8, spread: 0 },
+    I: { curl: [1, 1, 1, 0], thumb: 0.8, spread: 0 },
+    J: { curl: [1, 1, 1, 0], thumb: 0.5, spread: 0 },
+    K: { curl: [0, 0, 1, 1], thumb: 0.3, spread: 0.5 },
+    L: { curl: [0, 1, 1, 1], thumb: 0, spread: 0 },
+    M: { curl: [1, 1, 1, 1], thumb: 0.9, spread: 0 },
+    N: { curl: [1, 1, 1, 1], thumb: 0.7, spread: 0 },
+    O: { curl: [0.6, 0.6, 0.6, 0.6], thumb: 0.55, spread: 0 },
+    P: { curl: [0, 0.4, 1, 1], thumb: 0.3, spread: 0.3 },
+    Q: { curl: [0.3, 1, 1, 1], thumb: 0.3, spread: 0 },
+    R: { curl: [0, 0, 1, 1], thumb: 0.8, spread: -0.3 },
+    S: { curl: [1, 1, 1, 1], thumb: 0.5, spread: 0 },
+    T: { curl: [0.9, 1, 1, 1], thumb: 0.4, spread: 0 },
+    U: { curl: [0, 0, 1, 1], thumb: 0.8, spread: 0.15 },
+    V: { curl: [0, 0, 1, 1], thumb: 0.8, spread: 0.55 },
+    W: { curl: [0, 0, 0, 1], thumb: 0.8, spread: 0.5 },
+    X: { curl: [0.55, 1, 1, 1], thumb: 0.7, spread: 0 },
+    Y: { curl: [1, 1, 1, 0], thumb: 0, spread: 0 },
+    Z: { curl: [0.15, 1, 1, 1], thumb: 0.6, spread: 0 },
+  };
+
+  /* ---------- signs = keyframe sequences ---------- */
+  const OPEN = { curl: [0, 0, 0, 0], thumb: 0, spread: 0.25 };
+  const FIST = { curl: [1, 1, 1, 1], thumb: 0.5, spread: 0 };
+
+  const SIGNS = {
+    namaste: {
+      label: "ନମସ୍କାର · Namaste",
+      gloss: "Greeting — palms together at the chest",
+      frames: [
+        { ms: 550, p: signPose({
+          Lshoulder: [-0.5, 0.55, -0.15], Rshoulder: [-0.5, -0.55, 0.15],
+          Lelbow: [-1.7, 0, 0], Relbow: [-1.7, 0, 0],
+          Lwrist: [-1.0, 1.25, 0], Rwrist: [-1.0, -1.25, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0 },
+          Rhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0 },
+          head: [0.22, 0, 0],
+        }) },
+        { ms: 1300, hold: true },
+      ],
+    },
+    hello: {
+      label: "Hello 👋",
+      gloss: "Open hand raised, small wave",
+      frames: [
+        { ms: 450, p: signPose({ Rshoulder: [-0.55, -0.35, 0.85], Relbow: [-1.5, 0, 0], Rwrist: [-1.05, 0, 0.25], Rhand: OPEN }) },
+        { ms: 300, p: signPose({ Rshoulder: [-0.55, -0.35, 0.85], Relbow: [-1.5, 0, 0], Rwrist: [-1.05, 0, -0.3], Rhand: OPEN }) },
+        { ms: 300, p: signPose({ Rshoulder: [-0.55, -0.35, 0.85], Relbow: [-1.5, 0, 0], Rwrist: [-1.05, 0, 0.3], Rhand: OPEN }) },
+        { ms: 300, p: signPose({ Rshoulder: [-0.55, -0.35, 0.85], Relbow: [-1.5, 0, 0], Rwrist: [-1.05, 0, -0.3], Rhand: OPEN }) },
+      ],
+    },
+    help: {
+      label: "ସାହାଯ୍ୟ · Help",
+      gloss: "Fist on open palm, lifted together",
+      frames: [
+        { ms: 500, p: signPose({
+          Lshoulder: [-0.55, 0.35, -0.15], Lelbow: [-1.35, 0, 0], Lwrist: [0.5, 0, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.2 },
+          Rshoulder: [-0.6, -0.35, 0.1], Relbow: [-1.55, 0, 0], Rwrist: [-0.3, 0, 0],
+          Rhand: FIST,
+        }) },
+        { ms: 600, p: signPose({
+          Lshoulder: [-0.85, 0.35, -0.15], Lelbow: [-1.35, 0, 0], Lwrist: [0.5, 0, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.2 },
+          Rshoulder: [-0.9, -0.35, 0.1], Relbow: [-1.55, 0, 0], Rwrist: [-0.3, 0, 0],
+          Rhand: FIST,
+        }) },
+        { ms: 500, hold: true },
+      ],
+    },
+    thanks: {
+      label: "ଧନ୍ୟବାଦ · Thank you",
+      gloss: "Flat hand from the chin, forward and down",
+      frames: [
+        { ms: 450, p: signPose({ Rshoulder: [-0.35, -0.35, 0.1], Relbow: [-2.05, 0, 0], Rwrist: [-0.6, 0, 0],
+          Rhand: { curl: [0, 0, 0, 0], thumb: 0.1, spread: 0.1 }, head: [0.15, 0, 0] }) },
+        { ms: 550, p: signPose({ Rshoulder: [-0.75, -0.3, 0.25], Relbow: [-1.05, 0, 0], Rwrist: [-0.7, 0, 0],
+          Rhand: { curl: [0, 0, 0, 0], thumb: 0.1, spread: 0.1 }, head: [0.05, 0, 0] }) },
+        { ms: 400, hold: true },
+      ],
+    },
+    exam: {
+      label: "ପରୀକ୍ଷା · Exam",
+      gloss: "Writing on the open palm",
+      frames: [
+        { ms: 450, p: signPose({
+          Lshoulder: [-0.55, 0.45, -0.2], Lelbow: [-1.35, 0, 0], Lwrist: [0.5, 0, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.15 },
+          Rshoulder: [-0.62, -0.42, 0.15], Relbow: [-1.5, 0, 0], Rwrist: [-0.55, 0, 0],
+          Rhand: { curl: [0.15, 1, 1, 1], thumb: 0.6, spread: 0 },
+        }) },
+        { ms: 260, p: signPose({
+          Lshoulder: [-0.55, 0.45, -0.2], Lelbow: [-1.35, 0, 0], Lwrist: [0.5, 0, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.15 },
+          Rshoulder: [-0.58, -0.32, 0.18], Relbow: [-1.42, 0, 0], Rwrist: [-0.55, 0, 0],
+          Rhand: { curl: [0.15, 1, 1, 1], thumb: 0.6, spread: 0 },
+        }) },
+        { ms: 260, p: signPose({
+          Lshoulder: [-0.55, 0.45, -0.2], Lelbow: [-1.35, 0, 0], Lwrist: [0.5, 0, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.15 },
+          Rshoulder: [-0.66, -0.5, 0.12], Relbow: [-1.56, 0, 0], Rwrist: [-0.55, 0, 0],
+          Rhand: { curl: [0.15, 1, 1, 1], thumb: 0.6, spread: 0 },
+        }) },
+        { ms: 260, p: signPose({
+          Lshoulder: [-0.55, 0.45, -0.2], Lelbow: [-1.35, 0, 0], Lwrist: [0.5, 0, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.15 },
+          Rshoulder: [-0.58, -0.32, 0.18], Relbow: [-1.42, 0, 0], Rwrist: [-0.55, 0, 0],
+          Rhand: { curl: [0.15, 1, 1, 1], thumb: 0.6, spread: 0 },
+        }) },
+      ],
+    },
+    result: {
+      label: "ଫଳାଫଳ · Result",
+      gloss: "Closed hands open outward — 'revealed'",
+      frames: [
+        { ms: 450, p: signPose({ Lhand: FIST, Rhand: FIST }) },
+        { ms: 550, p: signPose({
+          Lshoulder: [-0.5, 0.6, -0.55], Rshoulder: [-0.5, -0.6, 0.55],
+          Lelbow: [-1.35, 0, 0], Relbow: [-1.35, 0, 0],
+          Lhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.7 },
+          Rhand: { curl: [0, 0, 0, 0], thumb: 0, spread: 0.7 },
+        }) },
+        { ms: 500, hold: true },
+      ],
+    },
+  };
+
+  /* ---------- player ---------- */
+  const capLetter = document.getElementById("cap-letter");
+  const capWord = document.getElementById("cap-word");
+  const capGloss = document.getElementById("cap-gloss");
+  let queue = [];
+  let queueTimer = null;
+  let activeBtn = null;
+
+  function clearQueue() {
+    queue = [];
+    if (queueTimer) { clearTimeout(queueTimer); queueTimer = null; }
+    if (activeBtn) { activeBtn.classList.remove("active"); activeBtn = null; }
+  }
+
+  function playNext() {
+    if (!queue.length) {
+      queueTimer = setTimeout(() => {
+        setPose(pose({}));
+        capLetter.textContent = "";
+        capWord.textContent = "";
+        capGloss.textContent = "Namaskar! Tap a sign, or fingerspell any word.";
+        if (activeBtn) { activeBtn.classList.remove("active"); activeBtn = null; }
+      }, 600);
+      return;
+    }
+    const step = queue.shift();
+    if (step.p) setPose(step.p);
+    if (step.caption) step.caption();
+    queueTimer = setTimeout(playNext, step.ms);
+  }
+
+  function playFrames(frames, gloss) {
+    clearQueue();
+    capLetter.textContent = "";
+    capWord.textContent = "";
+    capGloss.textContent = gloss || "";
+    let last = null;
+    for (const f of frames) {
+      queue.push({ ms: f.ms, p: f.hold ? last : f.p });
+      if (!f.hold) last = f.p;
+    }
+    playNext();
+  }
+
+  function fingerspell(word) {
+    clearQueue();
+    const letters = word.toUpperCase().replace(/[^A-Z]/g, "").split("");
+    if (!letters.length) return;
+    capGloss.textContent = "Fingerspelling — indicative poses, refined by the team later";
+    letters.forEach((ch, i) => {
+      const hand = ALPHA[ch] || ALPHA.A;
+      queue.push({
+        ms: 650,
+        p: signPose({
+          Rshoulder: [-0.5, -0.3, 0.35], Relbow: [-1.65, 0, 0], Rwrist: [-1.05, 0, 0],
+          Rhand: hand,
+          Lshoulder: REST.Lshoulder, Lelbow: REST.Lelbow, Lwrist: REST.Lwrist,
+          Lhand: REST.Lhand,
+        }),
+        caption: () => {
+          capLetter.textContent = ch;
+          capWord.innerHTML = letters.map((l, k) =>
+            k === i ? "<b>" + l + "</b>" : (k < i ? l : "<span style='opacity:.35'>" + l + "</span>")
+          ).join("");
+        },
+      });
+      // tiny relax beat between letters so doubles read clearly
+      queue.push({ ms: 130, p: null });
+    });
+    playNext();
+  }
+
+  /* ---------- notice demo: gloss -> phrase signs + fingerspelling ---------- */
+  function signNotice() {
+    clearQueue();
+    const plan = [
+      { kind: "sign", key: "namaste" },
+      { kind: "spellWord", word: "SCHOLARSHIP" },
+      { kind: "sign", key: "result" },
+      { kind: "spellWord", word: "APRIL" },
+      { kind: "sign", key: "thanks" },
+    ];
+    capGloss.textContent = "Signing the notice: known phrases as signs, names spelled out";
+    const steps = [];
+    for (const item of plan) {
+      if (item.kind === "sign") {
+        const s = SIGNS[item.key];
+        let last = null;
+        for (const f of s.frames) {
+          steps.push({ ms: f.ms, p: f.hold ? last : f.p, caption: () => {
+            capLetter.textContent = "";
+            capWord.textContent = s.label;
+          } });
+          if (!f.hold) last = f.p;
+        }
+        steps.push({ ms: 250, p: null });
+      } else {
+        const letters = item.word.split("");
+        letters.forEach((ch, i) => {
+          steps.push({
+            ms: 560,
+            p: signPose({
+              Rshoulder: [-0.5, -0.3, 0.35], Relbow: [-1.65, 0, 0], Rwrist: [-1.05, 0, 0],
+              Rhand: ALPHA[ch] || ALPHA.A,
+              Lshoulder: REST.Lshoulder, Lelbow: REST.Lelbow, Lwrist: REST.Lwrist, Lhand: REST.Lhand,
+            }),
+            caption: () => {
+              capLetter.textContent = ch;
+              capWord.innerHTML = letters.map((l, k) =>
+                k === i ? "<b>" + l + "</b>" : (k < i ? l : "<span style='opacity:.35'>" + l + "</span>")
+              ).join("");
+            },
+          });
+          steps.push({ ms: 110, p: null });
+        });
+        steps.push({ ms: 250, p: null });
+      }
+    }
+    queue = steps;
+    playNext();
+  }
+
+  /* ---------- UI wiring ---------- */
+  const signsEl = document.getElementById("signs");
+  for (const key of Object.keys(SIGNS)) {
+    const s = SIGNS[key];
+    const b = document.createElement("button");
+    b.className = "sign";
+    b.innerHTML = s.label + "<small>" + s.gloss + "</small>";
+    b.addEventListener("click", () => {
+      playFrames(s.frames, s.label);
+      if (activeBtn) activeBtn.classList.remove("active");
+      activeBtn = b;
+      b.classList.add("active");
+      capWord.textContent = s.label;
+    });
+    signsEl.append(b);
+  }
+  const spellInput = document.getElementById("spell-input");
+  const doSpell = () => fingerspell(spellInput.value || "JAJPUR");
+  document.getElementById("spell-btn").addEventListener("click", doSpell);
+  spellInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doSpell(); });
+  document.getElementById("notice-btn").addEventListener("click", signNotice);
+
+  /* ---------- render loop ---------- */
+  setPose(pose({}));
+  const clock = new THREE.Clock();
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (canvas.width !== w || canvas.height !== h) {
+      renderer.setSize(w, h, false);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+  }
+  function tick() {
+    requestAnimationFrame(tick);
+    resize();
+    const t = clock.getElapsedTime();
+    // idle life: breathing + gentle sway, layered under whatever pose is active
+    root.position.y = Math.sin(t * 1.7) * 0.006;
+    root.rotation.y = Math.sin(t * 0.4) * 0.04;
+    applyPose(0.14); // eased interpolation toward the active pose
+    renderer.render(scene, camera);
+  }
+  // greet on load
+  setTimeout(() => playFrames(SIGNS.namaste.frames, SIGNS.namaste.label), 700);
+  tick();
+
+  // dev hook for automated checks (harmless in production preview)
+  window.__avatar = { J, getPose: () => current, fingerspell, playFrames, SIGNS };
+})();
+</script>
+</body>
+</html>
