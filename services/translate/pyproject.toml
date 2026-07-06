@@ -16,6 +16,9 @@ dependencies = [
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "structlog>=24.4",
+    # /ocr accepts multipart uploads; the route is always registered,
+    # so this rides in base deps (pure-python, tiny) not the [ocr] extra.
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]
@@ -37,6 +40,16 @@ dev = [
     "httpx>=0.27",
     "ruff>=0.7",
     "mypy>=1.13",
+]
+# OCR for scanned notices (/ocr). pytesseract is a thin wrapper around
+# the external `tesseract` binary (winget: UB-Mannheim.TesseractOCR);
+# pypdfium2 ships its own pdfium, no system deps. Kept out of base
+# deps so the lean bundle build stays lean — the engine lazy-imports
+# and falls back to a mock when anything is missing.
+ocr = [
+    "pytesseract>=0.3.13",
+    "pypdfium2>=4.30",
+    "Pillow>=10",
 ]
 bundle = [
     "pyinstaller>=6.10",

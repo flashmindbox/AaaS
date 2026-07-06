@@ -32,6 +32,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 EngineName = Literal["mock", "nllb", "indictrans2", "google"]
+OcrEngineName = Literal["tesseract", "mock"]
 
 
 class Settings(BaseSettings):
@@ -50,6 +51,16 @@ class Settings(BaseSettings):
     engine: EngineName = Field(default="google")
     model_cache_dir: str = Field(default="./models")
     max_input_chars: int = Field(default=2000)
+
+    # OCR (/ocr — scanned notices). tesseract needs the external binary;
+    # the app factory falls back to the mock engine when it's missing.
+    ocr_engine: OcrEngineName = Field(default="tesseract")
+    tesseract_cmd: str = Field(default="tesseract")
+    # Empty -> auto-resolve to ./models/tessdata when that dir exists
+    # (populated by bundle/prefetch_tessdata.py).
+    tessdata_dir: str = Field(default="")
+    ocr_max_bytes: int = Field(default=15_000_000)
+    ocr_max_pages: int = Field(default=10)
 
 
 @lru_cache(maxsize=1)
