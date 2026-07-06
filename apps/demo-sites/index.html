@@ -4,29 +4,39 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AaaS · Demo sites</title>
-    <meta name="description" content="Accessibility-as-a-Service — live demos across three Odisha tenants, plus the operator dashboard." />
+    <meta name="description" content="Accessibility-as-a-Service — live demos across six Odisha and central-government tenants, plus the operator console." />
     <link rel="stylesheet" href="index.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to demos</a>
 
+    <div class="ribbon" aria-hidden="true"><span></span><span></span><span></span></div>
+
     <header class="hero">
       <div class="wrap">
         <p class="overline">Team SUBARNAREKHA · Smart Odisha Hackathon '25</p>
         <h1>
-          <span class="brand">AaaS</span>
-          &nbsp;· Accessibility-as-a-Service
+          <span class="mark" aria-hidden="true">ଅ</span>
+          <span><span class="brand">AaaS</span> · Accessibility-as-a-Service</span>
         </h1>
         <p class="lede">
-          One API for <strong>TTS</strong>, <strong>STT</strong>,
-          <strong>Translation</strong>, and <strong>WCAG compliance</strong>,
-          deployed Odisha-first. Click any of the demos below to see the
-          widget running on a real-looking tenant site.
+          One button on any government website that <strong>reads, translates,
+          simplifies, scans and listens — in Odia, by voice</strong>.
+          Click any demo below and press the ଅ button.
         </p>
         <p class="lede" lang="or">
-          ଗୋଟିଏ API — TTS, STT, ଅନୁବାଦ ଓ WCAG ସୁଗମ୍ୟତା — ଓଡ଼ିଶା-ପ୍ରଥମ
-          ପ୍ରଣାଳୀରେ ନିୟୋଜିତ।
+          ଯେକୌଣସି ସରକାରୀ ୱେବସାଇଟରେ ଗୋଟିଏ ବଟନ୍ — ପଢ଼େ, ଅନୁବାଦ କରେ, ସହଜ କରେ,
+          ଦଲିଲ ପଢ଼େ ଏବଂ ଶୁଣେ। ଓଡ଼ିଆରେ, ସ୍ୱରରେ।
         </p>
+        <ul class="featchips" aria-label="Widget features">
+          <li class="fc-read">🔊 Read aloud</li>
+          <li class="fc-translate">🌐 Translate → Odia</li>
+          <li class="fc-easy">📖 Easy Read</li>
+          <li class="fc-doc">📄 Scanned documents</li>
+          <li class="fc-fill">🎙️ Voice form filling</li>
+          <li class="fc-nav">🧭 Voice commands</li>
+          <li class="fc-font">🅾 OpenDyslexic comfort</li>
+        </ul>
       </div>
     </header>
 
@@ -34,17 +44,19 @@
 
       <section>
         <h2>Tenant demos</h2>
+        <p class="secled">Six kinds of institution, one gateway, one script tag each.</p>
         <div class="grid">
-          <article class="site-card site-jajpur">
+
+          <article class="site-card accent-blue">
             <header>
-              <span class="pill" data-cat="government">Government</span>
+              <span class="pill">Government</span>
               <h3>Jajpur Collectorate</h3>
               <p lang="or">ଜାଜପୁର ଜିଲ୍ଲା ପ୍ରଶାସନ</p>
             </header>
             <p>
-              A district administration portal with citizen services,
-              notifications, and grievance redressal — now with every
-              page readable aloud in Odia.
+              A district administration portal — citizen services, a scanned
+              notice <em>and</em> a 2-page tender PDF for the document reader,
+              and the grievance form for voice filling.
             </p>
             <footer>
               <a class="btn" href="./real-jajpur/">Open demo →</a>
@@ -52,16 +64,16 @@
             </footer>
           </article>
 
-          <article class="site-card site-utkal">
+          <article class="site-card accent-maroon">
             <header>
-              <span class="pill" data-cat="university">University</span>
+              <span class="pill">University</span>
               <h3>Utkal University</h3>
               <p lang="or">ଉତ୍କଳ ବିଶ୍ୱବିଦ୍ୟାଳୟ</p>
             </header>
             <p>
-              The first university of Odisha, est. 1943. Demonstrates the
-              widget on long-form academic content with Sanskrit mottos
-              and dedicated disability-support services.
+              Odisha's first university, est. 1943 — long-form academic
+              content, a scanned admission notice, and the Admission
+              Helpdesk form for the guided voice fill.
             </p>
             <footer>
               <a class="btn" href="./real-utkal/">Open demo →</a>
@@ -69,9 +81,9 @@
             </footer>
           </article>
 
-          <article class="site-card site-bse">
+          <article class="site-card accent-green">
             <header>
-              <span class="pill" data-cat="exam-board">Exam board</span>
+              <span class="pill">Exam board</span>
               <h3>Board of Secondary Education</h3>
               <p lang="or">ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ</p>
             </header>
@@ -86,27 +98,26 @@
             </footer>
           </article>
 
-          <article class="site-card site-bse">
+          <article class="site-card accent-saffron">
             <header>
-              <span class="pill" data-cat="exam-board">Central Government</span>
+              <span class="pill">Central Government</span>
               <h3>National Scholarship Portal</h3>
               <p lang="hi">राष्ट्रीय छात्रवृत्ति पोर्टल</p>
             </header>
             <p>
-              The "India next" story: a central portal that serves 2.6
-              crore students in English and Hindi only — now an Odia
-              speaker can hear it, apply <strong>by voice</strong> (state
-              and scheme snap to real options), and read the scanned
-              notifications.
+              The "India next" story: a central portal serving 2.6 crore
+              students in English and Hindi only — now an Odia speaker can
+              hear it, apply <strong>by voice</strong> (state and scheme
+              snap to real options), and read the scanned notifications.
             </p>
             <footer>
               <a class="btn" href="./national-scholarship/">Open demo →</a>
             </footer>
           </article>
 
-          <article class="site-card site-utkal">
+          <article class="site-card accent-teal">
             <header>
-              <span class="pill" data-cat="government">Healthcare</span>
+              <span class="pill">Healthcare</span>
               <h3>AIIMS Bhubaneswar</h3>
               <p lang="or">ଅଖିଳ ଭାରତୀୟ ଆୟୁର୍ବିଜ୍ଞାନ ସଂସ୍ଥାନ</p>
             </header>
@@ -121,9 +132,9 @@
             </footer>
           </article>
 
-          <article class="site-card site-jajpur">
+          <article class="site-card accent-violet flagship">
             <header>
-              <span class="pill" data-cat="government">Government · flagship</span>
+              <span class="pill">Government · Flagship</span>
               <h3>SSEPD Department</h3>
               <p lang="or">ସାମାଜିକ ସୁରକ୍ଷା ଓ ଭିନ୍ନକ୍ଷମ ସଶକ୍ତିକରଣ ବିଭାଗ</p>
             </header>
@@ -138,25 +149,28 @@
               <a class="btn" href="./ssepd-odisha/">Open demo →</a>
             </footer>
           </article>
+
         </div>
       </section>
 
       <section>
         <h2>Platform surfaces</h2>
         <div class="grid grid-2">
-          <article class="site-card site-admin">
+          <article class="site-card accent-navy">
             <header>
-              <span class="pill" data-cat="operator">Operator</span>
-              <h3>Admin dashboard</h3>
-              <p>Tenants · API keys · Usage · WCAG scans</p>
+              <span class="pill">Operator</span>
+              <h3>Operator Console</h3>
+              <p>Live traffic · tenants &amp; keys · API playground</p>
             </header>
             <p>
-              The operator's view: list tenants, mint API keys, watch
-              request volumes and error rates, run axe-core WCAG 2.1
-              AA scans against any tenant site.
+              The operator's view — every number live from the gateway's
+              audit log: request counters that move while you demo, service
+              health with latencies, one-click tenant onboarding with a
+              ready-to-paste integration snippet, and an API playground
+              that fires real translate / simplify / speech calls.
             </p>
             <footer>
-              <a class="btn btn-dark" href="/admin/">Open dashboard →</a>
+              <a class="btn btn-dark" href="/admin/">Open console →</a>
             </footer>
           </article>
         </div>
@@ -164,53 +178,32 @@
 
       <section class="about">
         <h2>How to demo</h2>
-        <ol>
-          <li>Open a tenant site above — the SSEPD flagship exercises
-            everything on one page.</li>
-          <li>
-            Click the circular <strong>ଅ</strong> button in the lower-right
-            corner. Six tiles open, Odia labels first.
-          </li>
-          <li>
-            <strong>ପଢ଼ି ଶୁଣାଅ · Read aloud</strong> — the page speaks in
-            Odia with a follow-along highlight; ⏮/⏭ skip and replay.
-          </li>
-          <li>
-            <strong>ଅନୁବାଦ · Translate</strong> then
-            <strong>ସହଜ ପଢ଼ା · Easy Read</strong> — whole-page Odia, then
-            plain language. Both have one-tap ↺ undo.
-          </li>
-          <li>
-            <strong>ଦଲିଲ ପଢ଼ · Read document</strong> — pick the scanned
-            notice or the 2-page PDF; the original and the Odia text appear
-            side by side while it reads aloud.
-          </li>
-          <li>
-            <strong>କହି ଲେଖ · Speak to fill</strong> on the application
-            form — it asks for each field aloud and never presses Submit.
-          </li>
-          <li>
-            <strong>କହି ଚଲାଅ · Voice command</strong> — say a link's name
-            ("ପେନସନ", "କଣ୍ଟାକ୍ଟ"); unsure matches become tappable choices.
-          </li>
-          <li>
-            Under <strong>Reading comfort</strong>: OpenDyslexic
-            "Comfortable letters", the reading ruler, and hover-to-speak.
-          </li>
+        <ol class="steps">
+          <li><b>Open a tenant site</b> — the SSEPD flagship exercises everything on one page.</li>
+          <li><b>Click the ଅ button</b> in the lower-right corner — six tiles, Odia labels first.</li>
+          <li><b>ପଢ଼ି ଶୁଣାଅ · Read aloud</b> — the page speaks in Odia with a follow-along highlight; ⏮/⏭ skip and replay.</li>
+          <li><b>ଅନୁବାଦ · Translate</b> then <b>ସହଜ ପଢ଼ା · Easy Read</b> — whole-page Odia, then plain language. Both undo with ↺.</li>
+          <li><b>ଦଲିଲ ପଢ଼ · Read document</b> — pick a scanned notice or PDF; the original and the Odia text appear side by side while it reads aloud.</li>
+          <li><b>କହି ଲେଖ · Speak to fill</b> on any application form — it asks for each field aloud and never presses Submit.</li>
+          <li><b>କହି ଚଲାଅ · Voice command</b> — say a link's name ("ପେନସନ", "କଣ୍ଟାକ୍ଟ"); unsure matches become tappable choices.</li>
+          <li><b>Reading comfort</b> — OpenDyslexic "Comfortable letters", the reading ruler, and hover-to-speak.</li>
         </ol>
       </section>
 
     </main>
 
     <footer class="foot">
-      <p>
-        Endpoint reference: <a href="/docs" target="_blank" rel="noopener">OpenAPI</a> ·
-        <a href="/healthz">Health</a> ·
-        <a href="/admin/">Admin</a>
-      </p>
-      <p class="muted">
-        Odia-first by design. Hindi + English supported as fallbacks.
-      </p>
+      <div class="wrap">
+        <p>
+          Endpoint reference: <a href="/docs" target="_blank" rel="noopener">OpenAPI</a> ·
+          <a href="/healthz">Health</a> ·
+          <a href="/admin/">Operator console</a>
+        </p>
+        <p class="muted">
+          Odia-first by design. Hindi + English supported as fallbacks.
+          Everything runs on-prem — no cloud calls.
+        </p>
+      </div>
     </footer>
   </body>
 </html>
