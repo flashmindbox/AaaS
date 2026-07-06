@@ -12,7 +12,9 @@ from fastapi import FastAPI
 from app import __version__
 from app.config import Settings, get_settings
 from app.engine.base import TranslateEngine
-from app.routes import health, translate
+from app.engine.simplify_base import SimplifyEngine
+from app.engine.simplify_rules import RuleSimplifyEngine
+from app.routes import health, simplify, translate
 
 logger = structlog.get_logger(__name__)
 
@@ -101,6 +103,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app(
     settings: Settings | None = None,
     engine: TranslateEngine | None = None,
+    simplify_engine: SimplifyEngine | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     _configure_logging(settings.log_level)
@@ -117,8 +120,12 @@ def create_app(
     )
     app.state.settings = settings
     app.state.engine = engine if engine is not None else _build_default_engine(settings)
+    # Rule-based, no model weights, no load() — ready at import. An LLM
+    # engine can be injected here later without touching the route.
+    app.state.simplify_engine = simplify_engine if simplify_engine is not None else RuleSimplifyEngine()
     app.include_router(health.router)
     app.include_router(translate.router)
+    app.include_router(simplify.router)
     return app
 
 
