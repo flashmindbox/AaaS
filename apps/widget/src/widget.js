@@ -2879,7 +2879,7 @@
   `;
   const DYSLEXIA_CSS = `
     html[data-aaas-dyslexia="true"] body,
-    html[data-aaas-dyslexia="true"] body * {
+    html[data-aaas-dyslexia="true"] body *:not([data-aaas-widget]) {
       font-family: "OpenDyslexic", "Atkinson Hyperlegible", "Comic Sans MS", Verdana, system-ui, sans-serif !important;
       line-height: 1.9 !important;
       word-spacing: 0.1em !important;
@@ -2924,7 +2924,7 @@
        attribute selectors to out-rank the two-attribute applying rule
        (both carry !important, so specificity decides). */
     html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] body,
-    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] body * {
+    html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] body *:not([data-aaas-widget]) {
       letter-spacing: 0.04em !important;
     }
     html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [lang|="or"],
@@ -2935,11 +2935,11 @@
     html[data-aaas-dyslexia="true"][data-aaas-dyslexia-latin="true"] [data-aaas-indic] * {
       letter-spacing: normal !important;
     }
-    /* Widget's own shadow DOM is isolated by :host { all: initial; },
-       so these rules never reach it. But the widget's own host <div>
-       inherits a couple of properties — suppress the spacing there so
-       the floating button stays round. */
-    [data-aaas-widget] { line-height: normal !important; }
+    /* The widget host <div> is excluded from the body * rules above
+       via :not([data-aaas-widget]) — font/line-height/word-spacing are
+       INHERITED properties, so styling the host would leak through the
+       shadow boundary and reflow the panel (labels wrapped, sections
+       grew). Page selectors can't reach the shadow content itself. */
   `;
 
   // Safety net for unmarked Odia/Hindi on English-classified pages:
