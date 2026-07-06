@@ -60,6 +60,21 @@ def test_simplify_splits_long_odia_sentence(client: TestClient) -> None:
     assert text.count("।") >= 2
 
 
+def test_simplify_odia_with_latin_fragments_stays_odia(client: TestClient) -> None:
+    # Regression: translate -> Easy Read injected English words into
+    # Odia text ("No." -> "number", "w.e.f." -> "with effect from").
+    text = "ବିଜ୍ଞପ୍ତି No. 1247 ଅନୁଯାୟୀ, govt. ଅଫିସ୍ 15.04.2026 w.e.f. ବନ୍ଦ ରହିବ।"
+    r = client.post("/simplify", json={"text": text, "lang": "or"})
+    assert r.status_code == 200
+    out = r.json()["text"]
+    assert "number" not in out
+    assert "with effect from" not in out
+    assert "government" not in out
+    assert "No. 1247" in out
+    assert "15.04.2026" in out          # dates no longer mangled
+    assert "ସରକାର" in out               # govt. expanded in-language
+
+
 def test_simplify_is_idempotent(client: TestClient) -> None:
     first = client.post("/simplify", json={"text": BUREAUCRATIC_EN, "lang": "en"}).json()["text"]
     second = client.post("/simplify", json={"text": first, "lang": "en"}).json()["text"]

@@ -98,24 +98,40 @@ GLOSSARY: dict[str, dict[str, str]] = {
 # Matched case-insensitively; keys may contain dots (escaped when
 # compiled). Applied before the glossary so "w.e.f." never reaches the
 # sentence splitter (its dots would create false sentence breaks).
-ABBREVIATIONS: dict[str, str] = {
-    "w.e.f.": "with effect from",
-    "w.r.t.": "regarding",
-    "i.e.": "that is",
-    "e.g.": "for example",
-    "viz.": "namely",
-    "etc.": "and so on",
-    "govt.": "government",
-    "dept.": "department",
-    "s/o": "son of",
-    "d/o": "daughter of",
-    "r/o": "resident of",
+#
+# PER LANGUAGE: translated Odia/Hindi pages always retain Latin
+# fragments ("No. 1247", "govt."), and expanding those to ENGLISH
+# words was injecting English into Indic sentences (bug: translate ->
+# Easy Read produced "ବିଜ୍ଞପ୍ତି number 1247"). Indic languages expand
+# only what we can say in-language; everything else stays untouched.
+ABBREVIATIONS: dict[str, dict[str, str]] = {
+    "en": {
+        "w.e.f.": "with effect from",
+        "w.r.t.": "regarding",
+        "i.e.": "that is",
+        "e.g.": "for example",
+        "viz.": "namely",
+        "etc.": "and so on",
+        "govt.": "government",
+        "dept.": "department",
+        "s/o": "son of",
+        "d/o": "daughter of",
+        "r/o": "resident of",
+    },
+    "or": {
+        "govt.": "ସରକାର",
+        "dept.": "ବିଭାଗ",
+    },
+    "hi": {
+        "govt.": "सरकार",
+        "dept.": "विभाग",
+    },
 }
 
-# Context-sensitive abbreviations, tried before the generic table:
-# "no." only means "number" when digits follow (never rewrite the word
-# "no" at a sentence end), and a sentence-final "etc." must keep its
-# role as a terminator.
+# Context-sensitive abbreviations, tried before the generic table —
+# ENGLISH ONLY: "no." only means "number" when digits follow (never
+# rewrite the word "no" at a sentence end), and a sentence-final
+# "etc." must keep its role as a terminator.
 _ABBR_SPECIAL: list[tuple[str, str]] = [
     (r"(?i)(?<!\w)no\.(?=\s*\d)", "number"),
     (r"(?i)(?<!\w)etc\.(?=\s+[A-Z])", "and so on."),
@@ -186,14 +202,17 @@ def _compile_glossary() -> dict[str, list[tuple[re.Pattern[str], str]]]:
     return compiled
 
 
-def _compile_abbreviations() -> list[tuple[re.Pattern[str], str]]:
-    rules: list[tuple[re.Pattern[str], str]] = []
-    for abbr in sorted(ABBREVIATIONS, key=len, reverse=True):
-        # No trailing \b: keys often end in "." which is a non-word
-        # char, so \b there would anchor incorrectly.
-        pat = re.compile(r"(?<!\w)" + re.escape(abbr), re.IGNORECASE)
-        rules.append((pat, ABBREVIATIONS[abbr]))
-    return rules
+def _compile_abbreviations() -> dict[str, list[tuple[re.Pattern[str], str]]]:
+    compiled: dict[str, list[tuple[re.Pattern[str], str]]] = {}
+    for lang, entries in ABBREVIATIONS.items():
+        rules: list[tuple[re.Pattern[str], str]] = []
+        for abbr in sorted(entries, key=len, reverse=True):
+            # No trailing \b: keys often end in "." which is a non-word
+            # char, so \b there would anchor incorrectly.
+            pat = re.compile(r"(?<!\w)" + re.escape(abbr), re.IGNORECASE)
+            rules.append((pat, entries[abbr]))
+        compiled[lang] = rules
+    return compiled
 
 
 _GLOSSARY_COMPILED = _compile_glossary()
@@ -212,9 +231,10 @@ def _match_case(replacement: str, original: str) -> str:
 
 
 def expand_abbreviations(text: str, lang: str) -> str:
-    for raw, repl in _ABBR_SPECIAL:
-        text = re.sub(raw, repl, text)
-    for pat, repl in _ABBREVIATIONS_COMPILED:
+    if lang == "en":
+        for raw, repl in _ABBR_SPECIAL:
+            text = re.sub(raw, repl, text)
+    for pat, repl in _ABBREVIATIONS_COMPILED.get(lang, []):
         text = pat.sub(lambda m, r=repl: _match_case(r, m.group(0)), text)
     return text
 
@@ -238,8 +258,23 @@ def strip_boilerplate(text: str, lang: str) -> str:
     return text
 
 
+# A dot immediately followed by a non-space is never a sentence end —
+# it's a date ("15.04.2026"), a section number ("3.2"), an unexpanded
+# abbreviation ("w.e.f." in Indic text), or a domain ("odisha.gov.in").
+# Shield those dots with a sentinel before sentence-splitting and
+# restore after — otherwise they come back mangled as "15. 04. 2026" /
+# "w. e. f.".
+_INNER_DOT_RE = re.compile(r"\.(?=\S)")
+_DOT_SENTINEL = "\x00"
+
+
 def split_sentences(text: str) -> list[str]:
-    return [m.group(0).strip() for m in _SENTENCE_RE.finditer(text) if m.group(0).strip()]
+    shielded = _INNER_DOT_RE.sub(_DOT_SENTINEL, text)
+    return [
+        m.group(0).strip().replace(_DOT_SENTINEL, ".")
+        for m in _SENTENCE_RE.finditer(shielded)
+        if m.group(0).strip()
+    ]
 
 
 def split_long_sentence(sentence: str, lang: str, max_chars: int = _MAX_SENTENCE_CHARS) -> list[str]:

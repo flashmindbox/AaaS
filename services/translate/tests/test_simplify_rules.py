@@ -40,6 +40,37 @@ def test_abbreviations() -> None:
     )
 
 
+def test_odia_never_gains_english_words() -> None:
+    # Translated pages keep Latin fragments; expanding them to English
+    # words injected English into Odia sentences (translate -> Easy
+    # Read bug). They must pass through untouched for or/hi.
+    text = "ବିଜ୍ଞପ୍ତି No. 1247 ଅନୁଯାୟୀ w.e.f. ରହିବ etc. ମାନିବେ"
+    assert expand_abbreviations(text, "or") == text
+    assert expand_abbreviations(text, "hi") == text
+
+
+def test_odia_expands_in_language_only() -> None:
+    assert expand_abbreviations("govt. ଅଫିସ୍", "or") == "ସରକାର ଅଫିସ୍"
+
+
+def test_dates_survive_sentence_splitting() -> None:
+    assert split_sentences("ଅଫିସ୍ 15.04.2026 ଠାରୁ ବନ୍ଦ ରହିବ।") == [
+        "ଅଫିସ୍ 15.04.2026 ଠାରୁ ବନ୍ଦ ରହିବ।"
+    ]
+    out = simplify_text("The office closes w.e.f. 15.04.2026. Plan leave early.", "en")
+    assert "15.04.2026" in out
+    assert "15. 04" not in out
+
+
+def test_unexpanded_abbreviations_and_domains_keep_their_dots() -> None:
+    # For Indic text w.e.f. is NOT expanded — its dots must survive the
+    # sentence splitter instead of becoming "w. e. f.".
+    out = simplify_text("ଅଫିସ୍ w.e.f. 15.04.2026 ବନ୍ଦ ରହିବ।", "or")
+    assert "w.e.f." in out
+    out2 = simplify_text("Details at www.odisha.gov.in today.", "en")
+    assert "www.odisha.gov.in" in out2
+
+
 def test_strip_boilerplate() -> None:
     assert strip_boilerplate("Whereas, the office will close.", "en") == "the office will close."
 
