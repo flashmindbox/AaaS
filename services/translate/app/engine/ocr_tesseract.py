@@ -142,6 +142,16 @@ class TesseractOcrEngine:
             raise ValueError(f"Could not decode image: {exc}") from exc
         return [OcrPage(page=1, text=self._ocr_pil_image(image, tess_lang), source="ocr")]
 
+    def _page_preview(self, pil_image) -> str:
+        """Downscaled JPEG data URL of a rendered page (~700px wide)."""
+        import base64  # noqa: PLC0415
+
+        preview = pil_image.convert("RGB")
+        preview.thumbnail((700, 4000))
+        buf = io.BytesIO()
+        preview.save(buf, "JPEG", quality=78)
+        return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+
     def _recognize_pdf(self, data: bytes, tess_lang: str) -> list[OcrPage]:
         import pypdfium2 as pdfium  # noqa: PLC0415
 
@@ -157,16 +167,22 @@ class TesseractOcrEngine:
                 textpage = page.get_textpage()
                 layer = (textpage.get_text_range() or "").strip()
                 textpage.close()
-                if len(layer) >= _TEXT_LAYER_MIN_CHARS:
-                    pages.append(OcrPage(page=i + 1, text=layer, source="text-layer"))
-                    continue
+                # One render serves both OCR input and the preview the
+                # widget shows beside the text.
                 bitmap = page.render(scale=_RENDER_SCALE)
                 image = bitmap.to_pil()
+                preview = self._page_preview(image)
+                if len(layer) >= _TEXT_LAYER_MIN_CHARS:
+                    pages.append(
+                        OcrPage(page=i + 1, text=layer, source="text-layer", image=preview)
+                    )
+                    continue
                 pages.append(
                     OcrPage(
                         page=i + 1,
                         text=self._ocr_pil_image(image, tess_lang),
                         source="ocr",
+                        image=preview,
                     )
                 )
         finally:

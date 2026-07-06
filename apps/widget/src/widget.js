@@ -1292,6 +1292,52 @@
       border-radius: 10px;
       padding: 0.8rem 0.9rem;
     }
+    /* Side-by-side result: the document on the left, its text on the
+       right, so the user SEES which page is being spoken. */
+    .docmodal-box.with-preview { width: min(94vw, 920px); }
+    .doc-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+      gap: 0.7rem;
+    }
+    @media (max-width: 760px) { .doc-split { grid-template-columns: 1fr; } }
+    .doc-preview {
+      overflow-y: auto;
+      max-height: 56vh;
+      background: #101820;
+      border: 1px solid #2c3a4c;
+      border-radius: 10px;
+      padding: 0.5rem;
+    }
+    .doc-pagelabel { font-size: 0.7rem; color: #9fb2c8; margin: 0.15rem 0 0.3rem; }
+    .doc-preview img.doc-page {
+      width: 100%;
+      display: block;
+      border-radius: 6px;
+      border: 2px solid #2c3a4c;
+      margin-bottom: 0.55rem;
+      background: #fff;
+    }
+    .doc-preview img.doc-page.speaking {
+      border-color: #ffcf33;
+      box-shadow: 0 0 0 2px rgba(255, 207, 51, 0.35);
+    }
+    .doc-split .doc-text { max-height: 56vh; overflow-y: auto; }
+    .doc-ptext {
+      padding: 0.3rem 0.4rem 0.3rem 0.55rem;
+      border-left: 3px solid transparent;
+      border-radius: 4px;
+    }
+    .doc-ptext.speaking {
+      border-left-color: #ffcf33;
+      background: rgba(255, 207, 51, 0.07);
+    }
+    .doc-ptext .doc-chip {
+      display: block;
+      font-size: 0.68rem;
+      color: #9fb2c8;
+      margin-bottom: 0.15rem;
+    }
     .doc-error {
       font-size: 1rem;
       line-height: 1.7;
@@ -1932,7 +1978,9 @@
   // poisoned by canned text. Throws with a readable message on any
   // failure; the caller shows it in the modal.
   async function ocrFetchAndRecognize(url, lang, { timeoutMs = 60000 } = {}) {
-    const k = "ocr§" + (lang || "auto") + ":" + url;
+    // v2 prefix: responses now carry page preview images — don't serve
+    // stale image-less results from before that change.
+    const k = "ocr2§" + (lang || "auto") + ":" + url;
     const hit = translateCache.get(k);
     if (hit !== undefined) return hit;
     const stored = await persistentCache.get("translate", k);
@@ -4415,24 +4463,34 @@
       try {
         const result = await ocrFetchAndRecognize(desc.url, ocrLangHint(pageLang));
         if (!live()) return;
-        let text = (result.text || "").trim();
-        if (!text) {
+        // Keep pages SEPARATE through the pipeline so the result view
+        // can pair each page's image with its text and highlight the
+        // page being spoken.
+        let docPages = (result.pages || [])
+          .map((p) => ({ text: (p.text || "").trim(), image: p.image || null }))
+          .filter((p) => p.text);
+        if (!docPages.length && (result.text || "").trim()) {
+          docPages = [{ text: result.text.trim(), image: null }];
+        }
+        if (!docPages.length) {
           showDocError("I couldn't find any readable text in this document. It may be a photo or a very poor scan.");
           return;
         }
-        const srcLang = dominantScript(text) || "en";
+        const srcLang = dominantScript(docPages.map((p) => p.text).join(" ")) || "en";
         const tgt = resolvedLang() || srcLang;
         // Simplify (rule-based, offline). Not fatal on failure — the
         // raw OCR text is already the accessibility win.
         try {
           updateDocProgress("Making it easier to read…", "");
-          const pieces = splitIntoSentences(text, 1500);
-          const simplified = [];
-          for (const piece of pieces) {
-            simplified.push(await simplifyChunk(piece, srcLang));
-            if (!live()) return;
+          for (const p of docPages) {
+            const pieces = splitIntoSentences(p.text, 1500);
+            const simplified = [];
+            for (const piece of pieces) {
+              simplified.push(await simplifyChunk(piece, srcLang));
+              if (!live()) return;
+            }
+            p.text = simplified.join(" ");
           }
-          text = simplified.join(" ");
         } catch (err) {
           if (!live()) return;
           console.warn("[AaaS] OCR simplify failed:", err);
@@ -4440,28 +4498,36 @@
         if (tgt !== srcLang) {
           try {
             const label = LANG_DISPLAY[tgt] || tgt;
-            const pieces = splitIntoSentences(text, 800);
-            const translated = [];
-            for (let i = 0; i < pieces.length; i++) {
-              updateDocProgress(
-                `Turning it into ${label}…`,
-                pieces.length > 1 ? `part ${i + 1} of ${pieces.length}` : "",
-              );
-              translated.push(
-                stripPassthroughAnnotation(
-                  await translateChunk(pieces[i], srcLang, tgt, { timeoutMs: 20000 }),
-                ),
-              );
-              if (!live()) return;
+            let part = 0;
+            const totalParts = docPages.reduce(
+              (n, p) => n + splitIntoSentences(p.text, 800).length,
+              0,
+            );
+            for (const p of docPages) {
+              const pieces = splitIntoSentences(p.text, 800);
+              const translated = [];
+              for (const piece of pieces) {
+                part++;
+                updateDocProgress(
+                  `Turning it into ${label}…`,
+                  totalParts > 1 ? `part ${part} of ${totalParts}` : "",
+                );
+                translated.push(
+                  stripPassthroughAnnotation(
+                    await translateChunk(piece, srcLang, tgt, { timeoutMs: 20000 }),
+                  ),
+                );
+                if (!live()) return;
+              }
+              p.text = translated.join(" ");
             }
-            text = translated.join(" ");
           } catch (err) {
             if (!live()) return;
             console.warn("[AaaS] OCR translate failed:", err);
           }
         }
         if (!live()) return;
-        showDocResult(text, result.engine === "mock");
+        showDocResult(docPages, result.engine === "mock", desc);
       } catch (err) {
         if (!live()) return;
         console.warn("[AaaS] OCR pipeline failed:", err);
@@ -4473,11 +4539,60 @@
       }
     }
 
-    function showDocResult(text, wasMock) {
-      docResultText = text;
+    let docPagesCurrent = [];
+
+    function showDocResult(pages, wasMock, desc) {
+      docPagesCurrent = pages;
+      docResultText = pages.map((p) => p.text).join("\n\n");
       docTitle.textContent = "Here's your document";
-      docBody.innerHTML = '<div class="doc-text"></div>';
-      docBody.querySelector(".doc-text").textContent = text;
+      // Preview images: PDF pages come from the server render; a
+      // picked image IS its own preview.
+      if (desc && desc.kind === "image" && pages.length && !pages[0].image) {
+        pages[0].image = desc.url;
+      }
+      const hasPreview = pages.some((p) => p.image);
+      docModal.querySelector(".docmodal-box").classList.toggle("with-preview", hasPreview);
+      docBody.textContent = "";
+      const textPane = document.createElement("div");
+      textPane.className = "doc-text";
+      pages.forEach((p, i) => {
+        const section = document.createElement("div");
+        section.className = "doc-ptext";
+        section.setAttribute("data-doc-page", i);
+        if (pages.length > 1) {
+          const chip = document.createElement("span");
+          chip.className = "doc-chip";
+          chip.textContent = `Page ${i + 1}`;
+          section.append(chip);
+        }
+        section.append(document.createTextNode(p.text));
+        textPane.append(section);
+      });
+      if (hasPreview) {
+        const split = document.createElement("div");
+        split.className = "doc-split";
+        const preview = document.createElement("div");
+        preview.className = "doc-preview";
+        pages.forEach((p, i) => {
+          if (!p.image) return;
+          if (pages.length > 1) {
+            const label = document.createElement("div");
+            label.className = "doc-pagelabel";
+            label.textContent = `Page ${i + 1} of ${pages.length}`;
+            preview.append(label);
+          }
+          const img = document.createElement("img");
+          img.className = "doc-page";
+          img.setAttribute("data-doc-page", i);
+          img.alt = `Document page ${i + 1}`;
+          img.src = p.image;
+          preview.append(img);
+        });
+        split.append(preview, textPane);
+        docBody.append(split);
+      } else {
+        docBody.append(textPane);
+      }
       docActions.textContent = "";
       const listenBtn = docButton("🔊 Listen", "doc-primary", () => {
         if (docReading) stopDocReading();
@@ -4504,39 +4619,62 @@
       }
     }
 
+    // Amber-mark the page (image + text section) currently being
+    // spoken, and keep it scrolled into view in both panes.
+    function highlightDocPage(idx) {
+      docModal.querySelectorAll(".doc-page.speaking, .doc-ptext.speaking").forEach((el) => {
+        el.classList.remove("speaking");
+      });
+      if (idx === null || idx === undefined) return;
+      docModal.querySelectorAll(`[data-doc-page="${idx}"]`).forEach((el) => {
+        el.classList.add("speaking");
+        try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch {}
+      });
+    }
+
     async function startDocReading(listenBtn) {
       if (docReading) return;
       if (isReading) {
         setStatus("Already reading the page — press Esc to stop that first", "error");
         return;
       }
-      const text = docResultText.trim();
-      if (!text) return;
+      const pages = docPagesCurrent.filter((p) => (p.text || "").trim());
+      if (!pages.length) return;
       docReading = true;
       listenBtn.textContent = "⏹ Stop reading";
       listenBtn.classList.add("speaking");
-      const lang = dominantScript(text) || resolvedLang() || "en";
+      const lang = dominantScript(docResultText) || resolvedLang() || "en";
+      const blobPage = new WeakMap();
+      player.onAdvance = (blob) => {
+        if (blob && blobPage.has(blob)) highlightDocPage(blobPage.get(blob));
+      };
       try {
         player.reset();
         const draining = player.drain();
-        const chunks = splitIntoSentences(text, CONFIG.maxChars);
         let enqueued = 0;
-        for (const chunk of chunks) {
-          if (!docReading) break;
-          try {
-            const blob = await synthesise(chunk, lang);
+        for (let i = 0; i < pages.length; i++) {
+          const chunks = splitIntoSentences(pages[i].text, CONFIG.maxChars);
+          for (const chunk of chunks) {
             if (!docReading) break;
-            player.enqueue(blob);
-            enqueued++;
-          } catch (err) {
-            console.warn("[AaaS] OCR TTS chunk failed:", err);
+            try {
+              const blob = await synthesise(chunk, lang);
+              if (!docReading) break;
+              blobPage.set(blob, i);
+              player.enqueue(blob);
+              enqueued++;
+            } catch (err) {
+              console.warn("[AaaS] OCR TTS chunk failed:", err);
+            }
           }
+          if (!docReading) break;
         }
         player.finish();
         await draining;
         if (!enqueued) setStatus("Voice unavailable — check that services are running", "error");
       } finally {
         docReading = false;
+        player.onAdvance = null;
+        highlightDocPage(null);
         listenBtn.textContent = "🔊 Listen again";
         listenBtn.classList.remove("speaking");
       }

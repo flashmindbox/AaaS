@@ -45,6 +45,7 @@ def _minimal_text_pdf(text: str) -> bytes:
 
 
 def test_text_layer_pdf_skips_ocr() -> None:
+    pytest.importorskip("PIL")
     engine = TesseractOcrEngine(tesseract_cmd="definitely-not-installed")
     pdf = _minimal_text_pdf("Hello notice from the Collector office")
     # Call the blocking worker directly: the text-layer path must work
@@ -53,6 +54,9 @@ def test_text_layer_pdf_skips_ocr() -> None:
     assert len(pages) == 1
     assert pages[0].source == "text-layer"
     assert "Hello notice from the Collector" in pages[0].text
+    # Every PDF page carries a preview for the side-by-side view.
+    assert pages[0].image is not None
+    assert pages[0].image.startswith("data:image/jpeg;base64,")
 
 
 def test_garbage_pdf_raises_value_error() -> None:

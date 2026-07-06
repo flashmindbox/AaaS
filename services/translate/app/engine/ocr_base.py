@@ -20,6 +20,11 @@ class OcrPage:
     page: int
     text: str
     source: str  # "text-layer" | "ocr" | "mock"
+    # Downscaled page render as a data URL (JPEG). Lets the widget show
+    # the document beside its text so users see WHICH page is being
+    # spoken. None for direct image uploads (the client already has
+    # the image) and for the mock engine.
+    image: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

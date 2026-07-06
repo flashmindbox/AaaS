@@ -31,6 +31,7 @@ class OcrPageOut(BaseModel):
     page: int
     text: str
     source: str
+    image: str | None = None  # JPEG data URL page preview (PDFs)
 
 
 class OcrResponse(BaseModel):
@@ -91,5 +92,8 @@ async def ocr(
         text=result.text,
         lang=result.lang,
         engine=result.engine,
-        pages=[OcrPageOut(page=p.page, text=p.text, source=p.source) for p in result.pages],
+        pages=[
+            OcrPageOut(page=p.page, text=p.text, source=p.source, image=p.image)
+            for p in result.pages
+        ],
     )
