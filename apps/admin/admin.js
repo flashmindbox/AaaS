@@ -1,608 +1,294 @@
 /* ---------------------------------------------------------------
-   AaaS Admin Dashboard
+   AaaS Operator Console
    ---------------------------------------------------------------
+   Vanilla JS, no build step, no CDN — must work on the offline
+   judge bundle. Talks to the gateway's in-process /admin/api/*
+   routes plus the same proxy endpoints the widget uses, so every
+   number and every playground response on this page is REAL.
 
-   Vanilla-JS, no build step. Talks to the gateway's in-process
-   /admin/api/* routes on the same origin. The API key is kept in
-   memory only — we don't persist it to localStorage, so a shared
-   laptop doesn't leak it to the next user of the page.
-
-   axe-core is vendored at apps/admin/vendor/axe.min.js — it loads
-   from the same origin as the dashboard, so the offline judge-laptop
-   bundle (Wi-Fi off per rehearsal checklist) still gets a real WCAG
-   scan. If axe somehow fails to load (e.g. the vendor/ directory is
-   missing in a broken build), we fall back to a small built-in
-   structural auditor so the dashboard never crashes.
+   The operator seed key is embedded: this console is a local demo
+   surface served from the same trusted gateway, not an internet-
+   facing product page.
 ---------------------------------------------------------------- */
 
-const API_BASE = "/admin/api";
+const KEY = "aaas_live_00000000000000000000000000000000";
+const HDRS = { "X-API-Key": KEY };
+const JSON_HDRS = { ...HDRS, "Content-Type": "application/json" };
 
-const state = {
-  apiKey: "",
-  tenants: [],
-  selectedSlug: null,
-  lastUsage: null,
-};
+const $ = (sel) => document.querySelector(sel);
 
-/* ---- tiny helpers -------------------------------------------- */
+/* ---------- clock ---------- */
+setInterval(() => {
+  $("#clock").textContent = new Date().toLocaleTimeString();
+}, 1000);
 
-function $(id) { return document.getElementById(id); }
+/* ---------- service health (every 10 s) ---------- */
+const HEALTH_TARGETS = [
+  { svc: "gateway", url: "/healthz", auth: false },
+  { svc: "tts", url: "/tts/readyz", auth: true },
+  { svc: "stt", url: "/stt/readyz", auth: true },
+  { svc: "translate", url: "/translate/readyz", auth: true },
+];
 
-function setStatus(el, text, kind) {
-  el.textContent = text;
-  el.classList.remove("ok", "err", "busy");
-  if (kind) el.classList.add(kind);
-}
-
-async function apiFetch(path, { method = "GET", body, headers = {} } = {}) {
-  if (!state.apiKey) throw new Error("No API key set");
-  const h = {
-    "Accept": "application/json",
-    "X-API-Key": state.apiKey,
-    ...headers,
-  };
-  if (body && !(body instanceof FormData)) {
-    h["Content-Type"] = "application/json";
-  }
-  const r = await fetch(API_BASE + path, {
-    method,
-    headers: h,
-    body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined,
-  });
-  const text = await r.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { /* non-JSON */ }
-  if (!r.ok) {
-    const msg = (data && (data.detail || data.message)) || text || `HTTP ${r.status}`;
-    throw new Error(`${r.status}: ${msg}`);
-  }
-  return data;
-}
-
-function escape(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[c]));
-}
-
-function fmtInt(n) {
-  return Number(n || 0).toLocaleString("en-IN");
-}
-
-/* ---- tabs ---------------------------------------------------- */
-
-function initTabs() {
-  const tabs = document.querySelectorAll(".tab");
-  tabs.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const name = btn.dataset.tab;
-      tabs.forEach(t => {
-        const active = t === btn;
-        t.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      document.querySelectorAll(".panel").forEach(p => {
-        p.hidden = p.id !== `tab-${name}`;
-      });
-      if (name === "usage") refreshUsage();
-      if (name === "wcag")  refreshWcagHistory();
-      if (name === "about") loadVersion();
-    });
-  });
-}
-
-/* ---- auth / load --------------------------------------------- */
-
-async function loadAll(ev) {
-  if (ev) ev.preventDefault();
-  state.apiKey = $("apiKey").value.trim();
-  const status = $("authStatus");
-  if (!state.apiKey) {
-    setStatus(status, "Missing key", "err");
-    return;
-  }
-  setStatus(status, "Loading…", "busy");
-  try {
-    state.tenants = await apiFetch("/tenants");
-    setStatus(status, `OK · ${state.tenants.length} tenant(s)`, "ok");
-    renderTenants();
-  } catch (err) {
-    console.error(err);
-    setStatus(status, err.message.slice(0, 80), "err");
-    state.tenants = [];
-    renderTenants();
-  }
-}
-
-/* ---- tenants panel ------------------------------------------- */
-
-function renderTenants() {
-  const body = $("tenantsBody");
-  if (!state.tenants.length) {
-    body.innerHTML = `<tr><td colspan="6" class="muted">No tenants available. Is the key correct?</td></tr>`;
-    return;
-  }
-  body.innerHTML = state.tenants.map(t => `
-    <tr data-slug="${escape(t.slug)}" aria-selected="${t.slug === state.selectedSlug ? 'true' : 'false'}" tabindex="0">
-      <td><code>${escape(t.slug)}</code></td>
-      <td>${escape(t.display_name)}</td>
-      <td><span class="cat-pill" data-cat="${escape(t.category)}">${escape(t.category)}</span></td>
-      <td>${escape(t.region || "—")}</td>
-      <td><span class="key-count" data-slug="${escape(t.slug)}">…</span></td>
-      <td><button type="button" class="btn-secondary" data-action="detail" data-slug="${escape(t.slug)}">Details</button></td>
-    </tr>
-  `).join("");
-
-  body.querySelectorAll("tr").forEach(row => {
-    const slug = row.dataset.slug;
-    row.addEventListener("click", e => {
-      if (e.target.closest("button")) return;  // button handles itself
-      openDetail(slug);
-    });
-    row.addEventListener("keydown", e => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openDetail(slug);
-      }
-    });
-  });
-  body.querySelectorAll('[data-action="detail"]').forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      openDetail(btn.dataset.slug);
-    });
-  });
-
-  // Best-effort key counts (seed demo has access to list).
-  state.tenants.forEach(async t => {
-    const el = body.querySelector(`.key-count[data-slug="${CSS.escape(t.slug)}"]`);
-    if (!el) return;
+async function checkHealth() {
+  for (const t of HEALTH_TARGETS) {
+    const el = document.querySelector(`.svc[data-svc="${t.svc}"] .state`);
+    const t0 = performance.now();
     try {
-      const detail = await apiFetch(`/tenants/${encodeURIComponent(t.slug)}`);
-      const active = detail.keys.filter(k => !k.revoked).length;
-      el.textContent = `${active} active`;
-    } catch {
-      el.textContent = "—";
-    }
-  });
-}
-
-async function openDetail(slug) {
-  state.selectedSlug = slug;
-  document.querySelectorAll("#tenantsBody tr").forEach(r => {
-    r.setAttribute("aria-selected", r.dataset.slug === slug ? "true" : "false");
-  });
-  const drawer = $("tenantDetail");
-  drawer.hidden = false;
-  $("rawKeyBox").hidden = true;
-  try {
-    const d = await apiFetch(`/tenants/${encodeURIComponent(slug)}`);
-    $("detailSlug").textContent     = d.slug;
-    $("detailName").textContent     = d.display_name;
-    $("detailCategory").textContent = d.category;
-    $("detailRegion").textContent   = d.region || "—";
-    $("detailId").textContent       = d.id;
-    const list = $("keyList");
-    if (!d.keys.length) {
-      list.innerHTML = `<li class="muted">No keys yet. Mint one below.</li>`;
-    } else {
-      list.innerHTML = d.keys.map(k => `
-        <li>
-          <span class="kname">${escape(k.name)}</span>
-          <span class="kprefix">${escape(k.prefix)}…</span>
-          <span class="kstate ${k.revoked ? "revoked" : "active"}">
-            ${k.revoked ? "revoked" : "active"}
-          </span>
-        </li>
-      `).join("");
-    }
-    drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  } catch (err) {
-    $("keyList").innerHTML = `<li class="muted">Couldn't load keys: ${escape(err.message)}</li>`;
-  }
-}
-
-async function mintKey(ev) {
-  ev.preventDefault();
-  if (!state.selectedSlug) return;
-  const name = $("mintName").value.trim() || "admin-minted";
-  try {
-    const res = await apiFetch(`/tenants/${encodeURIComponent(state.selectedSlug)}/keys`, {
-      method: "POST",
-      body: { name },
-    });
-    $("rawKeyValue").textContent = res.raw;
-    $("rawKeyBox").hidden = false;
-    // Refresh the detail list.
-    openDetail(state.selectedSlug);
-  } catch (err) {
-    alert("Mint failed: " + err.message);
-  }
-}
-
-/* ---- usage panel -------------------------------------------- */
-
-async function refreshUsage(ev) {
-  if (ev) ev.preventDefault();
-  const minutes = Number($("usageMinutes").value);
-  const bucket  = Number($("usageBucket").value);
-  const csv = $("csvLink");
-  csv.href = `${API_BASE}/usage.csv?minutes=${minutes}`;
-
-  if (!state.apiKey) {
-    $("totalReq").textContent = "—";
-    return;
-  }
-  try {
-    const usage = await apiFetch(`/usage?minutes=${minutes}&bucket_minutes=${bucket}`);
-    state.lastUsage = usage;
-    renderUsage(usage);
-  } catch (err) {
-    console.warn(err);
-  }
-}
-
-function renderUsage(u) {
-  $("totalReq").textContent = fmtInt(u.total_requests);
-  $("totalErr").textContent = fmtInt(u.total_errors);
-  const rate = u.total_requests
-    ? ((u.total_errors / u.total_requests) * 100).toFixed(1) + "%"
-    : "0%";
-  $("errRate").textContent = rate;
-  $("endpointCount").textContent = Object.keys(u.by_endpoint || {}).length;
-
-  drawChart(u.buckets || []);
-  renderBarList("byEndpoint", u.by_endpoint || {});
-  renderBarList("byTenant",   u.by_tenant   || {});
-
-  // A11y data table mirroring the chart.
-  const body = $("chartTable").querySelector("tbody");
-  body.innerHTML = (u.buckets || []).map(b => `
-    <tr>
-      <td>${escape(b.hour)}</td>
-      <td>${b.requests}</td>
-      <td>${b.errors}</td>
-      <td>${b.p50_latency_ms}</td>
-      <td>${b.p95_latency_ms}</td>
-    </tr>
-  `).join("");
-}
-
-function drawChart(buckets) {
-  const svg = $("usageChart");
-  const W = 800, H = 220, PAD_L = 36, PAD_B = 26, PAD_T = 10, PAD_R = 10;
-  if (!buckets.length) {
-    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#8b96a5" font-size="14">No activity in this window yet.</text>`;
-    return;
-  }
-  const max = Math.max(1, ...buckets.map(b => b.requests));
-  const plotW = W - PAD_L - PAD_R;
-  const plotH = H - PAD_T - PAD_B;
-  const bw = Math.max(2, (plotW / buckets.length) - 2);
-
-  const gridLines = [];
-  for (let i = 0; i <= 4; i++) {
-    const y = PAD_T + (plotH * i) / 4;
-    const v = Math.round(max - (max * i) / 4);
-    gridLines.push(`
-      <line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" stroke="#253040" stroke-width="1"/>
-      <text x="${PAD_L - 6}" y="${y + 4}" text-anchor="end" fill="#8b96a5" font-size="10">${v}</text>
-    `);
-  }
-
-  const bars = buckets.map((b, i) => {
-    const x = PAD_L + i * (plotW / buckets.length);
-    const h = (b.requests / max) * plotH;
-    const y = PAD_T + plotH - h;
-    const errH = b.requests ? (b.errors / b.requests) * h : 0;
-    const errY = PAD_T + plotH - errH;
-    return `
-      <rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="#1a66cc">
-        <title>${escape(b.hour)} — ${b.requests} reqs, ${b.errors} errors, p95 ${b.p95_latency_ms}ms</title>
-      </rect>
-      ${b.errors > 0 ? `<rect x="${x}" y="${errY}" width="${bw}" height="${errH}" fill="#c7444c"/>` : ""}
-    `;
-  });
-
-  // Show first, middle, last bucket labels.
-  const labelIdx = [0, Math.floor(buckets.length / 2), buckets.length - 1];
-  const labels = labelIdx.map(i => {
-    const b = buckets[i];
-    if (!b) return "";
-    const x = PAD_L + i * (plotW / buckets.length) + bw / 2;
-    const t = b.hour.slice(11, 16);  // HH:MM
-    return `<text x="${x}" y="${H - 8}" text-anchor="middle" fill="#8b96a5" font-size="10">${t}</text>`;
-  });
-
-  svg.innerHTML = gridLines.join("") + bars.join("") + labels.join("");
-}
-
-function renderBarList(id, obj) {
-  const el = $(id);
-  const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]);
-  if (!entries.length) {
-    el.innerHTML = `<li class="muted">No data yet.</li>`;
-    return;
-  }
-  const max = entries[0][1];
-  el.innerHTML = entries.map(([k, v]) => {
-    const w = max ? (v / max) * 100 : 0;
-    return `<li>
-      <div class="fill" style="width: ${w.toFixed(1)}%"></div>
-      <span class="val">${fmtInt(v)}</span>
-      <span class="lbl">${escape(k)}</span>
-    </li>`;
-  }).join("");
-}
-
-/* ---- WCAG scanner ------------------------------------------- */
-
-async function runScan(ev) {
-  ev.preventDefault();
-  const url = $("scanUrl").value.trim();
-  if (!url) return;
-  const status = $("scanStatus");
-  setStatus(status, "Loading page…", "busy");
-
-  const frame = $("scanFrame");
-  frame.src = url;
-
-  await new Promise((resolve, reject) => {
-    frame.onload = resolve;
-    frame.onerror = () => reject(new Error("Failed to load"));
-    // Frame may never fire onload if cross-origin/error — bail after 8s.
-    setTimeout(() => resolve("timeout"), 8000);
-  });
-
-  let fdoc;
-  try {
-    fdoc = frame.contentDocument;
-    if (!fdoc) throw new Error("Cross-origin frame");
-  } catch {
-    setStatus(status, "Cross-origin — can't scan DOM", "err");
-    return;
-  }
-
-  let result;
-  try {
-    setStatus(status, "Scanning…", "busy");
-    if (typeof window.axe !== "undefined") {
-      try {
-        result = await runAxe(frame.contentWindow, fdoc);
-      } catch (axeErr) {
-        // axe couldn't run in the frame (e.g. a strict CSP blocked the
-        // injected script) — fall back to the built-in structural auditor
-        // so the scan still returns a result instead of a hard error.
-        console.warn("axe failed, using structural audit:", axeErr);
-        result = runStructuralAudit(fdoc, url);
+      const r = await fetch(t.url, { headers: t.auth ? HDRS : {}, cache: "no-store" });
+      const ms = Math.round(performance.now() - t0);
+      if (r.ok) {
+        el.textContent = `healthy · ${ms} ms`;
+        el.className = "state chip ok";
+      } else {
+        el.textContent = `HTTP ${r.status}`;
+        el.className = "state chip bad";
       }
-    } else {
-      result = runStructuralAudit(fdoc, url);
+    } catch {
+      el.textContent = "unreachable";
+      el.className = "state chip bad";
     }
-  } catch (err) {
-    setStatus(status, "Scan failed: " + err.message, "err");
-    return;
   }
+  const gwOk = document.querySelector('.svc[data-svc="gateway"] .state').classList.contains("ok");
+  const chip = $("#gw-chip");
+  chip.textContent = gwOk ? "gateway online" : "gateway offline";
+  chip.className = "chip " + (gwOk ? "ok" : "bad");
+}
 
-  renderScanResult(result);
-  setStatus(status, `Done · ${result.violations.length} violations`, result.violations.length ? "err" : "ok");
+/* ---------- usage (every 5 s) ---------- */
+let lastTotal = -1;
+let usageByTenant = {};
 
-  // Best-effort POST to /admin/api/wcag/results.
+async function refreshUsage() {
   try {
-    await apiFetch("/wcag/results", {
-      method: "POST",
-      body: {
-        url,
-        scanned_at: new Date().toISOString(),
-        passes: result.passes.length,
-        violations: result.violations.length,
-        serious_violations: result.violations.filter(v => v.impact === "serious" || v.impact === "critical").length,
-        details: result.violations.slice(0, 20).map(v => ({
-          id: v.id,
-          help: v.help,
-          impact: v.impact,
-          nodes: (v.nodes || []).slice(0, 3).map(n => n.target || n.html || ""),
-        })),
-      },
-    });
-    refreshWcagHistory();
-  } catch (e) {
-    console.warn("Could not record scan:", e);
-  }
-}
+    const r = await fetch("/admin/api/usage", { headers: HDRS, cache: "no-store" });
+    if (!r.ok) return;
+    const u = await r.json();
 
-async function runAxe(win, doc) {
-  // axe-core must run inside the scanned frame's own realm against its own
-  // document — passing a foreign frame's document to the parent window's axe
-  // throws "axe.run arguments are invalid". The frame is same-origin (served
-  // by our gateway), so inject our vendored axe into it and run it there.
-  if (!win.axe) {
-    const axeUrl =
-      [...document.scripts].map((s) => s.src).find((src) => /axe(\.min)?\.js/i.test(src)) ||
-      new URL("vendor/axe.min.js", document.baseURI).href;
-    await new Promise((resolve, reject) => {
-      const s = doc.createElement("script");
-      s.src = axeUrl;
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error("axe failed to load in the scanned frame"));
-      (doc.head || doc.documentElement).appendChild(s);
-    });
-  }
-  const res = await win.axe.run(doc, {
-    runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
-  });
-  return {
-    passes: res.passes,
-    violations: res.violations,
-  };
-}
-
-/* A tiny structural auditor for the offline case. Intentionally shallow —
-   it only flags the kind of things a judge will spot immediately:
-   - <html> missing a lang
-   - images without alt
-   - inputs without label / aria-label
-   - buttons/links without accessible names
-   - headings skipping levels (h1 → h3 with no h2)
-   - docs using heading tags outside of a hierarchy
-*/
-function runStructuralAudit(doc, url) {
-  const violations = [];
-  const passes = [];
-
-  const push = (arr, id, help, impact, nodes, desc) => {
-    arr.push({ id, help, impact, description: desc || help, nodes: nodes.map(n => ({ target: [cssPath(n)], html: n.outerHTML.slice(0, 200) })) });
-  };
-
-  if (!doc.documentElement.getAttribute("lang")) {
-    push(violations, "html-has-lang", "<html> needs a lang attribute", "serious", [doc.documentElement]);
-  } else {
-    passes.push({ id: "html-has-lang", help: "<html> has lang" });
-  }
-
-  const imgs = [...doc.querySelectorAll("img")];
-  const badImgs = imgs.filter(i => !i.hasAttribute("alt") && i.getAttribute("role") !== "presentation");
-  if (badImgs.length) push(violations, "image-alt", "Images must have alt text", "critical", badImgs);
-  else if (imgs.length) passes.push({ id: "image-alt", help: "All images have alt" });
-
-  const inputs = [...doc.querySelectorAll("input, select, textarea")].filter(i => i.type !== "hidden");
-  const badInputs = inputs.filter(i => !hasAccessibleName(i, doc));
-  if (badInputs.length) push(violations, "label", "Form fields must have labels", "critical", badInputs);
-  else if (inputs.length) passes.push({ id: "label", help: "All form fields are labelled" });
-
-  const interactive = [...doc.querySelectorAll("button, a, [role='button'], [role='link']")];
-  const badInteractive = interactive.filter(el => !hasAccessibleName(el, doc) && !el.textContent.trim());
-  if (badInteractive.length) push(violations, "button-name", "Buttons and links must have discernible text", "serious", badInteractive);
-  else if (interactive.length) passes.push({ id: "button-name", help: "All controls have names" });
-
-  const headings = [...doc.querySelectorAll("h1,h2,h3,h4,h5,h6")];
-  let last = 0, skip = false;
-  const offenders = [];
-  for (const h of headings) {
-    const lvl = Number(h.tagName.slice(1));
-    if (last && lvl > last + 1) { skip = true; offenders.push(h); }
-    last = lvl;
-  }
-  if (skip) push(violations, "heading-order", "Heading levels must not skip", "moderate", offenders);
-  else if (headings.length) passes.push({ id: "heading-order", help: "Headings are well-ordered" });
-
-  if (!doc.querySelector("main, [role='main']")) {
-    push(violations, "region", "Page should have a <main> landmark", "moderate", [doc.body]);
-  } else {
-    passes.push({ id: "region", help: "Main landmark present" });
-  }
-
-  return { passes, violations };
-}
-
-function hasAccessibleName(el, doc) {
-  if (el.getAttribute("aria-label")) return true;
-  const labelledby = el.getAttribute("aria-labelledby");
-  if (labelledby) {
-    const ids = labelledby.split(/\s+/);
-    if (ids.some(id => doc.getElementById(id))) return true;
-  }
-  if (el.id) {
-    const lbl = doc.querySelector(`label[for="${CSS.escape(el.id)}"]`);
-    if (lbl && lbl.textContent.trim()) return true;
-  }
-  if (el.closest && el.closest("label")) return true;
-  if (el.hasAttribute("title")) return true;
-  if (el.getAttribute("alt")) return true;
-  if (el.textContent && el.textContent.trim()) return true;
-  return false;
-}
-
-function cssPath(el) {
-  if (!el || el.nodeType !== 1) return "";
-  if (el.id) return `#${el.id}`;
-  const parts = [];
-  while (el && el.nodeType === 1 && el.tagName !== "HTML") {
-    let sel = el.tagName.toLowerCase();
-    if (el.className && typeof el.className === "string") {
-      const c = el.className.trim().split(/\s+/).slice(0, 2).join(".");
-      if (c) sel += "." + c;
+    const kReq = $("#k-req");
+    kReq.textContent = u.total_requests.toLocaleString();
+    if (lastTotal >= 0 && u.total_requests > lastTotal) {
+      kReq.classList.add("bump");
+      setTimeout(() => kReq.classList.remove("bump"), 900);
     }
-    parts.unshift(sel);
-    el = el.parentElement;
-  }
-  return parts.slice(-3).join(" > ");
-}
+    lastTotal = u.total_requests;
+    $("#k-err").textContent = u.total_errors.toLocaleString();
+    $("#k-tenants").textContent = Object.keys(u.by_tenant || {}).length;
+    const buckets = u.buckets || [];
+    const latest = buckets[buckets.length - 1];
+    $("#k-p95").textContent = latest ? `${latest.p95_latency_ms} ms` : "—";
 
-function renderScanResult(res) {
-  $("passCount").textContent   = res.passes.length;
-  $("violCount").textContent   = res.violations.length;
-  $("seriousCount").textContent =
-    res.violations.filter(v => v.impact === "serious" || v.impact === "critical").length;
-
-  const ul = $("wcagDetails");
-  if (!res.violations.length) {
-    ul.innerHTML = `<li class="severity-pass">
-      <span class="rule-id">all good</span>
-      <div class="rule-help">No violations found against WCAG 2.1 AA.</div>
-    </li>`;
-    return;
-  }
-  ul.innerHTML = res.violations.map(v => {
-    const sev = `severity-${v.impact || "moderate"}`;
-    const nodes = (v.nodes || []).slice(0, 3)
-      .map(n => (n.target && n.target.join(" ")) || n.html || "")
-      .join("\n");
-    return `<li class="${sev}">
-      <span class="rule-id">${escape(v.id)} · ${escape(v.impact || "moderate")}</span>
-      <div class="rule-help">${escape(v.help || v.description || v.id)}</div>
-      ${v.description ? `<div class="rule-desc">${escape(v.description)}</div>` : ""}
-      ${nodes ? `<pre class="nodes">${escape(nodes)}</pre>` : ""}
-    </li>`;
-  }).join("");
-}
-
-async function refreshWcagHistory() {
-  if (!state.apiKey) return;
-  try {
-    const list = await apiFetch("/wcag/results");
-    const ul = $("wcagHistory");
-    if (!list.length) {
-      ul.innerHTML = `<li class="muted">No scans recorded yet.</li>`;
-      return;
-    }
-    ul.innerHTML = list.slice().reverse().map(r => {
-      const stamp = new Date(r.scanned_at).toLocaleString();
-      const okCls = r.violations === 0 ? "ok" : r.serious_violations ? "err" : "busy";
-      return `<li>
-        <span class="status-pill ${okCls}">${r.violations} viol.</span>
-        <span class="url">${escape(r.url)}</span>
-        <span class="muted">P ${r.passes}</span>
-        <span class="muted">S ${r.serious_violations}</span>
-        <span class="stamp">${escape(stamp)}</span>
-      </li>`;
-    }).join("");
-  } catch (err) {
-    console.warn("Could not load WCAG history:", err);
-  }
-}
-
-/* ---- About / version ----------------------------------------- */
-
-async function loadVersion() {
-  const el = $("versionInfo");
-  try {
-    const r = await fetch("/healthz");
-    const d = await r.json();
-    el.textContent = `${d.service || "gateway"} · ${d.version || "?"} · env=${d.env || "?"}`;
+    usageByTenant = u.by_tenant || {};
+    renderEndpoints(u.by_endpoint || {});
+    renderBuckets(buckets.slice(-6).reverse());
+    renderTenantCounts();
   } catch {
-    el.textContent = "gateway unreachable";
+    /* gateway briefly away — chips already show it */
   }
 }
 
-/* ---- wire-up ------------------------------------------------- */
+function renderEndpoints(byEndpoint) {
+  const entries = Object.entries(byEndpoint).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const max = entries.length ? entries[0][1] : 1;
+  const box = $("#endpoints");
+  box.textContent = "";
+  for (const [name, n] of entries) {
+    const row = document.createElement("div");
+    row.className = "bar";
+    row.innerHTML =
+      `<span class="label">/${name}</span>` +
+      `<span class="track"><span class="fill" style="width:${Math.max(2, (n / max) * 100)}%"></span></span>` +
+      `<span class="n">${n.toLocaleString()}</span>`;
+    box.append(row);
+  }
+  if (!entries.length) box.innerHTML = '<p class="muted">no traffic yet — open a demo site</p>';
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  initTabs();
-  $("keyForm").addEventListener("submit", loadAll);
-  $("closeDrawer").addEventListener("click", () => { $("tenantDetail").hidden = true; });
-  $("mintForm").addEventListener("submit", mintKey);
-  $("usageControls").addEventListener("submit", refreshUsage);
-  $("scanForm").addEventListener("submit", runScan);
-  // Auto-load on first paint so judges see tenants without clicking.
-  loadAll();
+function renderBuckets(buckets) {
+  const tb = $("#buckets tbody");
+  tb.textContent = "";
+  for (const b of buckets) {
+    const tr = document.createElement("tr");
+    const hh = b.hour.slice(11, 16);
+    tr.innerHTML =
+      `<td>${hh}</td><td class="num">${b.requests}</td>` +
+      `<td class="num">${b.errors}</td><td class="num">${b.p50_latency_ms}</td>` +
+      `<td class="num">${b.p95_latency_ms}</td>`;
+    tb.append(tr);
+  }
+  if (!buckets.length) tb.innerHTML = '<tr><td colspan="5" class="muted">no traffic yet</td></tr>';
+}
+
+/* ---------- tenants ---------- */
+let tenantsLoaded = false;
+
+async function loadTenants() {
+  try {
+    const r = await fetch("/admin/api/tenants", { headers: HDRS, cache: "no-store" });
+    if (!r.ok) return;
+    const tenants = await r.json();
+    // Real key prefixes come from the per-tenant detail endpoint.
+    const details = await Promise.all(
+      tenants.map((t) =>
+        fetch(`/admin/api/tenants/${t.slug}`, { headers: HDRS, cache: "no-store" })
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null),
+      ),
+    );
+    const tb = $("#tenants tbody");
+    tb.textContent = "";
+    tenants.forEach((t, i) => {
+      const keys = (details[i] && details[i].keys) || [];
+      const prefix = keys.length ? `${keys[0].prefix}…` : "—";
+      const tr = document.createElement("tr");
+      tr.dataset.slug = t.slug;
+      tr.innerHTML =
+        `<td><strong>${t.display_name}</strong><br /><span class="muted">${t.slug}</span></td>` +
+        `<td><span class="cat">${t.category}</span></td>` +
+        `<td>${t.region || "—"}</td>` +
+        `<td class="num tenant-count">0</td>` +
+        `<td class="keycode">${prefix}</td>` +
+        `<td><button class="mini" data-mint="${t.slug}">Mint key</button></td>`;
+      tb.append(tr);
+    });
+    tenantsLoaded = true;
+    renderTenantCounts();
+    tb.addEventListener("click", async (ev) => {
+      const slug = ev.target && ev.target.dataset ? ev.target.dataset.mint : null;
+      if (!slug) return;
+      ev.target.disabled = true;
+      try {
+        const resp = await fetch(`/admin/api/tenants/${slug}/keys`, {
+          method: "POST",
+          headers: JSON_HDRS,
+          body: JSON.stringify({ name: "judge-demo" }),
+        });
+        const body = await resp.json();
+        const minted = $("#minted");
+        minted.hidden = false;
+        minted.textContent = resp.ok
+          ? `New key for ${slug} (shown once, live immediately): ${body.raw}`
+          : `Mint failed: HTTP ${resp.status}`;
+      } finally {
+        ev.target.disabled = false;
+      }
+    });
+  } catch {
+    /* retried by the caller's interval */
+  }
+}
+
+function renderTenantCounts() {
+  if (!tenantsLoaded) return;
+  document.querySelectorAll("#tenants tbody tr").forEach((tr) => {
+    const n = usageByTenant[tr.dataset.slug] || 0;
+    const cell = tr.querySelector(".tenant-count");
+    if (cell) cell.textContent = n.toLocaleString();
+  });
+}
+
+/* ---------- playground ---------- */
+function showResp(el, obj, ms) {
+  el.hidden = false;
+  el.innerHTML =
+    `<span class="lat">HTTP 200 · ${ms} ms</span>\n` +
+    (typeof obj === "string" ? obj : JSON.stringify(obj, null, 2));
+}
+
+function showErr(el, status, text, ms) {
+  el.hidden = false;
+  el.innerHTML = `<span class="lat">HTTP ${status} · ${ms} ms</span>\n${text}`;
+}
+
+function curlFor(path, payload) {
+  return (
+    `curl -X POST http://127.0.0.1:8000${path} \\\n` +
+    `  -H "X-API-Key: ${KEY}" \\\n` +
+    `  -H "Content-Type: application/json" \\\n` +
+    `  -d '${JSON.stringify(payload)}'`
+  );
+}
+
+async function playJson(btn, path, payload, outEl, curlEl, render) {
+  btn.disabled = true;
+  const t0 = performance.now();
+  try {
+    const r = await fetch(path, { method: "POST", headers: JSON_HDRS, body: JSON.stringify(payload) });
+    const ms = Math.round(performance.now() - t0);
+    curlEl.hidden = false;
+    curlEl.textContent = curlFor(path, payload);
+    if (r.ok) {
+      const body = await r.json();
+      showResp(outEl, render ? render(body) : body, ms);
+    } else {
+      showErr(outEl, r.status, (await r.text()).slice(0, 400), ms);
+    }
+  } catch (err) {
+    outEl.hidden = false;
+    outEl.textContent = "request failed: " + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+$("#tr-go").addEventListener("click", () => {
+  playJson(
+    $("#tr-go"),
+    "/translate/translate",
+    { text: $("#tr-in").value, src_lang: $("#tr-src").value, tgt_lang: $("#tr-tgt").value },
+    $("#tr-out"),
+    $("#tr-curl"),
+  );
 });
+
+$("#si-go").addEventListener("click", () => {
+  playJson(
+    $("#si-go"),
+    "/translate/simplify",
+    { text: $("#si-in").value, lang: "en" },
+    $("#si-out"),
+    $("#si-curl"),
+  );
+});
+
+$("#ts-go").addEventListener("click", async () => {
+  const btn = $("#ts-go");
+  const outEl = $("#ts-out");
+  const payload = { text: $("#ts-in").value };
+  btn.disabled = true;
+  const t0 = performance.now();
+  try {
+    const r = await fetch("/tts/synthesise", {
+      method: "POST",
+      headers: JSON_HDRS,
+      body: JSON.stringify(payload),
+    });
+    const ms = Math.round(performance.now() - t0);
+    const curlEl = $("#ts-curl");
+    curlEl.hidden = false;
+    curlEl.textContent = curlFor("/tts/synthesise", payload) + " \\\n  --output speech.wav";
+    if (r.ok) {
+      const blob = await r.blob();
+      const audio = $("#ts-audio");
+      audio.src = URL.createObjectURL(blob);
+      audio.hidden = false;
+      audio.play().catch(() => {});
+      showResp(outEl, `Content-Type: ${r.headers.get("Content-Type")}\naudio bytes: ${blob.size.toLocaleString()}`, ms);
+    } else {
+      showErr(outEl, r.status, (await r.text()).slice(0, 400), ms);
+    }
+  } catch (err) {
+    outEl.hidden = false;
+    outEl.textContent = "request failed: " + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ---------- boot ---------- */
+checkHealth();
+loadTenants();
+refreshUsage();
+setInterval(checkHealth, 10_000);
+setInterval(refreshUsage, 5_000);
+setInterval(() => { if (!tenantsLoaded) loadTenants(); }, 7_000);
