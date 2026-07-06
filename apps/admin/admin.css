@@ -53,7 +53,9 @@ a { color: var(--navy); }
 .chip.wait { background: #fdf0dd; color: #9a6a00; border: 1px solid #ecd3a2; }
 
 /* sections */
-main { padding: 1.4rem 0 2rem; }
+/* main carries .wrap, whose class selector out-ranks a bare element
+   selector — the padding must live on the compound selector. */
+main.wrap { padding-top: 2.6rem; padding-bottom: 2rem; }
 section { margin-bottom: 2.4rem; }
 h2 { color: var(--navy2); font-size: 1.2rem; border-bottom: 2px solid var(--saffron); display: inline-block; padding-bottom: 0.2rem; }
 .subh { font-size: 0.95rem; color: var(--navy2); margin: 0 0 0.5rem; }
@@ -149,10 +151,48 @@ button.mini:hover { background: var(--navy); color: #fff; }
   border: 1px dashed #b9c6d6;
 }
 
-/* architecture */
-.arch {
+/* architecture — pure-CSS flow diagram */
+.flow {
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-  padding: 1rem 1.2rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.45; color: var(--navy2);
+  padding: 1.6rem 1.4rem; display: grid; justify-items: center; gap: 0;
+}
+.fnode {
+  display: flex; align-items: center; gap: 0.8rem; text-align: left;
+  background: #f7fafd; border: 1.5px solid var(--navy); border-radius: 12px;
+  padding: 0.75rem 1.1rem; box-shadow: 0 2px 6px rgba(20, 51, 93, 0.08);
+}
+.fnode b { color: var(--navy2); font-size: 0.98rem; display: block; }
+.fnode b small { color: var(--muted); font-weight: 400; }
+.fsub { display: block; font-size: 0.82rem; color: var(--muted); margin-top: 0.1rem; }
+.fdetail { display: block; font-size: 0.78rem; color: #7a5a1e; margin-top: 0.25rem; }
+.ficon { font-size: 1.5rem; }
+.fnode.browser { border-color: #3a72c4; }
+.fnode.gateway { border-color: var(--saffron); border-width: 2px; background: #fffaf3; }
+
+.gwrow { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.fnote {
+  font-size: 0.82rem; color: var(--muted); background: #f0f4fa;
+  border: 1px dashed #b9c6d6; border-radius: 10px; padding: 0.5rem 0.8rem;
+}
+.fnote b { color: var(--navy); }
+
+/* arrows: a vertical stem with a solid triangle head */
+.farrow { display: grid; justify-items: center; width: 100%; padding: 0.15rem 0; }
+.farrow.one { grid-template-columns: 1fr; }
+.farrow.three { grid-template-columns: 1fr 1fr 1fr; max-width: 880px; }
+.farrow span { display: block; width: 0; position: relative; height: 30px; border-left: 2.5px solid var(--saffron); }
+.farrow span::after {
+  content: ""; position: absolute; left: -6.5px; bottom: -2px;
+  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  border-top: 8px solid var(--saffron);
+}
+
+.frow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; max-width: 880px; width: 100%; }
+.frow .fnode { display: block; border-top-width: 4px; }
+@media (max-width: 760px) {
+  .frow { grid-template-columns: 1fr; }
+  .farrow.three { grid-template-columns: 1fr; }
+  .farrow.three span:nth-child(2), .farrow.three span:nth-child(3) { display: none; }
 }
 
 /* footer */

@@ -136,19 +136,50 @@
     <!-- Architecture -->
     <section aria-label="Architecture">
       <h2>How a request flows</h2>
-      <pre class="arch">
- citizen's browser
-   │  ଅ widget (520 KB, Shadow DOM)  ·  or the MV3 extension on any site
-   ▼
- ┌─────────────── gateway :8000 ───────────────┐   X-API-Key per tenant
- │  auth · audit log · static demos · proxy    │   (the table above)
- └──────┬───────────────┬──────────────┬───────┘
-        ▼               ▼              ▼
-   tts :8001       stt :8002     translate :8003
-   Meta MMS        IndicWav2Vec  IndicTrans2 + rule-based
-   + Odia number   (Odia)        simplify + Tesseract OCR
-   verbalisation                 (side-by-side documents)
-      </pre>
+      <div class="flow">
+        <div class="fnode browser">
+          <span class="ficon">💻</span>
+          <div>
+            <b>Citizen's browser</b>
+            <span class="fsub">ଅ widget · 520 KB, Shadow DOM — or the MV3 extension on any website</span>
+          </div>
+        </div>
+
+        <div class="farrow one" aria-hidden="true"><span></span></div>
+
+        <div class="gwrow">
+          <div class="fnode gateway">
+            <span class="ficon">🛡️</span>
+            <div>
+              <b>Gateway <small>:8000</small></b>
+              <span class="fsub">auth · audit log · static demos · catch-all proxy</span>
+            </div>
+          </div>
+          <div class="fnote">
+            <b>X-API-Key</b> per tenant<br />(the table above)
+          </div>
+        </div>
+
+        <div class="farrow three" aria-hidden="true"><span></span><span></span><span></span></div>
+
+        <div class="frow">
+          <div class="fnode svc-node">
+            <b>TTS <small>:8001</small></b>
+            <span class="fsub">Meta MMS voices (or / hi / en)</span>
+            <span class="fdetail">+ Odia number verbalisation</span>
+          </div>
+          <div class="fnode svc-node">
+            <b>STT <small>:8002</small></b>
+            <span class="fsub">AI4Bharat IndicWav2Vec</span>
+            <span class="fdetail">Odia speech → text</span>
+          </div>
+          <div class="fnode svc-node">
+            <b>Translate <small>:8003</small></b>
+            <span class="fsub">AI4Bharat IndicTrans2</span>
+            <span class="fdetail">+ rule-based simplify · Tesseract OCR (side-by-side documents)</span>
+          </div>
+        </div>
+      </div>
       <p class="foot-note">Everything runs on this laptop — no cloud calls. Every
       engine has a deterministic mock fallback, so a dead model degrades the demo
       honestly instead of killing it.</p>
