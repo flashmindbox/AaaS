@@ -1216,10 +1216,10 @@
       font-size: 1.15rem;
       font-weight: 700;
     }
-    .docmodal-close {
+    .docmodal-close,
+    .docmodal-max {
       position: absolute;
       top: 0.7rem;
-      right: 0.8rem;
       background: #22303f;
       border: 0;
       border-radius: 8px;
@@ -1230,7 +1230,30 @@
       height: 2rem;
       line-height: 1;
     }
-    .docmodal-close:hover { background: #2d3f52; }
+    .docmodal-close { right: 0.8rem; }
+    .docmodal-max { right: 3.1rem; font-size: 0.95rem; }
+    .docmodal-close:hover,
+    .docmodal-max:hover { background: #2d3f52; }
+
+    /* Maximized: near-fullscreen, inner panes grow to fill. */
+    .docmodal-box.maximized {
+      width: 96vw !important;
+      height: 94vh;
+      max-height: 94vh;
+    }
+    .docmodal-box.maximized .docmodal-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .docmodal-box.maximized .doc-split {
+      flex: 1;
+      min-height: 0;
+    }
+    .docmodal-box.maximized .doc-split > * { min-height: 0; }
+    .docmodal-box.maximized .doc-preview,
+    .docmodal-box.maximized .doc-split .doc-text { max-height: 100%; }
     .docmodal-body {
       overflow-y: auto;
       min-height: 4rem;
@@ -4187,6 +4210,7 @@
     docModal.setAttribute("aria-label", "Read a document");
     docModal.innerHTML = `
       <div class="docmodal-box">
+        <button class="docmodal-max" type="button" aria-label="Maximize" title="Maximize">⛶</button>
         <button class="docmodal-close" type="button" aria-label="Close">×</button>
         <h4 class="docmodal-title"></h4>
         <div class="docmodal-body" role="status" aria-live="polite"></div>
@@ -4229,6 +4253,17 @@
     docCloseBtn.addEventListener("click", closeDocModal);
     docModal.addEventListener("click", (ev) => {
       if (ev.target === docModal) closeDocModal();
+    });
+
+    // Maximize / restore. The choice sticks for the session so a user
+    // who prefers the big view isn't re-shrunk on every document.
+    const docMaxBtn = docModal.querySelector(".docmodal-max");
+    docMaxBtn.addEventListener("click", () => {
+      const box = docModal.querySelector(".docmodal-box");
+      const on = box.classList.toggle("maximized");
+      docMaxBtn.textContent = on ? "🗗" : "⛶";
+      docMaxBtn.title = on ? "Restore smaller view" : "Maximize";
+      docMaxBtn.setAttribute("aria-label", docMaxBtn.title);
     });
 
     function openDocModal(title) {
