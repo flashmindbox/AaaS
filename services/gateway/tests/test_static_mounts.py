@@ -31,23 +31,21 @@ def test_widget_js_has_inlined_font_not_placeholder(client: TestClient) -> None:
     assert "data:font/woff2;base64" in body
 
 
-def test_admin_index_references_local_axe(client: TestClient) -> None:
+def test_admin_console_is_served_and_offline_safe(client: TestClient) -> None:
     response = client.get("/admin/")
     assert response.status_code == 200
     body = response.text
-    # axe-core must not come from a CDN — the offline demo bundle has
-    # no network access, and the rehearsal checklist kills Wi-Fi.
-    assert "cdn.jsdelivr.net" not in body, (
-        "admin/index.html is loading axe-core from jsDelivr — this "
-        "breaks the offline demo path. Point it at ./vendor/axe.min.js."
-    )
-    assert "vendor/axe.min.js" in body
+    # The console must not pull anything from a CDN — the offline demo
+    # bundle has no network access, and the rehearsal checklist kills
+    # Wi-Fi. Everything it needs is same-origin.
+    assert "cdn." not in body
+    assert "googleapis" not in body
+    assert "admin.js" in body
+    assert "Operator Console" in body
 
 
-def test_admin_vendor_axe_is_served(client: TestClient) -> None:
-    response = client.get("/admin/vendor/axe.min.js")
+def test_admin_console_js_is_served(client: TestClient) -> None:
+    response = client.get("/admin/admin.js")
     assert response.status_code == 200
-    # Deque publishes axe-core with a leading banner — sanity check
-    # that we got the real thing, not a 404 page wrapped in HTML.
-    assert "axe" in response.text[:400].lower()
-    assert "deque" in response.text[:400].lower()
+    # It drives the live dashboard off the in-gateway admin API.
+    assert "/admin/api/usage" in response.text

@@ -166,9 +166,14 @@ async function loadTenants() {
         const body = await resp.json();
         const minted = $("#minted");
         minted.hidden = false;
-        minted.textContent = resp.ok
-          ? `New key for ${slug} (shown once, live immediately): ${body.raw}`
-          : `Mint failed: HTTP ${resp.status}`;
+        if (resp.ok) {
+          minted.textContent =
+            `New key for ${slug} (shown once, live immediately): ${body.raw}` +
+            ` — the integration snippet below now uses it.`;
+          setSnippet(body.raw, `${slug} · ${body.raw.slice(0, 14)}…`);
+        } else {
+          minted.textContent = `Mint failed: HTTP ${resp.status}`;
+        }
       } finally {
         ev.target.disabled = false;
       }
@@ -280,6 +285,81 @@ $("#ts-go").addEventListener("click", async () => {
   } catch (err) {
     outEl.hidden = false;
     outEl.textContent = "request failed: " + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ---------- onboarding: create tenant + integration snippet ---------- */
+function setSnippet(key, label) {
+  const origin = location.origin;
+  $("#snippet").textContent =
+    `<script\n` +
+    `  src="${origin}/widget.js"\n` +
+    `  data-key="${key}"\n` +
+    `  defer\n` +
+    `></script>`;
+  $("#snippet-key-label").textContent = label || key.slice(0, 14) + "…";
+}
+setSnippet(KEY, "operator seed key");
+
+$("#copy-snippet").addEventListener("click", async () => {
+  const text = $("#snippet").textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Clipboard API can be denied — fall back to a selection copy.
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.append(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+  const ok = $("#copy-ok");
+  ok.hidden = false;
+  setTimeout(() => { ok.hidden = true; }, 1800);
+});
+
+$("#ob-go").addEventListener("click", async () => {
+  const btn = $("#ob-go");
+  const out = $("#ob-out");
+  const name = $("#ob-name").value.trim();
+  if (!name) {
+    out.hidden = false;
+    out.textContent = "Give the website a name first.";
+    return;
+  }
+  btn.disabled = true;
+  const t0 = performance.now();
+  const payload = {
+    display_name: name,
+    category: $("#ob-cat").value,
+    region: $("#ob-region").value.trim() || null,
+  };
+  try {
+    const r = await fetch("/admin/api/tenants", {
+      method: "POST",
+      headers: JSON_HDRS,
+      body: JSON.stringify(payload),
+    });
+    const ms = Math.round(performance.now() - t0);
+    if (r.ok) {
+      const body = await r.json();
+      showResp(out, {
+        tenant: body.tenant.slug,
+        category: body.tenant.category,
+        api_key: body.raw + "   (shown once — live immediately)",
+      }, ms);
+      setSnippet(body.raw, `${body.tenant.slug} · ${body.raw.slice(0, 14)}…`);
+      tenantsLoaded = false;
+      loadTenants(); // the new row appears in the table above
+    } else {
+      showErr(out, r.status, (await r.text()).slice(0, 300), ms);
+    }
+  } catch (err) {
+    out.hidden = false;
+    out.textContent = "request failed: " + err.message;
   } finally {
     btn.disabled = false;
   }

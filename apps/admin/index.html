@@ -68,6 +68,49 @@
       <p id="minted" class="minted" hidden></p>
     </section>
 
+    <!-- Onboarding: create a tenant, get the key, paste the snippet -->
+    <section aria-label="Onboard a website">
+      <h2>Onboard a website — two steps</h2>
+      <div class="onboard">
+        <article class="call">
+          <h3>Step 1 · Create the tenant <code>POST /admin/api/tenants</code></h3>
+          <div class="row grow">
+            <input id="ob-name" type="text" placeholder="Website / department name — e.g. Berhampur Municipality" />
+          </div>
+          <div class="row">
+            <label>category
+              <select id="ob-cat">
+                <option value="government" selected>government</option>
+                <option value="university">university</option>
+                <option value="exam-board">exam-board</option>
+                <option value="healthcare">healthcare</option>
+                <option value="central-government">central-government</option>
+              </select>
+            </label>
+            <label>region <input id="ob-region" type="text" value="IN-OD" size="7" /></label>
+            <button id="ob-go">Create tenant &amp; mint key</button>
+          </div>
+          <pre id="ob-out" class="resp" hidden></pre>
+        </article>
+
+        <article class="call">
+          <h3>Step 2 · Paste one script tag into the site</h3>
+          <p class="snippet-hint">Auto-filled with the newest key you create or mint —
+          currently: <b id="snippet-key-label">operator seed key</b></p>
+          <pre id="snippet" class="curl snippet"></pre>
+          <div class="row">
+            <button id="copy-snippet">Copy snippet</button>
+            <span id="copy-ok" class="copied" hidden>copied ✓</span>
+          </div>
+          <p class="foot-note">That is the <em>entire</em> integration: the widget
+          auto-detects the gateway from the script origin, paints the ଅ button, and
+          every request carries this tenant's key — watch it appear in the table and
+          counters above. For websites the government doesn't control, the browser
+          extension injects the same widget with no site change at all.</p>
+        </article>
+      </div>
+    </section>
+
     <!-- Traffic detail -->
     <section aria-label="Traffic detail">
       <h2>Traffic by endpoint</h2>

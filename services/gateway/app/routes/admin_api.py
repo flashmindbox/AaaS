@@ -77,6 +77,19 @@ class NewKeyResponse(BaseModel):
     raw: str  # shown once; never returned again
 
 
+class NewTenantRequest(BaseModel):
+    display_name: str
+    category: str = "government"
+    region: str | None = "IN-OD"
+    slug: str | None = None  # derived from display_name when omitted
+
+
+class NewTenantResponse(BaseModel):
+    tenant: TenantOut
+    key: ApiKeyOut
+    raw: str  # the tenant's first key — shown once
+
+
 class UsageBucket(BaseModel):
     hour: str  # ISO "2026-04-21T14:00:00Z"
     requests: int
@@ -175,6 +188,45 @@ async def get_tenant(
         **_tenant_to_out(t).model_dump(),
         keys=[_key_to_out(k) for k in keys],
     )
+
+
+@router.post(
+    "/tenants",
+    response_model=NewTenantResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_tenant(
+    payload: NewTenantRequest,
+    repo: Annotated[InMemoryTenantRepository, Depends(_require_in_memory_repo)],
+) -> NewTenantResponse:
+    """Onboard a new website: create the tenant and mint its first key.
+
+    This is the whole adoption story in one call — the response's raw
+    key goes straight into the site's widget script tag.
+    """
+    from uuid import uuid4  # noqa: PLC0415
+
+    name = payload.display_name.strip()
+    if not name:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "display_name required")
+    slug = (payload.slug or name).strip().lower()
+    slug = "".join(c if c.isalnum() else "-" for c in slug).strip("-")
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    if not slug:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "slug required")
+    if any(t.slug == slug for t in repo.tenants.values()):
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Tenant '{slug}' already exists")
+    tenant = Tenant(
+        id=uuid4(),
+        slug=slug,
+        display_name=name,
+        category=payload.category.strip() or "government",
+        region=(payload.region or "").strip() or None,
+    )
+    raw = mint_api_key()
+    key = repo.add(tenant, raw_key=raw, name="onboarding")
+    return NewTenantResponse(tenant=_tenant_to_out(tenant), key=_key_to_out(key), raw=raw)
 
 
 @router.post(

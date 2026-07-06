@@ -79,3 +79,41 @@ class TestInMemoryRepository:
             api_key, revoked_at=datetime.now(UTC)
         )
         assert await repo.find_tenant_by_api_key(key) is None
+
+
+class TestCreateTenantEndpoint:
+    """POST /admin/api/tenants — the one-call onboarding flow."""
+
+    def test_create_tenant_returns_working_key(self, client) -> None:
+        from tests.conftest import VALID_TEST_KEY
+
+        resp = client.post(
+            "/admin/api/tenants",
+            headers={"X-API-Key": VALID_TEST_KEY},
+            json={"display_name": "Berhampur Municipality", "category": "government"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["tenant"]["slug"] == "berhampur-municipality"
+        raw = body["raw"]
+        assert raw.startswith("aaas_live_")
+        # The minted key authenticates immediately.
+        who = client.get("/admin/api/tenants", headers={"X-API-Key": raw})
+        assert who.status_code == 200
+        assert any(t["slug"] == "berhampur-municipality" for t in who.json())
+
+    def test_duplicate_slug_conflicts(self, client) -> None:
+        from tests.conftest import VALID_TEST_KEY
+
+        first = client.post(
+            "/admin/api/tenants",
+            headers={"X-API-Key": VALID_TEST_KEY},
+            json={"display_name": "Twin City"},
+        )
+        assert first.status_code == 201
+        dup = client.post(
+            "/admin/api/tenants",
+            headers={"X-API-Key": VALID_TEST_KEY},
+            json={"display_name": "Twin  City"},
+        )
+        assert dup.status_code == 409
