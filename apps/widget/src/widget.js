@@ -1063,6 +1063,15 @@
   };
   const TENS_WORDS = {
     10: ["ଦଶ", "ten", "dasha"],
+    11: ["ଏଗାର", "ଏଗାରା", "eleven", "egara"],
+    12: ["ବାର", "twelve", "bara"],
+    13: ["ତେର", "thirteen", "tera"],
+    14: ["ଚଉଦ", "fourteen", "chauda"],
+    15: ["ପନ୍ଦର", "fifteen", "pandara"],
+    16: ["ଷୋହଳ", "sixteen", "shohala"],
+    17: ["ସତର", "seventeen", "satara"],
+    18: ["ଅଠର", "eighteen", "athara"],
+    19: ["ଉଣେଇଶ", "nineteen", "uneisha"],
     20: ["କୋଡ଼ିଏ", "twenty", "kodie"],
     30: ["ତିରିଶ", "thirty", "tirisha"],
     40: ["ଚାଳିଶ", "forty", "chalisha"],

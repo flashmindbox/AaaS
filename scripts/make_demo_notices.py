@@ -162,6 +162,53 @@ CIRCULAR_AIIMS_P2 = {
     "footer": "",
 }
 
+NSP_DIR = REPO / "apps" / "demo-sites" / "national-scholarship" / "assets"
+
+NOTICE_NSP = {
+    "header": ["GOVERNMENT OF INDIA", "MINISTRY OF SOCIAL JUSTICE & EMPOWERMENT"],
+    "ref": "No. F-1145 /NSP     Date: 01.07.2026",
+    "title": "N O T I F I C A T I O N",
+    "body": [
+        "It is hereby notified that online applications for the "
+        "Post-Matric Scholarship for Students with Disabilities shall be "
+        "received on the National Scholarship Portal w.e.f. 15.07.2026. "
+        "The last date for submission of applications is 31.10.2026.",
+        "The scholarship shall comprise a maintenance allowance of "
+        "Rs. 1200 per month for hostellers and Rs. 550 per month for day "
+        "scholars, in addition to reimbursement of the compulsory "
+        "non-refundable fees. Applicants shall furnish the requisite "
+        "disability certificate issued by the competent authority.",
+    ],
+    "footer": "Under Secretary to the Government of India",
+}
+
+CIRCULAR_NSP_P1 = {
+    "header": ["NATIONAL SCHOLARSHIP PORTAL", "APPLICANT GUIDELINES"],
+    "ref": "No. F-1152 /NSP     Date: 05.07.2026",
+    "title": "G U I D E L I N E S",
+    "body": [
+        "It is hereby notified that applicants shall register on the "
+        "portal with a valid mobile number and shall furnish the Aadhaar "
+        "number or the enrolment ID thereof. Applications lacking the "
+        "requisite institution verification shall be summarily rejected.",
+    ],
+    "footer": "Mission Director, NSP",
+}
+
+CIRCULAR_NSP_P2 = {
+    "header": ["NATIONAL SCHOLARSHIP PORTAL"],
+    "ref": "Page 2 of 2",
+    "title": "",
+    "body": [
+        "Institutions shall verify the applications expeditiously and in "
+        "any case prior to 15.11.2026, failing which the applications "
+        "shall lapse. State nodal officers are required to intimate the "
+        "verification status to the Ministry, in accordance with the "
+        "stipulated guidelines.",
+    ],
+    "footer": "",
+}
+
 NOTICE_UTKAL = {
     "header": ["UTKAL UNIVERSITY, BHUBANESWAR", "OFFICE OF THE REGISTRAR"],
     "ref": "No. 3172 /Acad.     Date: 22.04.2026",
@@ -316,6 +363,17 @@ def main() -> int:
     utkal_png = UTKAL_DIR / "admission-notice-scan.png"
     render_page(NOTICE_UTKAL).save(utkal_png, "PNG")
     print(f"[notices] wrote {utkal_png} ({utkal_png.stat().st_size:,} bytes)")
+
+    NSP_DIR.mkdir(parents=True, exist_ok=True)
+    nsp_png = NSP_DIR / "scholarship-notice-scan.png"
+    render_page(NOTICE_NSP).save(nsp_png, "PNG")
+    print(f"[notices] wrote {nsp_png} ({nsp_png.stat().st_size:,} bytes)")
+
+    nsp_pdf = NSP_DIR / "guidelines-circular.pdf"
+    n1 = render_page(CIRCULAR_NSP_P1)
+    n2 = render_page(CIRCULAR_NSP_P2)
+    n1.save(nsp_pdf, "PDF", resolution=120, save_all=True, append_images=[n2])
+    print(f"[notices] wrote {nsp_pdf} ({nsp_pdf.stat().st_size:,} bytes, 2 pages)")
 
     AIIMS_DIR.mkdir(parents=True, exist_ok=True)
     opd_png = AIIMS_DIR / "opd-notice-scan.png"

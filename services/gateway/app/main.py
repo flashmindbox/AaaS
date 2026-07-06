@@ -100,6 +100,15 @@ def _seed_dev_repository() -> InMemoryTenantRepository:
         region="IN-OD",
     )
     repo.add(aiims, raw_key="aaas_live_" + "4" * 32, name="aiims-seed")
+
+    nsp = Tenant(
+        id=UUID("00000000-0000-0000-0000-000000000006"),
+        slug="national-scholarship",
+        display_name="National Scholarship Portal",
+        category="central-government",
+        region="IN",
+    )
+    repo.add(nsp, raw_key="aaas_live_" + "5" * 32, name="nsp-seed")
     return repo
 
 

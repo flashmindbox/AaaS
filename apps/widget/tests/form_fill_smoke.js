@@ -71,6 +71,9 @@ check("mixed digits and words", spokenToDigits("98 ଡବଲ ସାତ ୱାନ
 check("age as tens word", normalizeSpokenValue("number", "ପଚାଶ") === "50");
 check("age as tens plus unit", normalizeSpokenValue("number", "ଚାଳିଶ ପାଞ୍ଚ") === "45");
 check("age spoken digit by digit", normalizeSpokenValue("number", "ଚାରି ପାଞ୍ଚ") === "45");
+check("teen age (ଅଠର = eighteen)", normalizeSpokenValue("number", "ଅଠର") === "18");
+check("teen age in English", normalizeSpokenValue("number", "seventeen") === "17");
+check("teens don't collide with eight", normalizeSpokenValue("number", "ଆଠ") === "8");
 check("pure garbage stays null", spokenToDigits("ପାଣି ପାଇପ୍ ଭାଙ୍ଗିଯାଇଛି", false) === null);
 
 // --- email: spoken at/dot forms ---
