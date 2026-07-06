@@ -509,7 +509,10 @@
   function normalizeCommandText(text) {
     let t = toWesternDigits(text || "")
       .toLowerCase()
-      .replace(/[.,!?;:()"'«»।॥/\-–—]+/g, " ")
+      // includes list-decoration bullets — sites render the same link
+      // with and without them ("• M.Tech Admission" vs "M.Tech
+      // Admission"), which must normalize identically
+      .replace(/[.,!?;:()"'«»।॥/\-–—•·▪●○◦►▶»*+|]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
     for (const lead of VOICE_STRIP_LEADING) {
@@ -765,7 +768,7 @@
         const s = _tokenSim(tok, cand);
         if (s > best) best = s;
       }
-      if (best >= 0.72) sum += best;
+      if (best >= 0.7) sum += best;
     }
     const coverage = Math.min(1, sum / tTokens.length);
     const precision = Math.min(1, sum / nTokens.length);
@@ -4786,8 +4789,10 @@
 
       // Weak matches (junk that barely cleared the rank floor) must
       // not be offered as buttons — "Pause / Instagram" for "pension"
-      // is worse than admitting no match.
-      const plausible = ranked.filter((r) => r.score >= 0.45);
+      // is worse than admitting no match. 0.55: short-name skeleton
+      // coincidences ("Scroll" for "scholarship") land 0.45-0.52,
+      // genuine fuzzy matches land 0.57+.
+      const plausible = ranked.filter((r) => r.score >= 0.55);
       if (shouldActOnVoiceMatch(ranked)) {
         actOnVoiceTarget(ranked[0]);
       } else if (plausible.length) {

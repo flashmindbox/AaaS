@@ -150,6 +150,16 @@ check(
   scoreVoiceTarget("likara sapa notisa", "A-") < 0.3 && scoreVoiceTarget("tenders", "A") < 0.3,
 );
 check(
+  "skeleton coincidences stay below the choices floor",
+  scoreVoiceTarget("Skalarasipa", "Scroll") < 0.55 && scoreVoiceTarget("Skalarasipa", "Close") < 0.55,
+);
+check(
+  "real fuzzy matches stay above the choices floor",
+  scoreVoiceTarget("Kantakta", "Contact") >= 0.55 &&
+    scoreVoiceTarget("pepara", "Sample Papers") >= 0.55 &&
+    scoreVoiceTarget("ପେନସନ", "ମଧୁବାବୁ ପେନ୍ସନ୍ ଯୋଜନା (MBPY) ଉପରେ ନିର୍ଦ୍ଦେଶାବଳୀ") >= 0.55,
+);
+check(
   "Odia virama slip still matches (ପେନସନ vs ପେନ୍ସନ୍)",
   scoreVoiceTarget("ପେନସନ", "ପେନ୍ସନ୍") >= 0.9,
 );
@@ -207,6 +217,10 @@ check(
     "NOTICE INVITING APPLICATIONS FOR SETTLEMENT OF COUNTRY LIQUOR SHOPS FOR JAJPUR DISTRICT FOR 2026-27",
     "NOTICE INVITING APPLICATIONS FOR SETTLEMENT OF COUNTRY LIQUOR SHOPS FOR…",
   ) === true,
+);
+check(
+  "bulleted copy of a link counts as the same link",
+  sameVoiceName("• M.Tech Spot Round Admission 2026-27", "M.Tech Spot Round Admission 2026-27") === true,
 );
 check(
   "different notices stay distinct",
