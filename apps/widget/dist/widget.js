@@ -995,6 +995,34 @@
       color: #5e6778;
     }
 
+    /* Skip / replay controls — visible only while reading, bottom
+       right beside the "Playing N/M" status. Buttons for what ← / →
+       already did on the keyboard; non-technical users never find
+       keyboard shortcuts. */
+    .playctl {
+      display: none;
+      position: absolute;
+      right: 0.6rem;
+      bottom: 0.5rem;
+      gap: 0.35rem;
+    }
+    .panel[data-reading="true"] .playctl { display: flex; }
+    .panel[data-reading="true"] .status,
+    .panel[data-reading="true"] .meta { margin-right: 5.6rem; }
+    .playctl button {
+      width: 36px;
+      height: 34px;
+      background: #1a2430;
+      border: 1px solid #31415a;
+      border-radius: 9px;
+      color: #e8edf2;
+      font-size: 0.95rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .playctl button:hover { background: #24344a; border-color: #4a6a96; }
+    .playctl button:focus-visible { outline: 2px solid #ffcf33; outline-offset: 1px; }
+
     /* Reading-comfort settings: one collapsed row, toggles inside. */
     .comfort {
       margin: 0 0.6rem 0.35rem;
@@ -2701,6 +2729,11 @@
       <div class="status" role="status" aria-live="polite">Ready</div>
       <div class="meta"></div>
 
+      <div class="playctl">
+        <button class="skipback" type="button" aria-label="Replay previous section" title="Replay previous (←)">⏮</button>
+        <button class="skipfwd" type="button" aria-label="Skip to next section" title="Skip (→)">⏭</button>
+      </div>
+
       <div class="shortcuts-overlay" role="dialog" aria-label="Keyboard shortcuts">
         <button class="close-overlay" type="button" aria-label="Close shortcuts">×</button>
         <h4>Keyboard shortcuts</h4>
@@ -2907,12 +2940,20 @@
     function setReadingUI(on, label) {
       isReading = on;
       readRow.setAttribute("data-playing", on ? "true" : "false");
+      panel.setAttribute("data-reading", on ? "true" : "false");
       readBtn.classList.toggle("stop", on);
       readBtn.querySelector("span:last-child").textContent = on ? "Stop" : "Read aloud";
       pauseBtn.textContent = "⏸";
       pauseBtn.title = "Pause (Space)";
       if (label !== undefined) setStatus(label, on ? "ok" : "");
     }
+
+    panel.querySelector(".skipfwd").addEventListener("click", () => {
+      if (isReading) player.skipCurrent();
+    });
+    panel.querySelector(".skipback").addEventListener("click", () => {
+      if (isReading) player.replayPrevious();
+    });
 
     pauseBtn.addEventListener("click", () => {
       if (!isReading) return;
