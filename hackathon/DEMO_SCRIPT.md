@@ -16,15 +16,17 @@ fails twice in rehearsal, cut the scene, not the honesty.
 2. Start the stack: run `start-dev.bat` from the repo root (or the USB bundle's
    `start.bat`). Wait for the four service windows: gateway :8000, TTS :8001,
    STT :8002, translate :8003.
-3. **Pre-warm the caches**: open `http://127.0.0.1:8000/demo/bse-odisha/` and
-   run one Read-aloud, one Translate, and one Read-document pass. First-time
-   synthesis takes seconds; cached replays are instant. Judges get the cached
-   experience.
+3. **Pre-warm the caches**: open `http://127.0.0.1:8000/demo/ssepd-odisha/`
+   and run one Read-aloud, one Translate, and one Read-document pass.
+   First-time synthesis takes seconds; cached replays are instant. Judges get
+   the cached experience.
 4. Browser tabs, in order:
-   - **Tab 1:** `http://127.0.0.1:8000/demo/bse-odisha/` — mirror of the real
-     BSE Odisha board site (has the 2-page scanned circular).
-   - **Tab 2:** `http://127.0.0.1:8000/demo/jajpur-collectorate/` — has the
-     grievance form for voice filling.
+   - **Tab 1:** `http://127.0.0.1:8000/demo/ssepd-odisha/` — the flagship:
+     SSEPD department (pensions, UDID, disability schemes). Scenes 1–4 and 6
+     all run here — scanned notice + 2-page PDF + application form on one
+     page.
+   - **Tab 2:** `http://127.0.0.1:8000/demo/bse-odisha/` — spare: BSE board
+     mirror with the exam circular, in case a judge asks for a second site.
    - **Tab 3:** `https://jajpur.odisha.gov.in/en` — the REAL district site,
      with the browser extension loaded (chrome://extensions → verify it's on).
 5. External microphone plugged in and tested — the built-in mic struggles with
@@ -44,11 +46,12 @@ fails twice in rehearsal, cut the scene, not the honesty.
 
 ## Scene 1 — Read aloud (60 seconds)
 
-*Tab 1, the BSE mirror. Click the floating ଅ button. The icon-grid panel
+*Tab 1, the SSEPD site. Click the floating ଅ button. The icon-grid panel
 opens: six tiles, Odia labels first.*
 
-> "This is a mirror of the real BSE Odisha exam board site. Meet a Class-10
-> student from Kendrapara who can't read small English text."
+> "This is the disability-welfare department's portal — pensions, UDID
+> cards. Its whole audience is people the web serves worst. Meet a
+> sixty-eight-year-old pensioner who can't read small English text."
 
 *Tap **ପଢ଼ି ଶୁଣାଅ · Read aloud**. The Odia voice starts; each block gets an
 amber highlight as it's spoken.*
@@ -81,15 +84,15 @@ in place — layout intact.*
 
 ## Scene 3 — Read document: the scanned circular (90 seconds — the peak)
 
-*Scroll to the circulars list. Point at "Examination circular No. EX-II/886
-(scanned PDF, 2 pages)".*
+*Scroll to "Notices & Scanned Documents". Point at the scanned pension
+notification and the "UDID enrolment camp circular (scanned PDF, 2 pages)".*
 
 > "Now the hard problem. Government notices are scans — photographs of paper.
 > Screen readers see nothing. Translators see nothing. For a blind citizen,
 > this circular does not exist."
 
-*Tap **ଦଲିଲ ପଢ଼ · Read document**. The chooser asks which document; tap the
-circular.*
+*Tap **ଦଲିଲ ପଢ଼ · Read document**. The chooser asks which document — it found
+both the scanned image and the PDF; tap the 2-page UDID circular.*
 
 > "It found the scanned PDF, ran OCR on it — Tesseract, on this laptop —
 > simplified it, translated it to Odia…"
@@ -103,12 +106,13 @@ It starts reading aloud; the page being spoken glows amber on both sides.*
 
 *Let it speak one page. Tap ⛶ to maximize briefly. Close.*
 
-## Scene 4 — Speak to fill: the grievance form (90 seconds)
+## Scene 4 — Speak to fill: the pension application (90 seconds)
 
-*Tab 2, the Jajpur collectorate mirror. Scroll to "File a Grievance".*
+*Same tab. Scroll to "Apply for Madhu Babu Pension".*
 
-> "Arun is sixty-eight, arthritic hands, speaks only Odia. He needs to report
-> a broken water pipe. Watch him fill this form without touching the keyboard."
+> "Arun is sixty-eight, arthritic hands, speaks only Odia. His pension just
+> went up — he needs to apply. Watch him fill this form without touching the
+> keyboard."
 
 *Tap **କହି ଲେଖ · Speak to fill** with no field selected. The guided mode
 starts: it highlights the name field, ASKS for it aloud in Odia, beeps, and
@@ -116,9 +120,14 @@ listens.*
 
 *Speak, one field per prompt:*
 - Name: **"ପୂର୍ଣ୍ଣଚନ୍ଦ୍ର ମହାନ୍ତି"** → lands as "Purnnachandra Mahanti"
-- Village: **"ଗ୍ରାମ ବଣପୁର"** → "Grama Banapura"
-- Phone: **"ନଅ ଆଠ ସାତ ଛଅ…"** (spoken digits) → 9876…
-- Age: **"ପଚାଶ"** → 50
+- Village: **"ଗ୍ରାମ ଧର୍ମଶାଳା"** → "Grama Dharmashala"
+- Phone: **"ନଅ ଆଠ ସାତ ଛଅ ଡବଲ ପାଞ୍ଚ…"** (spoken digits, "double five") → 987655…
+- Age: **"ଷାଠିଏ ପାଞ୍ଚ"** (sixty-five as words) → 65
+- Email: **"purna at gmail dot com"** → purna@gmail.com
+- Details: one Odia sentence about the disability → romanized text
+
+*(Staying silent on a field just skips it — rehearse the full six so the
+counter reads 6/6.)*
 
 > "Three things just happened that are genuinely hard. One: his name was
 > **transliterated, not translated** — Purnnachandra means 'full moon', and a
