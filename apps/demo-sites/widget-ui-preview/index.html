@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AaaS · Widget Panel Redesign — 3 Candidates</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #0d141c;
+    color: #e8edf2;
+    min-height: 100vh;
+  }
+  header {
+    padding: 1.1rem 1.4rem 0.9rem;
+    border-bottom: 1px solid #22303f;
+  }
+  header h1 { font-size: 1.15rem; display: inline; }
+  .pill {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+    color: #ffd25e; background: rgba(255,207,51,0.12);
+    border: 1px solid rgba(255,207,51,0.5); border-radius: 999px;
+    padding: 0.2rem 0.65rem; margin-left: 0.6rem; vertical-align: 2px;
+  }
+  header p { color: #8b96a5; font-size: 0.85rem; margin-top: 0.35rem; max-width: 70rem; }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(300px, 1fr));
+    gap: 1.2rem;
+    padding: 1.2rem 1.4rem 2.5rem;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1020px) { .row { grid-template-columns: 1fr; } }
+
+  .candidate h2 { font-size: 0.95rem; margin-bottom: 0.15rem; }
+  .candidate .meta { font-size: 0.78rem; color: #8b96a5; margin-bottom: 0.6rem; line-height: 1.5; }
+  .candidate .meta b { color: #ffd25e; font-weight: 600; }
+
+  /* fake gov page behind each panel, so size reads honestly */
+  .screen {
+    position: relative;
+    height: 640px;
+    border-radius: 14px;
+    border: 1px solid #2c3a4c;
+    overflow: hidden;
+    background: #eef1f4;
+  }
+  .fakepage { position: absolute; inset: 0; padding: 14px; }
+  .fp-head { height: 52px; border-radius: 6px; background: #14335d; margin-bottom: 10px; }
+  .fp-nav { height: 26px; border-radius: 4px; background: #1d4e8c; margin-bottom: 12px; }
+  .fp-line { height: 10px; border-radius: 3px; background: #cfd6dd; margin: 8px 0; }
+  .fp-line.w80 { width: 80%; } .fp-line.w60 { width: 60%; } .fp-line.w90 { width: 90%; }
+  .fp-card { height: 90px; border-radius: 6px; background: #dde3e9; margin-top: 12px; }
+
+  .fab {
+    position: absolute; right: 14px; bottom: 14px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: #2563b0; color: #fff; border: 0;
+    font-size: 1.35rem; font-weight: 700; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    z-index: 5;
+  }
+
+  /* shared panel chrome */
+  .wpanel {
+    position: absolute; right: 14px; bottom: 76px;
+    background: #10151d;
+    border: 1px solid #2c3a4c;
+    border-radius: 16px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.45);
+    color: #e8edf2;
+    z-index: 4;
+    overflow: hidden;
+  }
+  .whead {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 0.8rem 0.55rem;
+    border-bottom: 1px solid #202b38;
+  }
+  .whead .t { font-weight: 700; font-size: 0.92rem; flex: 1; }
+  .whead select {
+    background: #1a2430; color: #e8edf2; border: 1px solid #31415a;
+    border-radius: 8px; font-size: 0.8rem; padding: 0.25rem 0.35rem;
+  }
+  .wstatus {
+    font-size: 0.78rem; color: #8fdba0; padding: 0.45rem 0.8rem 0.55rem;
+    border-top: 1px solid #202b38; min-height: 1.9rem;
+  }
+
+  /* ---------- A: icon grid ---------- */
+  .gridp { width: 296px; }
+  .agrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
+  .atile {
+    background: #1a2430; border: 1px solid #2c3a4c; border-radius: 12px;
+    color: #e8edf2; cursor: pointer; text-align: center;
+    padding: 0.65rem 0.3rem 0.55rem;
+    display: flex; flex-direction: column; gap: 3px; align-items: center;
+  }
+  .atile:hover { background: #24344a; border-color: #4a6a96; }
+  .atile .ic { font-size: 1.45rem; line-height: 1; }
+  .atile .or { font-size: 0.86rem; font-weight: 700; }
+  .atile .en { font-size: 0.66rem; color: #9fb2c8; letter-spacing: 0.02em; }
+  .asettings {
+    margin: 0 10px 10px; border: 1px solid #2c3a4c; border-radius: 12px; overflow: hidden;
+  }
+  .asettings > button {
+    width: 100%; background: #161f2a; color: #cdd9e5; border: 0;
+    padding: 0.55rem 0.7rem; font-size: 0.82rem; cursor: pointer; text-align: left;
+  }
+  .asettings .body { display: none; background: #121a24; padding: 4px 10px 8px; }
+  .asettings.open .body { display: block; }
+  .srow { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; font-size: 0.82rem; }
+  .srow .lab { flex: 1; }
+  .srow .lab small { display: block; color: #8b96a5; font-size: 0.68rem; }
+  .sw { position: relative; width: 34px; height: 20px; border-radius: 999px; background: #2c3a4c; cursor: pointer; border: 0; flex: none; }
+  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #8b96a5; transition: all 0.15s; }
+  .sw.on { background: #2563b0; }
+  .sw.on::after { left: 16px; background: #fff; }
+
+  /* ---------- B: simple mode ---------- */
+  .simplep { width: 288px; }
+  .bstack { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .bbig {
+    display: flex; align-items: center; gap: 0.75rem;
+    background: #2563b0; border: 0; border-radius: 14px; color: #fff;
+    padding: 0.85rem 0.9rem; cursor: pointer; text-align: left; width: 100%;
+  }
+  .bbig:hover { background: #2f74c8; }
+  .bbig .ic { font-size: 1.7rem; }
+  .bbig .or { font-size: 1.05rem; font-weight: 800; display: block; }
+  .bbig .en { font-size: 0.72rem; opacity: 0.85; }
+  .bmore {
+    background: none; border: 0; color: #9fb2c8; font-size: 0.82rem;
+    padding: 0.4rem; cursor: pointer; width: 100%;
+  }
+  .bextra { display: none; flex-direction: column; gap: 6px; }
+  .bstack.expanded .bextra { display: flex; }
+  .bsmall {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: #1a2430; border: 1px solid #2c3a4c; border-radius: 10px;
+    color: #e8edf2; padding: 0.55rem 0.7rem; cursor: pointer; text-align: left; width: 100%;
+    font-size: 0.85rem;
+  }
+  .bsmall:hover { background: #24344a; }
+  .bsmall .en2 { color: #9fb2c8; font-size: 0.7rem; margin-left: auto; }
+
+  /* ---------- C: slim dock ---------- */
+  .dock {
+    position: absolute; right: 14px; bottom: 76px;
+    display: flex; flex-direction: column; gap: 7px; align-items: flex-end;
+    z-index: 4;
+  }
+  .ditem { display: flex; align-items: center; gap: 8px; }
+  .dlabel {
+    background: #10151d; border: 1px solid #2c3a4c; color: #e8edf2;
+    border-radius: 9px; padding: 0.3rem 0.6rem; font-size: 0.8rem;
+    white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  }
+  .dlabel small { color: #9fb2c8; margin-left: 0.3rem; font-size: 0.68rem; }
+  .dbtn {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: #1a2430; border: 1px solid #31415a; color: #fff;
+    font-size: 1.25rem; cursor: pointer; flex: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  }
+  .dbtn:hover { background: #2563b0; border-color: #2563b0; }
+  .dockstatus {
+    position: absolute; left: 14px; right: 76px; bottom: 22px;
+    background: rgba(16,21,29,0.95); border: 1px solid #2c3a4c;
+    color: #8fdba0; border-radius: 10px; padding: 0.45rem 0.7rem;
+    font-size: 0.78rem; z-index: 4; display: none;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Widget Panel Redesign</h1><span class="pill">3 CANDIDATES — CLICK EVERYTHING</span>
+  <p>
+    Same features, three sizes. All are Odia-first with English under it, bigger touch targets,
+    and settings out of the first view. The grey page behind each is a stand-in government site,
+    so the footprint reads honestly. Every control is clickable (fake actions).
+  </p>
+</header>
+
+<div class="row">
+
+  <!-- ============ A: ICON GRID ============ -->
+  <div class="candidate">
+    <h2>A · Icon grid</h2>
+    <div class="meta"><b>~52% shorter.</b> Six icon tiles, two columns — the "remote control" pattern
+      people know from TVs and kiosks. Settings live behind one collapsed row.</div>
+    <div class="screen">
+      <div class="fakepage">
+        <div class="fp-head"></div><div class="fp-nav"></div>
+        <div class="fp-line w90"></div><div class="fp-line w80"></div><div class="fp-line w60"></div>
+        <div class="fp-card"></div><div class="fp-line w80"></div><div class="fp-line w90"></div>
+      </div>
+      <div class="wpanel gridp">
+        <div class="whead">
+          <span class="t">ସହାୟତା · Help</span>
+          <select><option>ଓଡ଼ିଆ</option><option>हिन्दी</option><option>English</option></select>
+        </div>
+        <div class="agrid">
+          <button class="atile" data-msg="Reading the page aloud…"><span class="ic">🔊</span><span class="or">ପଢ଼ି ଶୁଣାଅ</span><span class="en">Read aloud</span></button>
+          <button class="atile" data-msg="Translating to Odia…"><span class="ic">🌐</span><span class="or">ଅନୁବାଦ</span><span class="en">Translate</span></button>
+          <button class="atile" data-msg="Making the page simple…"><span class="ic">📖</span><span class="or">ସହଜ ପଢ଼ା</span><span class="en">Easy Read</span></button>
+          <button class="atile" data-msg="Finding documents on this page…"><span class="ic">📄</span><span class="or">ଦଲିଲ ପଢ଼</span><span class="en">Read document</span></button>
+          <button class="atile" data-msg="Listening… speak now"><span class="ic">🎙️</span><span class="or">କହି ଲେଖ</span><span class="en">Speak to fill</span></button>
+          <button class="atile" data-msg="Say a command…"><span class="ic">🧭</span><span class="or">କହି ଚଲାଅ</span><span class="en">Voice command</span></button>
+        </div>
+        <div class="asettings" id="a-settings">
+          <button onclick="this.parentElement.classList.toggle('open')">⚙️ ପଢ଼ିବା ଆରାମ · Reading comfort ▾</button>
+          <div class="body">
+            <div class="srow"><span class="lab">ଆରାମ ଅକ୍ଷର <small>Comfortable letters (dyslexia)</small></span><button class="sw" onclick="this.classList.toggle('on')"></button></div>
+            <div class="srow"><span class="lab">ପଢ଼ା ରେଖା <small>Reading ruler</small></span><button class="sw" onclick="this.classList.toggle('on')"></button></div>
+            <div class="srow"><span class="lab">ଛୁଇଁଲେ କୁହେ <small>Hover to speak</small></span><button class="sw" onclick="this.classList.toggle('on')"></button></div>
+          </div>
+        </div>
+        <div class="wstatus" id="a-status">ପ୍ରସ୍ତୁତ · Ready</div>
+      </div>
+      <button class="fab">ଅ</button>
+    </div>
+  </div>
+
+  <!-- ============ B: SIMPLE MODE ============ -->
+  <div class="candidate">
+    <h2>B · Simple mode</h2>
+    <div class="meta"><b>~65% shorter at rest.</b> Only the three actions citizens use most, huge and
+      unmissable. Everything else behind "ଅଧିକ · More". The gentlest possible first encounter.</div>
+    <div class="screen">
+      <div class="fakepage">
+        <div class="fp-head"></div><div class="fp-nav"></div>
+        <div class="fp-line w90"></div><div class="fp-line w80"></div><div class="fp-line w60"></div>
+        <div class="fp-card"></div><div class="fp-line w80"></div><div class="fp-line w90"></div>
+      </div>
+      <div class="wpanel simplep">
+        <div class="whead">
+          <span class="t">ସହାୟତା · Help</span>
+          <select><option>ଓଡ଼ିଆ</option><option>हिन्दी</option><option>English</option></select>
+        </div>
+        <div class="bstack" id="b-stack">
+          <button class="bbig" data-msg="Reading the page aloud…"><span class="ic">🔊</span><span><span class="or">ପଢ଼ି ଶୁଣାଅ</span><span class="en">Read this page to me</span></span></button>
+          <button class="bbig" data-msg="Simple Odia coming up…"><span class="ic">📖</span><span><span class="or">ସହଜ ଓଡ଼ିଆ</span><span class="en">Simple Odia (translate + easy read)</span></span></button>
+          <button class="bbig" data-msg="Finding documents on this page…"><span class="ic">📄</span><span><span class="or">ଦଲିଲ ପଢ଼</span><span class="en">Read a document to me</span></span></button>
+          <div class="bextra">
+            <button class="bsmall" data-msg="Listening… speak now">🎙️ କହି ଲେଖ <span class="en2">Speak to fill</span></button>
+            <button class="bsmall" data-msg="Say a command…">🧭 କହି ଚଲାଅ <span class="en2">Voice command</span></button>
+            <button class="bsmall" data-msg="Toggled comfortable letters">🔤 ଆରାମ ଅକ୍ଷର <span class="en2">Dyslexia mode</span></button>
+            <button class="bsmall" data-msg="Toggled reading ruler">📏 ପଢ଼ା ରେଖା <span class="en2">Reading ruler</span></button>
+            <button class="bsmall" data-msg="Toggled hover to speak">👆 ଛୁଇଁଲେ କୁହେ <span class="en2">Hover speaks</span></button>
+          </div>
+          <button class="bmore" id="b-more">ଅଧିକ · More ▾</button>
+        </div>
+        <div class="wstatus" id="b-status">ପ୍ରସ୍ତୁତ · Ready</div>
+      </div>
+      <button class="fab">ଅ</button>
+    </div>
+  </div>
+
+  <!-- ============ C: SLIM DOCK ============ -->
+  <div class="candidate">
+    <h2>C · Slim dock</h2>
+    <div class="meta"><b>~85% less page covered.</b> A strip of round buttons with the label always
+      beside each — nothing else. Settings live behind the ⚙️ bubble. The page stays visible.</div>
+    <div class="screen">
+      <div class="fakepage">
+        <div class="fp-head"></div><div class="fp-nav"></div>
+        <div class="fp-line w90"></div><div class="fp-line w80"></div><div class="fp-line w60"></div>
+        <div class="fp-card"></div><div class="fp-line w80"></div><div class="fp-line w90"></div>
+      </div>
+      <div class="dock">
+        <div class="ditem"><span class="dlabel">ପଢ଼ି ଶୁଣାଅ<small>Read aloud</small></span><button class="dbtn" data-msg="Reading the page aloud…">🔊</button></div>
+        <div class="ditem"><span class="dlabel">ଅନୁବାଦ<small>Translate</small></span><button class="dbtn" data-msg="Translating to Odia…">🌐</button></div>
+        <div class="ditem"><span class="dlabel">ସହଜ ପଢ଼ା<small>Easy Read</small></span><button class="dbtn" data-msg="Making the page simple…">📖</button></div>
+        <div class="ditem"><span class="dlabel">ଦଲିଲ ପଢ଼<small>Read document</small></span><button class="dbtn" data-msg="Finding documents…">📄</button></div>
+        <div class="ditem"><span class="dlabel">କହି ଲେଖ<small>Speak to fill</small></span><button class="dbtn" data-msg="Listening… speak now">🎙️</button></div>
+        <div class="ditem"><span class="dlabel">କହି ଚଲାଅ<small>Voice command</small></span><button class="dbtn" data-msg="Say a command…">🧭</button></div>
+        <div class="ditem"><span class="dlabel">ଆରାମ · Comfort<small>settings</small></span><button class="dbtn" data-msg="(opens the three comfort toggles)">⚙️</button></div>
+      </div>
+      <div class="dockstatus" id="c-status"></div>
+      <button class="fab">ଅ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Fake actions: every button just reports to its candidate's status line.
+  document.querySelectorAll("[data-msg]").forEach((b) => {
+    b.addEventListener("click", () => {
+      const screen = b.closest(".screen");
+      const status = screen.querySelector(".wstatus, .dockstatus");
+      if (!status) return;
+      status.style.display = "block";
+      status.textContent = b.getAttribute("data-msg");
+      clearTimeout(status._t);
+      status._t = setTimeout(() => {
+        if (status.classList.contains("dockstatus")) status.style.display = "none";
+        else status.textContent = "ପ୍ରସ୍ତୁତ · Ready";
+      }, 2200);
+    });
+  });
+  document.getElementById("b-more").addEventListener("click", function () {
+    const stack = document.getElementById("b-stack");
+    stack.classList.toggle("expanded");
+    this.textContent = stack.classList.contains("expanded") ? "କମ୍ · Less ▴" : "ଅଧିକ · More ▾";
+  });
+</script>
+</body>
+</html>
