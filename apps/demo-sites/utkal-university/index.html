@@ -51,10 +51,24 @@
           <li><a href="#research">Research</a></li>
           <li><a href="#accessibility">Accessibility Cell</a></li>
           <li><a href="#notices">Notices</a></li>
+          <li><a href="#helpdesk">Helpdesk</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
       </div>
     </nav>
+
+    <!-- News ticker: repeats headline links in truncated form, the way
+         university sites do — the voice matcher collapses duplicates. -->
+    <div style="background:#eef4ff;border-bottom:1px solid #c4d4ee;padding:0.45rem 0;font-size:0.88rem;" aria-label="Latest updates">
+      <div class="wrap" style="display:flex;gap:0.7rem;align-items:baseline;">
+        <strong style="color:#1d4a8f;flex:none;">Latest:</strong>
+        <span>
+          <a href="#notices">UUCET-PG 2026 — registrations open (last date 20 M…</a>
+          &nbsp;·&nbsp;
+          <a href="assets/admission-notice-scan.png">Admission notice No. 3172 for postgraduate programmes…</a>
+        </span>
+      </div>
+    </div>
 
     <main id="main" class="wrap">
 
@@ -265,7 +279,78 @@
             <time datetime="2026-04-01">1 April 2026</time>
             <a href="#">Convocation 2026 — nominations invited for honorary degrees</a>
           </li>
+          <li>
+            <time datetime="2026-04-22">22 April 2026</time>
+            <a href="assets/admission-notice-scan.png">Admission notice No. 3172 — postgraduate programmes 2026-27 (scanned copy)</a>
+          </li>
         </ol>
+
+        <!-- Scanned notice: an image of paper, invisible to screen
+             readers — the document reader's showcase. -->
+        <figure class="scanned-notice" style="margin:1rem 0 0;">
+          <img src="assets/admission-notice-scan.png" width="620"
+               alt="Scanned admission notice No. 3172: postgraduate applications for 2026-27, fee exemption for PwD candidates"
+               style="max-width:100%;height:auto;border:1px solid #c9c2b4;box-shadow:0 2px 8px rgba(0,0,0,0.12);" />
+          <figcaption style="font-size:0.85rem;color:#5a6a7a;">Admission notice No. 3172 (scanned copy, 22 April 2026)</figcaption>
+        </figure>
+
+        <!-- Officialese on purpose: the Easy Read tile's showcase. -->
+        <div style="background:#fff;border-left:5px solid #1d4a8f;border-radius:6px;padding:0.9rem 1.1rem;margin:1rem 0 0;">
+          <p style="line-height:1.7;margin:0;">
+            It is hereby notified that candidates shall furnish the requisite
+            certificates in original at the time of counselling w.e.f.
+            01.06.2026, failing which the provisional selection shall stand
+            cancelled. Candidates belonging to the PwD category are exempted
+            from payment of the application fee and are required to intimate
+            their assistive-technology requirements to the Accessibility
+            Cell at the earliest.
+          </p>
+        </div>
+      </section>
+
+      <section id="helpdesk">
+        <h2>Admission Helpdesk</h2>
+        <p>
+          Applicants who cannot type can fill this form by voice: open the
+          ଅ assistant and tap <strong>କହି ଲେଖ · Speak to fill</strong> — it
+          asks for each answer aloud and never submits on its own.
+        </p>
+        <form id="helpdesk-form" style="display:grid;gap:0.7rem;max-width:34rem;background:#fff;border:1px solid #d7dfe8;border-radius:10px;padding:1.1rem;">
+          <div>
+            <label for="hd-name" style="display:block;font-weight:600;">ପୂରା ନାମ · Full name</label>
+            <input id="hd-name" name="name" type="text" autocomplete="name"
+                   style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="hd-phone" style="display:block;font-weight:600;">ଫୋନ୍ ନମ୍ବର · Phone number</label>
+            <input id="hd-phone" name="phone" type="tel" autocomplete="tel"
+                   style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="hd-email" style="display:block;font-weight:600;">ଇମେଲ୍ · Email</label>
+            <input id="hd-email" name="email" type="email" autocomplete="email"
+                   style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="hd-query" style="display:block;font-weight:600;">ପ୍ରଶ୍ନ · Your question</label>
+            <textarea id="hd-query" name="query" rows="3"
+                      style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;"></textarea>
+          </div>
+          <div>
+            <button type="button" id="hd-submit"
+                    style="background:#1d4a8f;color:#fff;border:0;border-radius:8px;padding:0.65rem 1.3rem;font-weight:600;cursor:pointer;">
+              ପଠାନ୍ତୁ · Send question (demo)
+            </button>
+            <p id="hd-msg" role="status" style="margin-top:0.5rem;font-weight:600;color:#1b6e3c;"></p>
+          </div>
+        </form>
+        <script>
+          document.getElementById("hd-submit").addEventListener("click", function () {
+            var name = document.getElementById("hd-name").value || "—";
+            document.getElementById("hd-msg").textContent =
+              "ଧନ୍ୟବାଦ " + name + "! Question received (demo) · Ticket UU-HELP-2026-078";
+          });
+        </script>
       </section>
 
       <section id="results" class="results-card">

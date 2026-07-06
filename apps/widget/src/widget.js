@@ -818,6 +818,17 @@
     return min >= 20 && na.slice(0, min - 3) === nb.slice(0, min - 3);
   }
 
+  // Two ranked entries are the same intent when their names match
+  // (exact or truncation) OR they are links to the SAME destination —
+  // a ticker and a notice list often word the same document
+  // differently.
+  function sameVoiceTarget(a, b) {
+    if (sameVoiceName(a.name, b.name)) return true;
+    const ha = a.element && a.element.tagName === "A" ? a.element.href : "";
+    const hb = b.element && b.element.tagName === "A" ? b.element.href : "";
+    return !!ha && ha === hb;
+  }
+
   // Act on a clearly-best candidate, never on an ambiguous one: a sure
   // hit clicks, a plausible hit clicks only with daylight to the
   // runner-up, everything else just reports candidates.
@@ -826,9 +837,9 @@
     const top = ranked[0].score;
     if (top >= VOICE_SURE_THRESHOLD) return true;
     if (top < VOICE_ACT_THRESHOLD) return false;
-    // Duplicate-name runner-ups are the same intent, not ambiguity —
+    // Duplicate runner-ups are the same intent, not ambiguity —
     // measure the gap to the first genuinely DIFFERENT rival.
-    const rival = ranked.find((r) => !sameVoiceName(r.name, ranked[0].name));
+    const rival = ranked.find((r) => !sameVoiceTarget(r, ranked[0]));
     return !rival || top - rival.score >= VOICE_AMBIGUITY_GAP;
   }
 
@@ -4620,7 +4631,15 @@
       const fieldNow = micFieldWasFocused || isEditableTarget(document.activeElement);
       micFieldWasFocused = false;
       if (!fieldNow) {
-        const fields = collectFormFields();
+        let fields = collectFormFields();
+        // Pages often carry several forms (a search box, a results
+        // lookup, the application). Fill the FORM the walk starts in,
+        // not the whole page — a second tap continues with the next
+        // form once this one has answers.
+        const firstEmpty = fields.find((f) => !(f.value || "").trim()) || fields[0];
+        if (firstEmpty && firstEmpty.form) {
+          fields = fields.filter((f) => f.form === firstEmpty.form);
+        }
         if (fields.length >= 2) {
           guidedFormFill(fields);
           return;
@@ -4685,10 +4704,11 @@
       hint.textContent = "ଗୋଟିଏ ବାଛନ୍ତୁ · Not sure — tap the one you meant:";
       voiceChoicesEl.append(hint);
       // Same name twice (header + footer copies, ticker truncations)
-      // would render as identical buttons — offer each NAME once.
+      // or the same destination worded differently would render as
+      // near-identical buttons — offer each intent once.
       const kept = [];
       for (const r of ranked) {
-        if (!kept.some((k) => sameVoiceName(k.name, r.name))) kept.push(r);
+        if (!kept.some((k) => sameVoiceTarget(k, r))) kept.push(r);
       }
       kept.slice(0, 3).forEach((r) => {
         const b = document.createElement("button");

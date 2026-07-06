@@ -56,6 +56,8 @@ const code =
   "\n" +
   extractFn("sameVoiceName") +
   "\n" +
+  extractFn("sameVoiceTarget") +
+  "\n" +
   extractFn("shouldActOnVoiceMatch") +
   "\n" +
   "module.exports = { editDistance, normalizeCommandText, matchGlobalCommand, glossaryTranslateOdia, scoreVoiceTarget, rankVoiceTargets, shouldActOnVoiceMatch, sameVoiceName };";
@@ -228,6 +230,17 @@ check(
     "Public notice on lease cases under Danagadi Tahasil.",
     "Public Notice for allotment of homestead land",
   ) === false,
+);
+check(
+  "same destination worded differently still acts",
+  (() => {
+    const el = { tagName: "A", href: "http://x/tender.pdf" };
+    return shouldActOnVoiceMatch([
+      { score: 0.7, name: "Tender call notice No. 88 for supply of devices", element: el },
+      { score: 0.68, name: "Tender call notice No. 88 — supply of devices (PDF)", element: { tagName: "A", href: "http://x/tender.pdf" } },
+      { score: 0.4, name: "Contact", element: null },
+    ]) === true;
+  })(),
 );
 check(
   "hidden carousel notice is now reachable",

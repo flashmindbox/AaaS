@@ -45,6 +45,19 @@
       </div>
     </nav>
 
+    <!-- News ticker: gov sites repeat headline links here in truncated
+         form — the widget's voice matcher treats those as one intent. -->
+    <div style="background:#fff3dd;border-bottom:1px solid #e3cfa4;padding:0.45rem 0;font-size:0.88rem;" aria-label="Latest updates">
+      <div class="wrap" style="display:flex;gap:0.7rem;align-items:baseline;">
+        <strong style="color:#9a6a00;flex:none;">Latest:</strong>
+        <span>
+          <a href="#notifications">Post-matric scholarship for students with disabilities — last…</a>
+          &nbsp;·&nbsp;
+          <a href="assets/tender-circular.pdf">Tender call notice No. 88 for supply of assistive devices…</a>
+        </span>
+      </div>
+    </div>
+
     <main id="main" class="wrap">
       <section id="about" class="hero">
         <h2>Welcome</h2>
@@ -116,7 +129,24 @@
             <time datetime="2026-04-09">9 April 2026</time>
             <a href="#">Cyclone-preparedness drill across all blocks — 22 April</a>
           </li>
+          <li>
+            <time datetime="2026-04-20">20 April 2026</time>
+            <a href="assets/tender-circular.pdf">Tender call notice No. 88 — supply of assistive devices (scanned PDF, 2 pages)</a>
+          </li>
         </ol>
+
+        <!-- Officialese on purpose: the Easy Read tile's showcase. -->
+        <div style="background:#fff;border-left:5px solid #e8a020;border-radius:6px;padding:0.9rem 1.1rem;margin:1rem 0;">
+          <p style="line-height:1.7;margin:0;">
+            It is hereby notified that applicants under the post-matric
+            scholarship scheme shall furnish the requisite documents at the
+            concerned block office on or before 30.04.2026, failing which
+            the applications shall be liable to rejection. Applicants are
+            required to peruse the guidelines and intimate any grievance
+            pertaining thereto to the competent authority, viz. the District
+            Social Security Officer, at the earliest.
+          </p>
+        </div>
 
         <!-- Scanned notice: an image of paper, invisible to screen
              readers and to text-based tools — the case the widget's
@@ -177,6 +207,11 @@
             <label for="gv-age" style="display:block;font-weight:600;">ବୟସ · Age</label>
             <input id="gv-age" name="age" type="number" min="1" max="120"
                    style="width:8rem;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
+          </div>
+          <div>
+            <label for="gv-email" style="display:block;font-weight:600;">ଇମେଲ୍ (ଥିଲେ) · Email (if any)</label>
+            <input id="gv-email" name="email" type="email" autocomplete="email"
+                   style="width:100%;padding:0.55rem;border:1px solid #b9c2cc;border-radius:6px;" />
           </div>
           <div>
             <label for="gv-details" style="display:block;font-weight:600;">ଅଭିଯୋଗ ବିବରଣୀ · Grievance details</label>

@@ -85,6 +85,54 @@ CIRCULAR_BSE_P2 = {
 
 
 SSEPD_DIR = REPO / "apps" / "demo-sites" / "ssepd-odisha" / "assets"
+JAJPUR_DIR = REPO / "apps" / "demo-sites" / "jajpur-collectorate" / "assets"
+UTKAL_DIR = REPO / "apps" / "demo-sites" / "utkal-university" / "assets"
+
+CIRCULAR_TENDER_P1 = {
+    "header": ["OFFICE OF THE DISTRICT COLLECTOR, JAJPUR", "TENDER SECTION"],
+    "ref": "No. 88 /Tender     Date: 20.04.2026",
+    "title": "T E N D E R   C A L L   N O T I C E",
+    "body": [
+        "It is hereby notified that sealed tenders are invited from "
+        "registered contractors for the supply of assistive devices to "
+        "block offices, at an estimated cost of Rs. 4800000, on or before "
+        "05.05.2026. Tenders received subsequent to the said date shall "
+        "be liable to rejection.",
+    ],
+    "footer": "Executive Officer",
+}
+
+CIRCULAR_TENDER_P2 = {
+    "header": ["OFFICE OF THE DISTRICT COLLECTOR, JAJPUR"],
+    "ref": "Page 2 of 2",
+    "title": "",
+    "body": [
+        "Bidders shall furnish the requisite earnest money deposit of "
+        "Rs. 96000 by demand draft and shall peruse the eligibility "
+        "criteria appended hereto, in accordance with the stipulated "
+        "guidelines. The competent authority reserves the right to reject "
+        "any or all tenders without assigning any reason thereof.",
+    ],
+    "footer": "",
+}
+
+NOTICE_UTKAL = {
+    "header": ["UTKAL UNIVERSITY, BHUBANESWAR", "OFFICE OF THE REGISTRAR"],
+    "ref": "No. 3172 /Acad.     Date: 22.04.2026",
+    "title": "A D M I S S I O N   N O T I C E",
+    "body": [
+        "It is hereby notified that online applications for admission to "
+        "postgraduate programmes for the session 2026-27 shall be received "
+        "w.e.f. 01.05.2026. The last date for submission of applications "
+        "is 20.05.2026 and the application fee of Rs. 500 shall be "
+        "remitted online; candidates belonging to PwD category are "
+        "exempted from payment of the said fee.",
+        "Candidates shall furnish the requisite certificates at the time "
+        "of counselling, failing which the provisional selection shall "
+        "stand cancelled.",
+    ],
+    "footer": "Registrar",
+}
 
 NOTICE_SSEPD = {
     "header": ["GOVERNMENT OF ODISHA", "SSEPD DEPARTMENT, BHUBANESWAR"],
@@ -211,6 +259,17 @@ def main() -> int:
     u2 = render_page(CIRCULAR_UDID_P2)
     u1.save(udid_pdf, "PDF", resolution=120, save_all=True, append_images=[u2])
     print(f"[notices] wrote {udid_pdf} ({udid_pdf.stat().st_size:,} bytes, 2 pages)")
+
+    tender_pdf = JAJPUR_DIR / "tender-circular.pdf"
+    t1 = render_page(CIRCULAR_TENDER_P1)
+    t2 = render_page(CIRCULAR_TENDER_P2)
+    t1.save(tender_pdf, "PDF", resolution=120, save_all=True, append_images=[t2])
+    print(f"[notices] wrote {tender_pdf} ({tender_pdf.stat().st_size:,} bytes, 2 pages)")
+
+    UTKAL_DIR.mkdir(parents=True, exist_ok=True)
+    utkal_png = UTKAL_DIR / "admission-notice-scan.png"
+    render_page(NOTICE_UTKAL).save(utkal_png, "PNG")
+    print(f"[notices] wrote {utkal_png} ({utkal_png.stat().st_size:,} bytes)")
     return 0
 
 
