@@ -881,63 +881,77 @@
       position: fixed;
       right: 1.25rem;
       bottom: 5.5rem;
-      width: min(360px, calc(100vw - 2.5rem));
+      width: min(304px, calc(100vw - 2.5rem));
       background: #0f1419;
       color: #e8edf2;
-      border-radius: 14px;
+      border-radius: 16px;
       border: 1px solid #253040;
       box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-      padding: 1rem 1rem 0.9rem;
+      padding: 0 0 0.6rem;
       z-index: 2147483647;
       display: none;
     }
     .panel[data-open="true"] { display: block; }
 
-    .title { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.2rem; }
-    .sub { color: #8b96a5; font-size: 0.85rem; margin: 0 0 0.9rem; }
-
-    .row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.65rem; }
-    .row label { font-size: 0.82rem; color: #8b96a5; }
+    .whead {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 0.8rem 0.55rem;
+      border-bottom: 1px solid #1d2733;
+      margin-bottom: 0.6rem;
+    }
+    .title { font-size: 0.95rem; font-weight: 700; margin: 0; flex: 1; }
 
     select.lang {
-      flex: 1;
       background: #1b2530;
       color: #e8edf2;
       border: 1px solid #2c3a4c;
       border-radius: 8px;
-      padding: 0.4rem 0.55rem;
-      font-size: 0.9rem;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.82rem;
+      max-width: 8.5rem;
     }
     select.lang:focus-visible { outline: 2px solid #ffcf33; outline-offset: 1px; }
 
-    button.action {
-      width: 100%;
-      background: #1a66cc;
-      color: white;
-      border: 0;
-      border-radius: 10px;
-      padding: 0.7rem 1rem;
-      font-size: 0.98rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      justify-content: center;
+    /* Icon-grid tiles: Odia-first label, English under it. Same class
+       hooks as the old full-width buttons so all wiring is unchanged. */
+    .agrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 0 0.6rem;
       margin-bottom: 0.55rem;
     }
-    button.action:hover:not(:disabled) { background: #2d7ad9; }
+    button.action {
+      width: 100%;
+      background: #1a2430;
+      color: #e8edf2;
+      border: 1px solid #2c3a4c;
+      border-radius: 12px;
+      padding: 0.55rem 0.25rem 0.5rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-height: 4.6rem;
+    }
+    button.action .ic { font-size: 1.35rem; line-height: 1.15; }
+    button.action .or { font-size: 0.86rem; font-weight: 700; line-height: 1.2; }
+    button.action .en { font-size: 0.64rem; color: #9fb2c8; line-height: 1.25; text-align: center; }
+    button.action:hover:not(:disabled) { background: #24344a; border-color: #4a6a96; }
+    button.action:focus-visible { outline: 2px solid #ffcf33; outline-offset: 1px; }
     button.action:disabled { opacity: 0.55; cursor: not-allowed; }
-    button.action.stop { background: #c7444c; }
-    button.action.stop:hover { background: #d85860; }
-    button.action.mic { background: #2c7a52; }
-    button.action.mic:hover { background: #349062; }
+    button.action.stop { background: #7c2f35; border-color: #c7444c; }
+    button.action.stop:hover { background: #94393f; }
+    button.action.mic .ic::after { content: ""; }
     button.action.mic.recording,
-    button.action.voice.recording { background: #c7444c; animation: pulse 1.2s infinite; }
+    button.action.voice.recording { background: #7c2f35; border-color: #c7444c; animation: pulse 1.2s infinite; }
     @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(199,68,76,0.35); } }
 
     .transcript {
-      margin-top: 0.3rem;
+      margin: 0.3rem 0.8rem 0;
       padding: 0.55rem 0.7rem;
       background: #1b2530;
       border-radius: 8px;
@@ -950,10 +964,10 @@
     .transcript:empty { display: none; }
 
     .status {
-      margin-top: 0.55rem;
+      margin: 0.45rem 0.8rem 0;
       min-height: 1.3rem;
       color: #8b96a5;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
     }
     .status.error { color: #ff9898; }
     .status.ok    { color: #8fdba0; }
@@ -976,26 +990,49 @@
     }
 
     .meta {
-      margin-top: 0.35rem;
-      font-size: 0.75rem;
+      margin: 0.3rem 0.8rem 0;
+      font-size: 0.72rem;
       color: #5e6778;
     }
+
+    /* Reading-comfort settings: one collapsed row, toggles inside. */
+    .comfort {
+      margin: 0 0.6rem 0.35rem;
+      border: 1px solid #2c3a4c;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .comfort-head {
+      width: 100%;
+      background: #161f2a;
+      color: #cdd9e5;
+      border: 0;
+      padding: 0.5rem 0.7rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .comfort-head .chev { margin-left: auto; transition: transform 0.15s; }
+    .comfort.open .comfort-head .chev { transform: rotate(180deg); }
+    .comfort-body { display: none; background: #121a24; padding: 6px 8px 4px; }
+    .comfort.open .comfort-body { display: block; }
 
     label.toggle {
       display: grid;
       grid-template-columns: auto 1fr;
       grid-template-rows: auto auto;
-      column-gap: 0.6rem;
+      column-gap: 0.55rem;
       align-items: center;
-      padding: 0.55rem 0.7rem;
-      background: #1b2530;
-      border: 1px solid #2c3a4c;
-      border-radius: 10px;
-      margin-bottom: 0.55rem;
+      padding: 0.4rem 0.45rem;
+      border-radius: 8px;
+      margin-bottom: 0.15rem;
       cursor: pointer;
       user-select: none;
     }
-    label.toggle:hover { border-color: #3a4c63; }
+    label.toggle:hover { background: #1a2430; }
     label.toggle input[type="checkbox"] {
       grid-row: 1 / span 2;
       width: 18px;
@@ -1004,35 +1041,38 @@
       cursor: pointer;
     }
     label.toggle .toggle-text {
-      font-size: 0.92rem;
+      font-size: 0.85rem;
       color: #e8edf2;
-      font-weight: 500;
+      font-weight: 600;
     }
     label.toggle .toggle-hint {
-      font-size: 0.76rem;
+      font-size: 0.7rem;
       color: #8b96a5;
     }
 
     .read-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.4rem;
-      margin-bottom: 0.55rem;
+      position: relative;
+      display: block;
     }
-    .read-row button.action { margin-bottom: 0; }
     button.pause {
-      width: 44px;
-      padding: 0.7rem 0;
-      background: #1b2530;
-      border: 1px solid #2c3a4c;
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      background: #10151d;
+      border: 1px solid #c7444c;
       color: #e8edf2;
-      border-radius: 10px;
-      font-size: 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
       cursor: pointer;
       display: none;
+      z-index: 2;
     }
     button.pause:hover:not(:disabled) { background: #24303e; }
     .read-row[data-playing="true"] button.pause { display: block; }
+    .read-row button.action { width: 100%; height: 100%; }
 
     .shortcuts-link {
       display: inline-block;
@@ -2521,71 +2561,85 @@
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-label", "Accessibility options");
     panel.innerHTML = `
-      <p class="title">Accessibility</p>
-      <p class="sub">Read aloud, translate, and speak to fill forms.</p>
-
-      <div class="row">
-        <label for="aaas-lang">Language</label>
-        <select id="aaas-lang" class="lang" aria-label="Read-aloud language">
+      <div class="whead">
+        <p class="title">ସହାୟତା · Help</p>
+        <select id="aaas-lang" class="lang" aria-label="Language">
           <option value="auto"${CONFIG.defaultLang === "auto" ? " selected" : ""}>Auto (${pageLang})</option>
-          <option value="or"${CONFIG.defaultLang === "or" ? " selected" : ""}>Odia · ଓଡ଼ିଆ</option>
-          <option value="hi"${CONFIG.defaultLang === "hi" ? " selected" : ""}>Hindi · हिन्दी</option>
+          <option value="or"${CONFIG.defaultLang === "or" ? " selected" : ""}>ଓଡ଼ିଆ</option>
+          <option value="hi"${CONFIG.defaultLang === "hi" ? " selected" : ""}>हिन्दी</option>
           <option value="en"${CONFIG.defaultLang === "en" ? " selected" : ""}>English</option>
         </select>
       </div>
 
-      <div class="read-row">
-        <button class="action read" type="button">
-          <span aria-hidden="true">🔊</span>
-          <span>Read this page</span>
+      <div class="agrid">
+        <div class="read-row">
+          <button class="action read" type="button">
+            <span class="ic" aria-hidden="true">🔊</span>
+            <span class="or" lang="or">ପଢ଼ି ଶୁଣାଅ</span>
+            <span class="en">Read aloud</span>
+          </button>
+          <button class="pause" type="button" aria-label="Pause or resume" title="Pause (Space)">⏸</button>
+        </div>
+
+        <button class="action translate" type="button">
+          <span class="ic" aria-hidden="true">🌐</span>
+          <span class="or" lang="or">ଅନୁବାଦ</span>
+          <span class="en translate-label">Translate</span>
         </button>
-        <button class="pause" type="button" aria-label="Pause or resume" title="Pause (Space)">⏸</button>
+
+        <button class="action easyread" type="button">
+          <span class="ic" aria-hidden="true">📖</span>
+          <span class="or" lang="or">ସହଜ ପଢ଼ା</span>
+          <span class="en easyread-label">Easy Read</span>
+        </button>
+
+        <button class="action ocr" type="button">
+          <span class="ic" aria-hidden="true">📄</span>
+          <span class="or" lang="or">ଦଲିଲ ପଢ଼</span>
+          <span class="en">Read document</span>
+        </button>
+
+        <button class="action mic" type="button">
+          <span class="ic" aria-hidden="true">🎙️</span>
+          <span class="or" lang="or">କହି ଲେଖ</span>
+          <span class="en">Speak to fill</span>
+        </button>
+
+        <button class="action voice" type="button">
+          <span class="ic" aria-hidden="true">🧭</span>
+          <span class="or" lang="or">କହି ଚଲାଅ</span>
+          <span class="en">Voice command</span>
+        </button>
       </div>
 
-      <button class="action mic" type="button">
-        <span aria-hidden="true">🎙️</span>
-        <span>Speak (fill by voice)</span>
-      </button>
+      <div class="comfort">
+        <button class="comfort-head" type="button" aria-expanded="false">
+          <span aria-hidden="true">⚙️</span>
+          <span><span lang="or">ପଢ଼ିବା ଆରାମ</span> · Reading comfort</span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="comfort-body">
+          <label class="toggle">
+            <input type="checkbox" id="aaas-dyslexia" />
+            <span class="toggle-text"><span lang="or">ଆରାମ ଅକ୍ଷର</span> · Comfortable letters</span>
+            <span class="toggle-hint">Dyslexia-friendly font and spacing</span>
+          </label>
 
-      <button class="action voice" type="button">
-        <span aria-hidden="true">🧭</span>
-        <span>Navigate by voice</span>
-      </button>
+          <label class="toggle">
+            <input type="checkbox" id="aaas-ruler" />
+            <span class="toggle-text"><span lang="or">ପଢ଼ା ରେଖା</span> · Reading ruler</span>
+            <span class="toggle-hint">Focus band that follows your pointer</span>
+          </label>
 
-      <button class="action translate" type="button">
-        <span aria-hidden="true">🌐</span>
-        <span class="translate-label">Translate this page</span>
-      </button>
+          <label class="toggle">
+            <input type="checkbox" id="aaas-hover" />
+            <span class="toggle-text"><span lang="or">ଛୁଇଁଲେ କୁହେ</span> · Hover to speak</span>
+            <span class="toggle-hint">Speaks whatever your mouse points at</span>
+          </label>
 
-      <button class="action easyread" type="button">
-        <span aria-hidden="true">📖</span>
-        <span class="easyread-label">Easy Read this page</span>
-      </button>
-
-      <button class="action ocr" type="button">
-        <span aria-hidden="true">📄</span>
-        <span>Read a document to me</span>
-      </button>
-
-      <label class="toggle">
-        <input type="checkbox" id="aaas-dyslexia" />
-        <span class="toggle-text">Dyslexia mode</span>
-        <span class="toggle-hint">More spacing, softer contrast</span>
-      </label>
-
-      <label class="toggle">
-        <input type="checkbox" id="aaas-hover" />
-        <span class="toggle-text">Hover to speak</span>
-        <span class="toggle-hint">Speaks whatever your mouse points at</span>
-      </label>
-
-      <label class="toggle">
-        <input type="checkbox" id="aaas-ruler" />
-        <span class="toggle-text">Reading ruler</span>
-        <span class="toggle-hint">Focus band that follows your pointer</span>
-      </label>
-
-      <button class="shortcuts-link" type="button">⌨️ Keyboard shortcuts</button>
+          <button class="shortcuts-link" type="button">⌨️ Keyboard shortcuts</button>
+        </div>
+      </div>
 
       <div class="transcript" role="status" aria-live="polite"></div>
       <div class="status" role="status" aria-live="polite">Ready</div>
@@ -2662,6 +2716,20 @@
       setStoredFlag(LS_RULER, on);
       applyRuler(on);
     });
+
+    // Reading-comfort section: collapsed by default so first-time
+    // users see six actions, not nine controls. Opens automatically
+    // if any comfort setting is already on from a previous visit.
+    const comfortBox = panel.querySelector(".comfort");
+    const comfortHead = panel.querySelector(".comfort-head");
+    comfortHead.addEventListener("click", () => {
+      const open = comfortBox.classList.toggle("open");
+      comfortHead.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    if (dyslexiaToggle.checked || rulerToggle.checked || hoverToggle.checked) {
+      comfortBox.classList.add("open");
+      comfortHead.setAttribute("aria-expanded", "true");
+    }
 
     const setStatus = (msg, kind) => {
       statusEl.textContent = msg;
@@ -2784,7 +2852,7 @@
       isReading = on;
       readRow.setAttribute("data-playing", on ? "true" : "false");
       readBtn.classList.toggle("stop", on);
-      readBtn.querySelector("span:last-child").textContent = on ? "Stop" : "Read this page";
+      readBtn.querySelector("span:last-child").textContent = on ? "Stop" : "Read aloud";
       pauseBtn.textContent = "⏸";
       pauseBtn.title = "Pause (Space)";
       if (label !== undefined) setStatus(label, on ? "ok" : "");
@@ -3033,9 +3101,7 @@
     function updateTranslateLabel() {
       const tgt = resolvedLang() || "or";
       translateLabel.textContent =
-        tgt === "en"
-          ? "Translate this page"
-          : `Translate this page → ${LANG_DISPLAY[tgt] || tgt}`;
+        tgt === "en" ? "Translate" : `Translate → ${LANG_DISPLAY[tgt] || tgt}`;
     }
     updateTranslateLabel();
     langSel.addEventListener("change", updateTranslateLabel);
@@ -3486,7 +3552,7 @@
 
     async function handleRecorded(blob) {
       micBtn.classList.remove("recording");
-      micBtn.querySelector("span:last-child").textContent = "Speak (fill by voice)";
+      micBtn.querySelector("span:last-child").textContent = "Speak to fill";
       setStatus("Transcribing…");
       try {
         const result = await transcribe(blob, resolvedLang());
@@ -3589,8 +3655,7 @@
       try {
         await recorder.start({ onAutoStop: handleRecorded });
         micBtn.classList.add("recording");
-        micBtn.querySelector("span:last-child").textContent =
-          `Recording (tap to stop, ${CONFIG.maxRecordSeconds}s max)…`;
+        micBtn.querySelector("span:last-child").textContent = "Recording… tap to stop";
         setStatus("Listening…");
       } catch (err) {
         setStatus(`Mic unavailable: ${err.message}`, "error");
@@ -3737,7 +3802,7 @@
     async function handleVoiceRecorded(blob) {
       voiceNavRecording = false;
       voiceBtn.classList.remove("recording");
-      voiceBtn.querySelector("span:last-child").textContent = "Navigate by voice";
+      voiceBtn.querySelector("span:last-child").textContent = "Voice command";
       setStatus("Transcribing command…");
       try {
         const result = await transcribe(blob, resolvedLang());
@@ -3773,7 +3838,7 @@
         await recorder.start({ onAutoStop: handleVoiceRecorded });
         voiceNavRecording = true;
         voiceBtn.classList.add("recording");
-        voiceBtn.querySelector("span:last-child").textContent = "Listening for a command…";
+        voiceBtn.querySelector("span:last-child").textContent = "Listening…";
         setStatus("Say a command or a link name…");
       } catch (err) {
         setStatus(`Mic unavailable: ${err.message}`, "error");
