@@ -4161,12 +4161,21 @@
       }
     }
 
+    // Session token: closing the modal (or starting a new run)
+    // invalidates every in-flight pipeline. Without this, OCR/simplify/
+    // translate kept running after close and auto-started SPEAKING into
+    // the closed modal when they finished — a ghost voice that looked
+    // like "the previous session resumed".
+    let docSession = 0;
+
     function closeDocModal() {
+      docSession++;
       stopDocReading();
       docModal.setAttribute("data-open", "false");
       document.querySelectorAll("[data-aaas-ocr-hover]").forEach((el) => {
         el.removeAttribute("data-aaas-ocr-hover");
       });
+      ocrBtn.disabled = false; // a cancelled run must not leave the tile stuck
       try { ocrBtn.focus(); } catch {}
     }
     docCloseBtn.addEventListener("click", closeDocModal);
@@ -4389,15 +4398,19 @@
       return "Something went wrong while reading this document. Please try again.";
     }
 
-    let ocrBusy = false;
     async function runOcrPipeline(desc) {
-      if (ocrBusy) return;
-      ocrBusy = true;
+      // New run claims the session; closing the modal (or another run)
+      // bumps it, and every await below re-checks — an abandoned
+      // pipeline finishes its network call and then vanishes silently
+      // instead of filling a closed modal and speaking into it.
+      const session = ++docSession;
+      const live = () => session === docSession;
       ocrBtn.disabled = true;
       openDocModal("One moment…");
       showDocProgress("Reading the document…", desc.name || "");
       try {
         const result = await ocrFetchAndRecognize(desc.url, ocrLangHint(pageLang));
+        if (!live()) return;
         let text = (result.text || "").trim();
         if (!text) {
           showDocError("I couldn't find any readable text in this document. It may be a photo or a very poor scan.");
@@ -4413,9 +4426,11 @@
           const simplified = [];
           for (const piece of pieces) {
             simplified.push(await simplifyChunk(piece, srcLang));
+            if (!live()) return;
           }
           text = simplified.join(" ");
         } catch (err) {
+          if (!live()) return;
           console.warn("[AaaS] OCR simplify failed:", err);
         }
         if (tgt !== srcLang) {
@@ -4433,19 +4448,24 @@
                   await translateChunk(pieces[i], srcLang, tgt, { timeoutMs: 20000 }),
                 ),
               );
+              if (!live()) return;
             }
             text = translated.join(" ");
           } catch (err) {
+            if (!live()) return;
             console.warn("[AaaS] OCR translate failed:", err);
           }
         }
+        if (!live()) return;
         showDocResult(text, result.engine === "mock");
       } catch (err) {
+        if (!live()) return;
         console.warn("[AaaS] OCR pipeline failed:", err);
         showDocError(friendlyDocError(err));
       } finally {
-        ocrBusy = false;
-        ocrBtn.disabled = false;
+        // Only the CURRENT session may re-enable the tile — a stale
+        // one racing a fresh run must not flip it mid-flight.
+        if (live()) ocrBtn.disabled = false;
       }
     }
 
@@ -4473,8 +4493,11 @@
       }
       // The user asked us to READ the document — start speaking
       // without demanding another tap (unless the page reader is
-      // already talking).
-      if (!isReading) startDocReading(listenBtn);
+      // already talking, or the modal has been closed meanwhile:
+      // never speak into a closed window).
+      if (!isReading && docModal.getAttribute("data-open") === "true") {
+        startDocReading(listenBtn);
+      }
     }
 
     async function startDocReading(listenBtn) {
