@@ -907,15 +907,128 @@
     return out.replace(/(^|[\s,.-])([a-z])/g, (m, sep, c) => sep + c.toUpperCase());
   }
 
+  /* Spoken numbers arrive as WORDS, not digits — Odia words (ପାଞ୍ଚ),
+   * English words written phonetically in Odia script by the STT
+   * (ଫାଇଭ, ଥ୍ରୀ), plain English ("five"), or romanized forms
+   * ("Phaiba"). This is what real STT calls inverse text
+   * normalization; without it, phone fields got word salad and
+   * number inputs rejected everything. Fuzzy token matching (the
+   * voice-nav editDistance) absorbs accent spellings.
+   */
+  const DIGIT_WORDS = {
+    0: ["ଶୂନ", "ଶୂନ୍ୟ", "ଜିରୋ", "ଜିରର", "zero", "jiro", "shunya", "suna", "o"],
+    1: ["ଏକ", "ୱାନ", "ଵାନ", "one", "wan", "eka"],
+    2: ["ଦୁଇ", "ଟୁ", "two", "tu", "dui"],
+    3: ["ତିନି", "ଥ୍ରୀ", "ଥ୍ରି", "three", "thri", "tini"],
+    4: ["ଚାରି", "ଫୋର", "ଫୋର୍", "four", "phora", "for", "chari"],
+    5: ["ପାଞ୍ଚ", "ଫାଇଭ", "ଫାଇବ", "five", "phaibh", "phaiba", "pancha"],
+    6: ["ଛଅ", "ସିକ୍ସ", "ସିକସ", "six", "sikas", "sikash", "sikashas", "chhaa"],
+    7: ["ସାତ", "ସେଭେନ", "ସେବେନ", "seven", "sebhen", "sebhena", "sata"],
+    8: ["ଆଠ", "ଏଟ", "ଏଇଟ", "eight", "eit", "eta", "atha"],
+    9: ["ନଅ", "ନାଇନ", "ନାଇନ୍", "nine", "nain", "naina", "naa"],
+  };
+  const TENS_WORDS = {
+    10: ["ଦଶ", "ten", "dasha"],
+    20: ["କୋଡ଼ିଏ", "twenty", "kodie"],
+    30: ["ତିରିଶ", "thirty", "tirisha"],
+    40: ["ଚାଳିଶ", "forty", "chalisha"],
+    50: ["ପଚାଶ", "fifty", "pachasha"],
+    60: ["ଷାଠିଏ", "sixty", "shathie"],
+    70: ["ସତୁରି", "seventy", "saturi"],
+    80: ["ଅଶୀ", "eighty", "ashi"],
+    90: ["ନବେ", "ninety", "nabe"],
+  };
+  const REPEAT_WORDS = { 2: ["ଡବଲ", "ଡବଲ୍", "double", "dabal"], 3: ["ଟ୍ରିପଲ", "triple", "tripal"] };
+
+  function _matchNumberWord(token, table) {
+    const t = token.toLowerCase();
+    for (const value of Object.keys(table)) {
+      for (const word of table[value]) {
+        if (t === word) return value;
+        if (t.length >= 2 && word.length >= 2) {
+          const sim = 1 - editDistance(t, word) / Math.max(t.length, word.length);
+          if (sim >= 0.7) return value;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Parse a spoken number phrase into a digit string, or null when
+  // the speech clearly wasn't a number. `allowTens` sums a tens word
+  // with a following unit ("ଚାଳିଶ ପାଞ୍ଚ" -> 45) for age-like fields.
+  function spokenToDigits(text, allowTens) {
+    const tokens = toWesternDigits(text || "")
+      .split(/[\s,.\-।॥]+/)
+      .filter(Boolean);
+    if (!tokens.length) return null;
+    const parts = [];
+    let matched = 0;
+    let repeat = 1;
+    for (const token of tokens) {
+      if (/^\d+$/.test(token)) {
+        parts.push(token.repeat(repeat));
+        repeat = 1;
+        matched++;
+        continue;
+      }
+      const rep = _matchNumberWord(token, REPEAT_WORDS);
+      if (rep !== null) {
+        repeat = Number(rep);
+        matched++;
+        continue;
+      }
+      const digit = _matchNumberWord(token, DIGIT_WORDS);
+      if (digit !== null) {
+        parts.push(String(digit).repeat(repeat));
+        repeat = 1;
+        matched++;
+        continue;
+      }
+      if (allowTens) {
+        const tens = _matchNumberWord(token, TENS_WORDS);
+        if (tens !== null) {
+          parts.push({ tens: Number(tens) });
+          repeat = 1;
+          matched++;
+          continue;
+        }
+      }
+      // unknown token — tolerated, but counts against confidence
+    }
+    if (!parts.length || matched / tokens.length < 0.6) return null;
+    // Combine: a tens marker absorbs one following unit digit (45),
+    // otherwise contributes its own two digits (50).
+    let out = "";
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (typeof p === "string") {
+        out += p;
+        continue;
+      }
+      const next = parts[i + 1];
+      if (typeof next === "string" && next.length === 1 && next !== "0") {
+        out += String(p.tens + Number(next));
+        i++;
+      } else {
+        out += String(p.tens);
+      }
+    }
+    return out || null;
+  }
+
   // Clean a spoken answer to fit the field it's going into.
   function normalizeSpokenValue(type, text) {
     const t = (text || "").trim();
     if (!t) return t;
     if (type === "tel" || type === "number") {
-      // "ନଅ ଆଠ ସାତ…" arrives as digits from STT; strip separators the
-      // speaker never intended ("98 76 54" -> "987654").
+      // Digits first ("98 76 54" -> "987654"); then spoken-word
+      // parsing ("ଫାଇଭ ଥ୍ରୀ" -> "53"). If neither yields a number,
+      // return EMPTY — words in a phone field are worse than a blank
+      // the user is asked to repeat.
       const digits = toWesternDigits(t).replace(/\D+/g, "");
-      return digits || t;
+      if (digits) return digits;
+      return spokenToDigits(t, type === "number") || "";
     }
     if (type === "email") {
       return toWesternDigits(t)
@@ -4211,9 +4324,19 @@
           // Then field-type cleanup (digits for phone/number, at/dot
           // for email, trailing danda dropped).
           const type = field.tagName === "INPUT" ? (field.type || "text").toLowerCase() : "textarea";
-          let value = raw;
-          if (dominantScript(raw) === "or") value = romanizeOdia(raw);
-          value = normalizeSpokenValue(type, value);
+          let value;
+          if (type === "tel" || type === "number") {
+            // Numbers parse from the RAW transcript (word forms live
+            // there); romanization would only blur them.
+            value = normalizeSpokenValue(type, raw);
+            if (!value) {
+              setStatus(`Couldn't hear a number for "${label}" — left empty`, "error");
+              continue;
+            }
+          } else {
+            value = dominantScript(raw) === "or" ? romanizeOdia(raw) : raw;
+            value = normalizeSpokenValue(type, value);
+          }
           if (writeToField(field, value)) filled++;
         }
         setStatus(

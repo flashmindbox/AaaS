@@ -26,19 +26,28 @@ function extractConst(name) {
 const code =
   extractFn("toWesternDigits") +
   "\n" +
+  extractFn("editDistance") +
+  "\n" +
   extractConst("ODIA_VOWELS") +
   extractConst("ODIA_CONSONANTS") +
   extractConst("ODIA_MATRAS") +
   extractConst("ODIA_SIGNS") +
+  extractConst("DIGIT_WORDS") +
+  extractConst("TENS_WORDS") +
+  extractConst("REPEAT_WORDS") +
   extractFn("romanizeOdia") +
+  "\n" +
+  extractFn("_matchNumberWord") +
+  "\n" +
+  extractFn("spokenToDigits") +
   "\n" +
   extractFn("normalizeSpokenValue") +
   "\n" +
-  "module.exports = { normalizeSpokenValue, romanizeOdia };";
+  "module.exports = { normalizeSpokenValue, romanizeOdia, spokenToDigits };";
 
 const mod = { exports: {} };
 new Function("module", code)(mod);
-const { normalizeSpokenValue, romanizeOdia } = mod.exports;
+const { normalizeSpokenValue, romanizeOdia, spokenToDigits } = mod.exports;
 
 const results = [];
 function check(name, ok) {
@@ -50,7 +59,19 @@ function check(name, ok) {
 check("phone keeps only digits", normalizeSpokenValue("tel", "98 76-54 32 10") === "9876543210");
 check("Odia digits westernised", normalizeSpokenValue("tel", "୯୮୭୬୫୪୩୨୧୦") === "9876543210");
 check("number field strips words", normalizeSpokenValue("number", "45 ବର୍ଷ") === "45");
-check("no digits at all passes through", normalizeSpokenValue("tel", "ରାମ") === "ରାମ");
+check("non-number speech gives EMPTY, not words", normalizeSpokenValue("tel", "ରାମ ମହାନ୍ତି") === "");
+
+// --- spoken numbers: words -> digits (inverse text normalization) ---
+check("Odia digit words", spokenToDigits("ପାଞ୍ଚ ତିନି ଏକ", false) === "531");
+check("English-in-Odia-script (STT phonetics)", spokenToDigits("ଫାଇଭ ଥ୍ରୀ ୱାନ", false) === "531");
+check("plain English words", spokenToDigits("five three one", false) === "531");
+check("romanized phonetics (the reported bug)", normalizeSpokenValue("tel", "Phaiba Thri Sikashas Tu Nain Phaiba Thri Wan") === "53629531");
+check("double expands", spokenToDigits("ନଅ ଡବଲ ଛଅ", false) === "966");
+check("mixed digits and words", spokenToDigits("98 ଡବଲ ସାତ ୱାନ", false) === "98771");
+check("age as tens word", normalizeSpokenValue("number", "ପଚାଶ") === "50");
+check("age as tens plus unit", normalizeSpokenValue("number", "ଚାଳିଶ ପାଞ୍ଚ") === "45");
+check("age spoken digit by digit", normalizeSpokenValue("number", "ଚାରି ପାଞ୍ଚ") === "45");
+check("pure garbage stays null", spokenToDigits("ପାଣି ପାଇପ୍ ଭାଙ୍ଗିଯାଇଛି", false) === null);
 
 // --- email: spoken at/dot forms ---
 check("spoken email assembled", normalizeSpokenValue("email", "ram kumar at gmail dot com") === "ramkumar@gmail.com");
