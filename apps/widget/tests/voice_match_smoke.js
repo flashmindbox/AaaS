@@ -149,6 +149,14 @@ check(
   "one-letter site buttons (A-, A+) never match by containment",
   scoreVoiceTarget("likara sapa notisa", "A-") < 0.3 && scoreVoiceTarget("tenders", "A") < 0.3,
 );
+check(
+  "Odia virama slip still matches (ପେନସନ vs ପେନ୍ସନ୍)",
+  scoreVoiceTarget("ପେନସନ", "ପେନ୍ସନ୍") >= 0.9,
+);
+check(
+  "Odia word found inside a long Odia link name",
+  scoreVoiceTarget("ପେନସନ", "ମଧୁବାବୁ ପେନ୍ସନ୍ ଯୋଜନା (MBPY) ଉପରେ ନିର୍ଦ୍ଦେଶାବଳୀ") >= 0.6,
+);
 check("phonetic global command: 'rid pej' -> read", matchGlobalCommand("rid pej", "en") === "read");
 
 // --- rankVoiceTargets + decision rule ---

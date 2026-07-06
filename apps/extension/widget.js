@@ -702,6 +702,15 @@
     if (a.length >= 4 && b.length >= 4) {
       best = 1 - editDistance(a, b) / Math.max(a.length, b.length);
     }
+    // Odia-script tokens: matras and viramas carry the STT noise
+    // ("ପେନସନ" vs "ପେନ୍ସନ୍") — compare their skeletons, the same
+    // trick the glossary uses.
+    const ak = odiaSkeleton(a);
+    const bk = odiaSkeleton(b);
+    if ((ak !== a || bk !== b) && ak.length >= 2 && bk.length >= 2) {
+      const s = ak === bk ? 0.95 : 1 - editDistance(ak, bk) / Math.max(ak.length, bk.length);
+      if (s > best) best = s;
+    }
     const aq = phoneticSquash(a);
     const bq = phoneticSquash(b);
     if (aq && bq && aq.length >= 3 && bq.length >= 3) {
@@ -4775,13 +4784,17 @@
       }
       const ranked = Array.from(byElement.values()).sort((a, b) => b.score - a.score);
 
+      // Weak matches (junk that barely cleared the rank floor) must
+      // not be offered as buttons — "Pause / Instagram" for "pension"
+      // is worse than admitting no match.
+      const plausible = ranked.filter((r) => r.score >= 0.45);
       if (shouldActOnVoiceMatch(ranked)) {
         actOnVoiceTarget(ranked[0]);
-      } else if (ranked.length) {
+      } else if (plausible.length) {
         // Not confident enough to click — offer the top candidates as
         // BUTTONS so the user finishes with one tap instead of
         // re-speaking into an error message.
-        showVoiceChoices(ranked);
+        showVoiceChoices(plausible);
         setStatus("Not sure which one you meant — tap below", "notice");
       } else {
         const heard = understood.length
