@@ -1814,10 +1814,22 @@
   }
 
   // Fetch a scanned document (image or PDF) and run it through the
-  // gateway's OCR endpoint. No cache — scans are picked explicitly
-  // and rarely twice in a session. Throws with a readable message on
-  // any failure; the caller shows it in the status pill.
+  // gateway's OCR endpoint. Cache-first by URL (government documents
+  // at a URL are immutable in practice), reusing the "translate"
+  // IndexedDB store under an ocr§ prefix — re-reading the same notice
+  // is instant instead of re-downloading + re-OCR'ing. Mock-engine
+  // results are never cached so installing tesseract later isn't
+  // poisoned by canned text. Throws with a readable message on any
+  // failure; the caller shows it in the modal.
   async function ocrFetchAndRecognize(url, lang, { timeoutMs = 60000 } = {}) {
+    const k = "ocr§" + (lang || "auto") + ":" + url;
+    const hit = translateCache.get(k);
+    if (hit !== undefined) return hit;
+    const stored = await persistentCache.get("translate", k);
+    if (stored !== undefined) {
+      translateCache.set(k, stored);
+      return stored;
+    }
     const t = withTimeout(timeoutMs);
     try {
       const srcResp = await fetch(url, { signal: t.signal });
@@ -1844,7 +1856,12 @@
         } catch {}
         throw new Error(detail);
       }
-      return await response.json();
+      const json = await response.json();
+      if (json && json.engine !== "mock") {
+        translateCache.set(k, json);
+        persistentCache.put("translate", k, json);
+      }
+      return json;
     } finally {
       t.clear();
     }
