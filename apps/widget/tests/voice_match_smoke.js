@@ -36,6 +36,12 @@ const code =
   "\n" +
   extractFn("editDistance") +
   "\n" +
+  extractFn("phoneticSquash") +
+  "\n" +
+  extractFn("consonantSkeleton") +
+  "\n" +
+  extractFn("_tokenSim") +
+  "\n" +
   extractFn("normalizeCommandText") +
   "\n" +
   extractFn("matchGlobalCommand") +
@@ -129,6 +135,14 @@ check(
   scoreVoiceTarget("citzen services", "Citizen Services") >= 0.65,
 );
 check("unrelated pair scores low", scoreVoiceTarget("weather report", "Citizen Services") < 0.4);
+
+// --- phonetic matching: Odia-STT-heard English finds English names ---
+const kantakta = scoreVoiceTarget("Kantakta", "Contact");
+check("phonetic 'Kantakta' finds Contact", kantakta >= 0.65);
+const notif = scoreVoiceTarget("Notiphikesana", "Notifications");
+check("phonetic 'Notiphikesana' finds Notifications", notif >= 0.65);
+check("phonetic still rejects unrelated", scoreVoiceTarget("Kantakta", "Tenders") < 0.5);
+check("phonetic global command: 'rid pej' -> read", matchGlobalCommand("rid pej", "en") === "read");
 
 // --- rankVoiceTargets + decision rule ---
 const TARGETS = [

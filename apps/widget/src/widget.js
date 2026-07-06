@@ -560,6 +560,20 @@
           if (p.length < 4 || norm.length < 4) continue;
           const sim = 1 - editDistance(norm, p) / Math.max(norm.length, p.length);
           if (sim >= 0.85) return cmd.action;
+          // Phonetic pass: "rid pej" (romanized Odia STT hearing
+          // English) still finds "read page".
+          const nq = phoneticSquash(norm);
+          const pq = phoneticSquash(p);
+          if (nq.length >= 3 && pq.length >= 3) {
+            const sq = 1 - editDistance(nq, pq) / Math.max(nq.length, pq.length);
+            if (sq >= 0.8) return cmd.action;
+            const nk = consonantSkeleton(nq);
+            const pk = consonantSkeleton(pq);
+            if (nk.length >= 4 && pk.length >= 4) {
+              const sk = 1 - editDistance(nk, pk) / Math.max(nk.length, pk.length);
+              if (sk >= 0.8) return cmd.action;
+            }
+          }
         }
       }
     }
@@ -656,10 +670,60 @@
     return mapped ? out.join(" ") : null;
   }
 
+  // Phonetic squash: collapse Indian-English romanization variants so
+  // sound-alike words compare equal-ish ("Kantakta" -> "kantakt",
+  // "Contact" -> "kontakt" — one edit apart). Applied to BOTH sides
+  // before fuzzy comparison; this is what lets an Odia-only STT hear
+  // English link names ("କଣ୍ଟାକ୍ଟ") and still find "Contact".
+  function phoneticSquash(text) {
+    let t = (text || "").toLowerCase();
+    const subs = [
+      ["chh", "c"], ["ch", "c"], ["ph", "f"], ["bh", "b"], ["dh", "d"],
+      ["th", "t"], ["gh", "g"], ["jh", "j"], ["kh", "k"], ["sh", "s"],
+      ["ck", "k"], ["c", "k"], ["w", "v"], ["z", "j"], ["x", "ks"], ["q", "k"],
+    ];
+    for (const pair of subs) t = t.split(pair[0]).join(pair[1]);
+    t = t.replace(/[aeiou]+/g, (m) => m[0]); // collapse vowel runs
+    t = t.replace(/([a-z])\1+/g, "$1"); // collapse doubled letters
+    t = t.replace(/a\b/g, ""); // romanized schwa: drop word-final 'a'
+    return t.trim();
+  }
+
+  // Vowels carry most of the accent/romanization noise; consonants
+  // carry the identity. "notifikesan" and "notifikatins" disagree on
+  // vowels but share the skeleton "ntfksn"~"ntfktns".
+  function consonantSkeleton(text) {
+    return (text || "").replace(/(?!^)[aeiou]/g, "");
+  }
+
+  function _tokenSim(a, b) {
+    if (a === b) return 1;
+    let best = 0;
+    if (a.length >= 4 && b.length >= 4) {
+      best = 1 - editDistance(a, b) / Math.max(a.length, b.length);
+    }
+    const aq = phoneticSquash(a);
+    const bq = phoneticSquash(b);
+    if (aq && bq && aq.length >= 3 && bq.length >= 3) {
+      const s = aq === bq ? 0.98 : 1 - editDistance(aq, bq) / Math.max(aq.length, bq.length);
+      if (s > best) best = s;
+      if (aq.length >= 5 && bq.length >= 5) {
+        const ak = consonantSkeleton(aq);
+        const bk = consonantSkeleton(bq);
+        if (ak.length >= 3 && bk.length >= 3) {
+          const sk = (1 - editDistance(ak, bk) / Math.max(ak.length, bk.length)) * 0.95;
+          if (sk > best) best = sk;
+        }
+      }
+    }
+    return best;
+  }
+
   // Score a transcript against one accessible name. 1.0 exact;
   // 0.75–0.95 containment (scaled by length ratio); otherwise a
   // token-overlap blend: coverage = how much of the transcript matched,
-  // precision = how much of the name it accounts for.
+  // precision = how much of the name it accounts for. Tokens compare
+  // raw AND phonetically squashed, whichever is stronger.
   function scoreVoiceTarget(transcript, name) {
     const t = normalizeCommandText(transcript);
     const n = normalizeCommandText(name);
@@ -669,20 +733,27 @@
       const ratio = Math.min(t.length, n.length) / Math.max(t.length, n.length);
       return 0.75 + 0.2 * ratio;
     }
+    const tq = phoneticSquash(t).replace(/\s+/g, "");
+    const nq = phoneticSquash(n).replace(/\s+/g, "");
+    if (tq && nq && (nq.includes(tq) || tq.includes(nq))) {
+      const ratio = Math.min(tq.length, nq.length) / Math.max(tq.length, nq.length);
+      return 0.72 + 0.2 * ratio;
+    }
     const tTokens = t.split(" ");
     const nTokens = n.split(" ");
+    // One word against one word: the token similarity IS the score —
+    // a counting bar only makes sense with multiple tokens.
+    if (tTokens.length === 1 && nTokens.length === 1) {
+      return _tokenSim(tTokens[0], nTokens[0]);
+    }
     let sum = 0;
     for (const tok of tTokens) {
       let best = 0;
       for (const cand of nTokens) {
-        let s = 0;
-        if (tok === cand) s = 1;
-        else if (tok.length >= 4 && cand.length >= 4) {
-          s = 1 - editDistance(tok, cand) / Math.max(tok.length, cand.length);
-        }
+        const s = _tokenSim(tok, cand);
         if (s > best) best = s;
       }
-      if (best >= 0.75) sum += best;
+      if (best >= 0.72) sum += best;
     }
     const coverage = Math.min(1, sum / tTokens.length);
     const precision = Math.min(1, sum / nTokens.length);
@@ -1189,6 +1260,31 @@
       word-break: break-word;
     }
     .transcript:empty { display: none; }
+
+    /* Tappable "did you mean" candidates after an unsure voice
+       command — a dead-end error becomes a one-tap success. */
+    .voice-choices {
+      margin: 0.35rem 0.8rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .voice-choices:empty { display: none; }
+    .voice-choices .vc-hint { font-size: 0.72rem; color: #9fb2c8; }
+    .voice-choices button {
+      background: #1d2938;
+      border: 1px solid #4a6a96;
+      border-radius: 9px;
+      color: #e8edf2;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.85rem;
+      text-align: left;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .voice-choices button:hover { background: #24344a; border-color: #ffcf33; }
 
     .status {
       margin: 0.45rem 0.8rem 0;
@@ -3074,6 +3170,7 @@
       </div>
 
       <div class="transcript" role="status" aria-live="polite"></div>
+      <div class="voice-choices"></div>
       <div class="status" role="status" aria-live="polite">Ready</div>
       <div class="meta"></div>
 
@@ -3978,6 +4075,7 @@
           return;
         }
         announcer.cancel();
+        clearVoiceChoices();
         if (panel.getAttribute("data-open") === "true") {
           togglePanel();
           fab.focus();
@@ -4497,7 +4595,42 @@
       setTimeout(() => el.removeAttribute("data-aaas-voice-target"), 1600);
     }
 
+    const voiceChoicesEl = panel.querySelector(".voice-choices");
+
+    function clearVoiceChoices() {
+      voiceChoicesEl.textContent = "";
+    }
+
+    function actOnVoiceTarget(best) {
+      try { best.element.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
+      try { best.element.focus(); } catch {}
+      highlightVoiceTarget(best.element);
+      setStatus(`Opening "${best.name}"…`, "ok");
+      // A visible beat between highlight and click so the user sees
+      // what was chosen before any navigation happens.
+      setTimeout(() => { try { best.element.click(); } catch {} }, 600);
+    }
+
+    function showVoiceChoices(ranked) {
+      clearVoiceChoices();
+      const hint = document.createElement("span");
+      hint.className = "vc-hint";
+      hint.textContent = "ଗୋଟିଏ ବାଛନ୍ତୁ · Not sure — tap the one you meant:";
+      voiceChoicesEl.append(hint);
+      ranked.slice(0, 3).forEach((r) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = r.name;
+        b.addEventListener("click", () => {
+          clearVoiceChoices();
+          actOnVoiceTarget(r);
+        });
+        voiceChoicesEl.append(b);
+      });
+    }
+
     async function executeVoiceCommand(rawText, langHint) {
+      clearVoiceChoices();
       const norm = normalizeCommandText(rawText || "");
       if (!norm) {
         setStatus("No speech detected", "error");
@@ -4508,7 +4641,13 @@
         (langHint || "").toLowerCase().split("-")[0] ||
         "en";
 
-      const action = matchGlobalCommand(norm, lang);
+      // Odia STT writes English speech phonetically in Odia script
+      // ("କଣ୍ଟାକ୍ଟ" for "contact") — the romanized form is often the
+      // best clue we have, for global commands and link names alike.
+      const romanized = lang === "or" ? romanizeOdia(rawText) : "";
+
+      let action = matchGlobalCommand(norm, lang);
+      if (!action && romanized) action = matchGlobalCommand(romanized, "en");
       if (action === "read") {
         startReadPage();
         return;
@@ -4560,6 +4699,10 @@
       // see how their words came across and rephrase.
       const candidates = [rawText];
       const understood = [];
+      if (romanized && romanized !== rawText) {
+        candidates.push(romanized);
+        understood.push(romanized);
+      }
       if (lang === "or" && pageLang === "en") {
         const g = glossaryTranslateOdia(norm);
         if (g) {
@@ -4588,17 +4731,13 @@
       const ranked = Array.from(byElement.values()).sort((a, b) => b.score - a.score);
 
       if (shouldActOnVoiceMatch(ranked)) {
-        const best = ranked[0];
-        try { best.element.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
-        try { best.element.focus(); } catch {}
-        highlightVoiceTarget(best.element);
-        setStatus(`Opening "${best.name}"…`, "ok");
-        // A visible beat between highlight and click so the user sees
-        // what was chosen before any navigation happens.
-        setTimeout(() => { try { best.element.click(); } catch {} }, 600);
+        actOnVoiceTarget(ranked[0]);
       } else if (ranked.length) {
-        const names = ranked.slice(0, 3).map((r) => `"${r.name}"`).join(" · ");
-        setStatus(`Not sure. Did you mean: ${names}?`, "error");
+        // Not confident enough to click — offer the top candidates as
+        // BUTTONS so the user finishes with one tap instead of
+        // re-speaking into an error message.
+        showVoiceChoices(ranked);
+        setStatus("Not sure which one you meant — tap below", "notice");
       } else {
         const heard = understood.length
           ? ` (understood as: ${understood.map((u) => `"${u}"`).join(" / ")})`
