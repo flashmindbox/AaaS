@@ -22,16 +22,23 @@ function extractFn(name) {
 class FakeEl {
   constructor(tag, props = {}) {
     this.tagName = tag;
+    this.attrs = props.attrs || {};
     Object.assign(this, props);
   }
+  getAttribute(k) {
+    return this.attrs[k] !== undefined ? this.attrs[k] : null;
+  }
   closest(sel) {
-    if (sel === "a[href]") {
-      let node = this;
-      while (node) {
-        if (node.tagName === "A" && node.href) return node;
-        node = node.parent || null;
-      }
+    let node = this;
+    while (node) {
+      if (sel === "a[href]" && node.tagName === "A" && node.href) return node;
+      if (sel === "figure" && node.tagName === "FIGURE") return node;
+      node = node.parent || null;
     }
+    return null;
+  }
+  querySelector(sel) {
+    if (sel === "figcaption" && this.caption) return this.caption;
     return null;
   }
 }
@@ -45,11 +52,13 @@ const code =
   "\n" +
   extractFn("ocrLangHint") +
   "\n" +
-  "module.exports = { describeOcrTarget, ocrLangHint };";
+  extractFn("ocrCandidateName") +
+  "\n" +
+  "module.exports = { describeOcrTarget, ocrLangHint, ocrCandidateName };";
 
 const mod = { exports: {} };
 new Function("module", code)(mod);
-const { describeOcrTarget, ocrLangHint } = mod.exports;
+const { describeOcrTarget, ocrLangHint, ocrCandidateName } = mod.exports;
 
 const results = [];
 function check(name, ok) {
@@ -91,6 +100,24 @@ check("null input is safe", describeOcrTarget(null) === null);
 check("Hindi page hints hin", ocrLangHint("hi") === "hi");
 check("English page hints auto (ori+eng covers mixes)", ocrLangHint("en") === "auto");
 check("Odia page hints auto", ocrLangHint("or") === "auto");
+
+// --- ocrCandidateName ---
+const altImg = new FakeEl("IMG", { attrs: { alt: "Scanned notification No. 1247" } });
+check("image name from alt text", ocrCandidateName(altImg, "image") === "Scanned notification No. 1247");
+
+const figImg = new FakeEl("IMG", { attrs: {} });
+figImg.parent = new FakeEl("FIGURE", {});
+figImg.parent.caption = { textContent: "  Notification (scanned copy)  " };
+check("image name falls back to figcaption", ocrCandidateName(figImg, "image") === "Notification (scanned copy)");
+
+const bareImg = new FakeEl("IMG", { attrs: {} });
+check("image name has a safe default", ocrCandidateName(bareImg, "image") === "Image on this page");
+
+const namedLink = new FakeEl("A", { href: "http://x/a.pdf", textContent: "Examination circular  No. 886" });
+check("pdf name from link text", ocrCandidateName(namedLink, "pdf") === "Examination circular No. 886");
+
+const bareLink = new FakeEl("A", { href: "http://x/files/Sale%20Notice-1.pdf", textContent: "" });
+check("pdf name falls back to decoded filename", ocrCandidateName(bareLink, "pdf") === "Sale Notice-1.pdf");
 
 const fails = results.filter((r) => !r.ok);
 console.log("");

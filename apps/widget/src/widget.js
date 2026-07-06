@@ -772,6 +772,64 @@
     return pageLangNow === "hi" ? "hi" : "auto";
   }
 
+  // Human name for a document candidate, best-effort: alt text /
+  // figcaption for images, link text / filename for PDFs. Shown in the
+  // chooser list, so it must never be empty.
+  function ocrCandidateName(el, kind) {
+    if (kind === "image") {
+      const alt = (el.getAttribute("alt") || "").trim();
+      if (alt) return alt;
+      const fig = el.closest ? el.closest("figure") : null;
+      const cap = fig && fig.querySelector ? fig.querySelector("figcaption") : null;
+      if (cap && cap.textContent.trim()) return cap.textContent.replace(/\s+/g, " ").trim();
+      return "Image on this page";
+    }
+    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (text) return text;
+    try {
+      const name = decodeURIComponent(new URL(el.href).pathname.split("/").pop());
+      if (name) return name;
+    } catch {}
+    return "PDF document";
+  }
+
+  // Documents the widget can read on this page: document-sized images
+  // (icons and logos filtered out by size) and PDF links. The user
+  // never has to hunt — this list drives the chooser.
+  const OCR_MIN_IMG_W = 200;
+  const OCR_MIN_IMG_H = 150;
+
+  function collectOcrCandidates() {
+    const out = [];
+    const seen = new Set();
+    document.querySelectorAll("img").forEach((img) => {
+      if (!isVisible(img)) return;
+      if (img.closest("[data-aaas-widget]")) return;
+      const w = img.naturalWidth || img.width || 0;
+      const h = img.naturalHeight || img.height || 0;
+      if (w < OCR_MIN_IMG_W || h < OCR_MIN_IMG_H) return;
+      const url = img.currentSrc || img.src || "";
+      if (!url || seen.has(url)) return;
+      seen.add(url);
+      out.push({ kind: "image", url, name: ocrCandidateName(img, "image"), element: img });
+    });
+    document.querySelectorAll("a[href]").forEach((a) => {
+      if (a.closest("[data-aaas-widget]")) return;
+      if (!isVisible(a)) return;
+      let path = "";
+      try {
+        path = new URL(a.href, document.baseURI).pathname;
+      } catch {
+        return;
+      }
+      if (!/\.pdf$/i.test(path)) return;
+      if (seen.has(a.href)) return;
+      seen.add(a.href);
+      out.push({ kind: "pdf", url: a.href, name: ocrCandidateName(a, "pdf"), element: a });
+    });
+    return out;
+  }
+
   async function probeGateway() {
     try {
       const r = await fetch(`${CONFIG.gateway}/healthz`, {
@@ -1030,64 +1088,148 @@
       font-size: 1rem;
     }
 
-    .ocr-overlay {
+    /* Document reader modal — a big, centered, plain-language surface.
+       Fixed to the viewport and appended to the shadow ROOT (not the
+       panel, whose transform would re-anchor position:fixed). Sized
+       and typeset for non-technical, low-literacy and elderly users:
+       large text, generous spacing, few big buttons. */
+    .docmodal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 12, 18, 0.6);
+      z-index: 2147483647;
+    }
+    .docmodal[data-open="true"] { display: flex; }
+    .docmodal-box {
+      background: #16202b;
+      border: 1px solid #31415a;
+      border-radius: 16px;
+      width: min(92vw, 560px);
+      max-height: 84vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1.1rem 1.2rem 1.2rem;
+      color: #e8edf2;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    .docmodal-title {
+      margin: 0 2rem 0.75rem 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    .docmodal-close {
       position: absolute;
-      right: 1rem;
-      bottom: 1rem;
-      left: 1rem;
-      background: #1b2530;
+      top: 0.7rem;
+      right: 0.8rem;
+      background: #22303f;
+      border: 0;
+      border-radius: 8px;
+      color: #c7d3e0;
+      cursor: pointer;
+      font-size: 1.1rem;
+      width: 2rem;
+      height: 2rem;
+      line-height: 1;
+    }
+    .docmodal-close:hover { background: #2d3f52; }
+    .docmodal-body {
+      overflow-y: auto;
+      min-height: 4rem;
+    }
+    /* Chooser rows: one big obvious button per document. */
+    .doc-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      width: 100%;
+      text-align: left;
+      background: #1d2938;
+      border: 1px solid #31415a;
+      border-radius: 10px;
+      color: #e8edf2;
+      padding: 0.75rem 0.8rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      cursor: pointer;
+    }
+    .doc-row:hover, .doc-row:focus { background: #24344a; border-color: #4a6a96; }
+    .doc-row .doc-ico { font-size: 1.3rem; flex: none; }
+    .doc-row .doc-kind {
+      flex: none;
+      font-size: 0.72rem;
+      color: #9fb2c8;
+      border: 1px solid #31415a;
+      border-radius: 6px;
+      padding: 0.1rem 0.4rem;
+      margin-left: auto;
+    }
+    /* Progress: big friendly step text + spinner. */
+    .doc-progress {
+      text-align: center;
+      padding: 1.6rem 0.5rem 1.2rem;
+    }
+    .doc-progress .doc-spin {
+      width: 2.4rem;
+      height: 2.4rem;
+      margin: 0 auto 0.9rem;
+      border: 4px solid #2c3a4c;
+      border-top-color: #ffcf33;
+      border-radius: 50%;
+      animation: aaas-doc-spin 0.9s linear infinite;
+    }
+    @keyframes aaas-doc-spin { to { transform: rotate(360deg); } }
+    .doc-progress .doc-step { font-size: 1.1rem; font-weight: 600; }
+    .doc-progress .doc-substep { font-size: 0.88rem; color: #9fb2c8; margin-top: 0.4rem; }
+    /* Result: large-print reading text. */
+    .doc-text {
+      user-select: text;
+      -webkit-user-select: text;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      background: #101820;
       border: 1px solid #2c3a4c;
       border-radius: 10px;
       padding: 0.8rem 0.9rem;
-      font-size: 0.85rem;
-      color: #d0dce8;
-      display: none;
-      z-index: 11;
     }
-    .ocr-overlay[data-open="true"] { display: block; }
-    .ocr-overlay h4 {
-      margin: 0 0 0.5rem;
-      font-size: 0.88rem;
-      color: #e8edf2;
-    }
-    .ocr-overlay .ocr-text {
-      max-height: 11rem;
-      overflow-y: auto;
-      user-select: text;
-      -webkit-user-select: text;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      background: #141c26;
-      border: 1px solid #2c3a4c;
-      border-radius: 8px;
-      padding: 0.5rem 0.6rem;
-    }
-    .ocr-overlay .ocr-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.6rem;
-    }
-    .ocr-overlay .ocr-actions button {
-      flex: 1;
-      background: #2563b0;
-      border: 0;
-      border-radius: 8px;
-      color: #fff;
-      padding: 0.45rem 0.5rem;
-      font-size: 0.82rem;
-      cursor: pointer;
-    }
-    .ocr-overlay .ocr-actions button:hover { background: #2f74c8; }
-    .ocr-overlay .close-ocr {
-      position: absolute;
-      top: 0.3rem;
-      right: 0.5rem;
-      background: none;
-      border: 0;
-      color: #8b96a5;
-      cursor: pointer;
+    .doc-error {
       font-size: 1rem;
+      line-height: 1.7;
+      padding: 0.8rem 0.4rem;
     }
+    .docmodal-actions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.9rem;
+      flex: none;
+    }
+    .docmodal-actions button {
+      border: 0;
+      border-radius: 10px;
+      color: #fff;
+      padding: 0.7rem 0.8rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .docmodal-actions .doc-primary {
+      flex: 2;
+      background: #2563b0;
+      font-size: 1.02rem;
+    }
+    .docmodal-actions .doc-primary:hover { background: #2f74c8; }
+    .docmodal-actions .doc-primary.speaking { background: #c7444c; }
+    .docmodal-actions .doc-secondary {
+      flex: 1;
+      background: #22303f;
+      color: #c7d3e0;
+    }
+    .docmodal-actions .doc-secondary:hover { background: #2d3f52; }
   `;
 
   /* ---------- structure-aware DOM walker ----------
@@ -2402,7 +2544,7 @@
 
       <button class="action ocr" type="button">
         <span aria-hidden="true">📄</span>
-        <span>Read a scanned notice</span>
+        <span>Read a document to me</span>
       </button>
 
       <label class="toggle">
@@ -2428,16 +2570,6 @@
       <div class="transcript" role="status" aria-live="polite"></div>
       <div class="status" role="status" aria-live="polite">Ready</div>
       <div class="meta"></div>
-
-      <div class="ocr-overlay" role="dialog" aria-label="Scanned notice">
-        <button class="close-ocr" type="button" aria-label="Close notice">×</button>
-        <h4>Scanned notice</h4>
-        <div class="ocr-text" tabindex="0"></div>
-        <div class="ocr-actions">
-          <button class="ocr-read" type="button">🔊 Read aloud</button>
-          <button class="ocr-copy" type="button">Copy</button>
-        </div>
-      </div>
 
       <div class="shortcuts-overlay" role="dialog" aria-label="Keyboard shortcuts">
         <button class="close-overlay" type="button" aria-label="Close shortcuts">×</button>
@@ -3169,9 +3301,9 @@
           e.preventDefault();
           return;
         }
-        const ocrOv = panel.querySelector(".ocr-overlay");
-        if (ocrOv && ocrOv.getAttribute("data-open") === "true") {
-          ocrOv.querySelector(".close-ocr").click();
+        const docOv = shadow.querySelector(".docmodal");
+        if (docOv && docOv.getAttribute("data-open") === "true") {
+          docOv.querySelector(".docmodal-close").click();
           e.preventDefault();
           return;
         }
@@ -3628,20 +3760,104 @@
       }
     });
 
-    /* ----- Scanned-notice OCR -----
-     * Pick mode: the user clicks a scanned image or a PDF link on the
-     * host page; the document goes to /translate/ocr; the recognized
-     * text runs through simplify (+ translate when the picker language
-     * differs) and lands in a result overlay with its own read-aloud.
-     * While picking, ALL host-page clicks are swallowed so a stray
-     * click can't navigate away mid-pick; Esc cancels.
+    /* ----- Document reader ("Read a document to me") -----
+     * Built for non-technical users: the widget FINDS the documents
+     * (document-sized images + PDF links) instead of making the user
+     * hunt. One document -> it just goes. Several -> a big centered
+     * chooser (hovering a row highlights the document on the page).
+     * None -> plain-language message with a point-at-it fallback.
+     * All progress lives in the same big modal in friendly steps, and
+     * the result is large-print text that starts reading aloud
+     * automatically — that IS what the user asked for.
      */
     const ocrBtn = panel.querySelector(".ocr");
-    const ocrOverlay = panel.querySelector(".ocr-overlay");
-    const ocrTextEl = ocrOverlay.querySelector(".ocr-text");
-    const ocrReadBtn = ocrOverlay.querySelector(".ocr-read");
-    const ocrCopyBtn = ocrOverlay.querySelector(".ocr-copy");
-    const ocrCloseBtn = ocrOverlay.querySelector(".close-ocr");
+
+    // The modal lives on the shadow ROOT, not in the panel: the panel
+    // animates with a transform, which would re-anchor position:fixed.
+    const docModal = document.createElement("div");
+    docModal.className = "docmodal";
+    docModal.setAttribute("data-open", "false");
+    docModal.setAttribute("role", "dialog");
+    docModal.setAttribute("aria-label", "Read a document");
+    docModal.innerHTML = `
+      <div class="docmodal-box">
+        <button class="docmodal-close" type="button" aria-label="Close">×</button>
+        <h4 class="docmodal-title"></h4>
+        <div class="docmodal-body" role="status" aria-live="polite"></div>
+        <div class="docmodal-actions"></div>
+      </div>
+    `;
+    shadow.append(docModal);
+    const docTitle = docModal.querySelector(".docmodal-title");
+    const docBody = docModal.querySelector(".docmodal-body");
+    const docActions = docModal.querySelector(".docmodal-actions");
+    const docCloseBtn = docModal.querySelector(".docmodal-close");
+
+    let docReading = false;
+    let docResultText = "";
+
+    function stopDocReading() {
+      if (docReading) {
+        docReading = false;
+        player.stop();
+      }
+    }
+
+    function closeDocModal() {
+      stopDocReading();
+      docModal.setAttribute("data-open", "false");
+      document.querySelectorAll("[data-aaas-ocr-hover]").forEach((el) => {
+        el.removeAttribute("data-aaas-ocr-hover");
+      });
+      try { ocrBtn.focus(); } catch {}
+    }
+    docCloseBtn.addEventListener("click", closeDocModal);
+    docModal.addEventListener("click", (ev) => {
+      if (ev.target === docModal) closeDocModal();
+    });
+
+    function openDocModal(title) {
+      docTitle.textContent = title;
+      docBody.textContent = "";
+      docActions.textContent = "";
+      docModal.setAttribute("data-open", "true");
+    }
+
+    function docButton(label, className, onClick) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = className;
+      b.textContent = label;
+      b.addEventListener("click", onClick);
+      docActions.append(b);
+      return b;
+    }
+
+    function showDocProgress(step, substep) {
+      docBody.innerHTML =
+        '<div class="doc-progress"><div class="doc-spin" aria-hidden="true"></div>' +
+        '<div class="doc-step"></div><div class="doc-substep"></div></div>';
+      docBody.querySelector(".doc-step").textContent = step;
+      docBody.querySelector(".doc-substep").textContent = substep || "";
+      docActions.textContent = "";
+      docButton("Cancel", "doc-secondary", closeDocModal);
+    }
+
+    function updateDocProgress(step, substep) {
+      const stepEl = docBody.querySelector(".doc-step");
+      if (!stepEl) return showDocProgress(step, substep);
+      stepEl.textContent = step;
+      docBody.querySelector(".doc-substep").textContent = substep || "";
+    }
+
+    function showDocError(message) {
+      docTitle.textContent = "Sorry, that didn't work";
+      docBody.innerHTML = '<div class="doc-error"></div>';
+      docBody.querySelector(".doc-error").textContent = message;
+      docActions.textContent = "";
+      docButton("Try another document", "doc-primary", openDocFlow);
+      docButton("Close", "doc-secondary", closeDocModal);
+    }
 
     let ocrPicking = false;
     let _ocrHover = null;
@@ -3714,27 +3930,127 @@
       window.addEventListener("keydown", _ocrKey, true);
       setStatus("Click a scanned image or a PDF link (Esc to cancel)");
     }
-    ocrBtn.addEventListener("click", enterOcrPick);
+    function ensureOcrHighlightStyle() {
+      if (document.getElementById("__aaas_ocrpick__")) return;
+      const st = document.createElement("style");
+      st.id = "__aaas_ocrpick__";
+      st.textContent =
+        "[data-aaas-ocr-hover] { outline: 3px dashed #ffcf33 !important; outline-offset: 3px !important; cursor: crosshair !important; }";
+      (document.head || document.documentElement).appendChild(st);
+    }
+
+    function clearOcrHighlights() {
+      document.querySelectorAll("[data-aaas-ocr-hover]").forEach((el) => {
+        el.removeAttribute("data-aaas-ocr-hover");
+      });
+    }
+
+    // Entry point: find the documents FOR the user. One -> just go.
+    // Several -> big chooser. None -> plain words + point-at-it escape.
+    function openDocFlow() {
+      stopDocReading();
+      const candidates = collectOcrCandidates();
+      if (candidates.length === 1) {
+        runOcrPipeline(candidates[0]);
+        return;
+      }
+      if (!candidates.length) {
+        openDocModal("Read a document to me");
+        docBody.innerHTML = '<div class="doc-error"></div>';
+        docBody.querySelector(".doc-error").textContent =
+          "I couldn't find any documents on this page. " +
+          "If you can see one, I can read it if you point at it.";
+        docButton("Let me point at it", "doc-primary", () => {
+          closeDocModal();
+          enterOcrPick();
+        });
+        docButton("Close", "doc-secondary", closeDocModal);
+        return;
+      }
+      showDocChooser(candidates);
+    }
+    ocrBtn.addEventListener("click", openDocFlow);
+
+    function showDocChooser(candidates) {
+      openDocModal("Which document should I read?");
+      ensureOcrHighlightStyle();
+      const MAX_ROWS = 20;
+      candidates.slice(0, MAX_ROWS).forEach((c) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "doc-row";
+        const ico = document.createElement("span");
+        ico.className = "doc-ico";
+        ico.setAttribute("aria-hidden", "true");
+        ico.textContent = c.kind === "pdf" ? "📄" : "🖼️";
+        const name = document.createElement("span");
+        name.textContent = c.name;
+        const kind = document.createElement("span");
+        kind.className = "doc-kind";
+        kind.textContent = c.kind === "pdf" ? "PDF" : "Image";
+        row.append(ico, name, kind);
+        // Hovering a row shows WHICH document it is on the page.
+        row.addEventListener("mouseenter", () => {
+          clearOcrHighlights();
+          if (c.element && c.element.isConnected) {
+            c.element.setAttribute("data-aaas-ocr-hover", "");
+            try { c.element.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch {}
+          }
+        });
+        row.addEventListener("mouseleave", clearOcrHighlights);
+        row.addEventListener("click", () => {
+          clearOcrHighlights();
+          runOcrPipeline(c);
+        });
+        docBody.append(row);
+      });
+      if (candidates.length > MAX_ROWS) {
+        const more = document.createElement("div");
+        more.className = "doc-error";
+        more.textContent = `…and ${candidates.length - MAX_ROWS} more. If yours isn't listed, point at it on the page.`;
+        docBody.append(more);
+      }
+      docButton("Point at it on the page", "doc-secondary", () => {
+        closeDocModal();
+        enterOcrPick();
+      });
+      docButton("Close", "doc-secondary", closeDocModal);
+    }
+
+    function friendlyDocError(err) {
+      const m = (err && err.message) || "";
+      if (/too large/i.test(m)) {
+        return "This document is too big for me to read — the limit is 15 MB.";
+      }
+      if (/could not fetch|failed to fetch|networkerror/i.test(m)) {
+        return "I couldn't open this document. The website may be blocking it, or it may be unavailable right now.";
+      }
+      if (/abort/i.test(m)) {
+        return "This took too long and I gave up. Please try again.";
+      }
+      return "Something went wrong while reading this document. Please try again.";
+    }
 
     let ocrBusy = false;
     async function runOcrPipeline(desc) {
       if (ocrBusy) return;
       ocrBusy = true;
       ocrBtn.disabled = true;
+      openDocModal("One moment…");
+      showDocProgress("Reading the document…", desc.name || "");
       try {
-        setStatus(desc.kind === "pdf" ? "Reading the scanned PDF…" : "Reading the scan…");
         const result = await ocrFetchAndRecognize(desc.url, ocrLangHint(pageLang));
         let text = (result.text || "").trim();
         if (!text) {
-          setStatus("No readable text found in that document", "error");
+          showDocError("I couldn't find any readable text in this document. It may be a photo or a very poor scan.");
           return;
         }
         const srcLang = dominantScript(text) || "en";
         const tgt = resolvedLang() || srcLang;
-        // Simplify first (rule-based, offline). A failure here is not
-        // fatal — the raw OCR text is already the accessibility win.
+        // Simplify (rule-based, offline). Not fatal on failure — the
+        // raw OCR text is already the accessibility win.
         try {
-          setStatus("Simplifying…");
+          updateDocProgress("Making it easier to read…", "");
           const pieces = splitIntoSentences(text, 1500);
           const simplified = [];
           for (const piece of pieces) {
@@ -3746,73 +4062,74 @@
         }
         if (tgt !== srcLang) {
           try {
-            setStatus(`Translating → ${LANG_DISPLAY[tgt] || tgt}…`);
+            const label = LANG_DISPLAY[tgt] || tgt;
             const pieces = splitIntoSentences(text, 800);
             const translated = [];
-            for (const piece of pieces) {
+            for (let i = 0; i < pieces.length; i++) {
+              updateDocProgress(
+                `Turning it into ${label}…`,
+                pieces.length > 1 ? `part ${i + 1} of ${pieces.length}` : "",
+              );
               translated.push(
                 stripPassthroughAnnotation(
-                  await translateChunk(piece, srcLang, tgt, { timeoutMs: 20000 }),
+                  await translateChunk(pieces[i], srcLang, tgt, { timeoutMs: 20000 }),
                 ),
               );
             }
             text = translated.join(" ");
           } catch (err) {
             console.warn("[AaaS] OCR translate failed:", err);
-            setStatus("Could not translate — showing the original text", "error");
           }
         }
-        ocrTextEl.textContent = text;
-        ocrOverlay.setAttribute("data-open", "true");
-        ocrTextEl.focus();
-        if (result.engine === "mock") {
-          setStatus("Notice ready (mock OCR — install tesseract for real scans)", "error");
-        } else {
-          setStatus("Notice ready", "ok");
-        }
+        showDocResult(text, result.engine === "mock");
       } catch (err) {
-        setStatus(`Could not read the document: ${err.message}`, "error");
+        console.warn("[AaaS] OCR pipeline failed:", err);
+        showDocError(friendlyDocError(err));
       } finally {
         ocrBusy = false;
         ocrBtn.disabled = false;
       }
     }
 
-    function closeOcrOverlay() {
-      ocrOverlay.setAttribute("data-open", "false");
-      if (ocrReading) {
-        ocrReading = false;
-        player.stop();
-        ocrReadBtn.textContent = "🔊 Read aloud";
+    function showDocResult(text, wasMock) {
+      docResultText = text;
+      docTitle.textContent = "Here's your document";
+      docBody.innerHTML = '<div class="doc-text"></div>';
+      docBody.querySelector(".doc-text").textContent = text;
+      docActions.textContent = "";
+      const listenBtn = docButton("🔊 Listen", "doc-primary", () => {
+        if (docReading) stopDocReading();
+        else startDocReading(listenBtn);
+      });
+      docButton("Copy", "doc-secondary", async () => {
+        try {
+          await navigator.clipboard.writeText(docResultText);
+          setStatus("Copied to clipboard", "ok");
+        } catch {
+          setStatus("Copy failed — select the text manually", "error");
+        }
+      });
+      docButton("Close", "doc-secondary", closeDocModal);
+      if (wasMock) {
+        setStatus("Shown with mock OCR — install tesseract for real scans", "error");
       }
+      // The user asked us to READ the document — start speaking
+      // without demanding another tap (unless the page reader is
+      // already talking).
+      if (!isReading) startDocReading(listenBtn);
     }
-    ocrCloseBtn.addEventListener("click", closeOcrOverlay);
 
-    ocrCopyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(ocrTextEl.textContent || "");
-        setStatus("Copied to clipboard", "ok");
-      } catch {
-        setStatus("Copy failed — select the text manually", "error");
-      }
-    });
-
-    let ocrReading = false;
-    ocrReadBtn.addEventListener("click", async () => {
-      if (ocrReading) {
-        ocrReading = false;
-        player.stop();
-        ocrReadBtn.textContent = "🔊 Read aloud";
-        return;
-      }
+    async function startDocReading(listenBtn) {
+      if (docReading) return;
       if (isReading) {
         setStatus("Already reading the page — press Esc to stop that first", "error");
         return;
       }
-      const text = (ocrTextEl.textContent || "").trim();
+      const text = docResultText.trim();
       if (!text) return;
-      ocrReading = true;
-      ocrReadBtn.textContent = "⏹ Stop";
+      docReading = true;
+      listenBtn.textContent = "⏹ Stop reading";
+      listenBtn.classList.add("speaking");
       const lang = dominantScript(text) || resolvedLang() || "en";
       try {
         player.reset();
@@ -3820,10 +4137,10 @@
         const chunks = splitIntoSentences(text, CONFIG.maxChars);
         let enqueued = 0;
         for (const chunk of chunks) {
-          if (!ocrReading) break;
+          if (!docReading) break;
           try {
             const blob = await synthesise(chunk, lang);
-            if (!ocrReading) break;
+            if (!docReading) break;
             player.enqueue(blob);
             enqueued++;
           } catch (err) {
@@ -3832,12 +4149,13 @@
         }
         player.finish();
         await draining;
-        if (!enqueued) setStatus("TTS unavailable — check the gateway", "error");
+        if (!enqueued) setStatus("Voice unavailable — check that services are running", "error");
       } finally {
-        ocrReading = false;
-        ocrReadBtn.textContent = "🔊 Read aloud";
+        docReading = false;
+        listenBtn.textContent = "🔊 Listen again";
+        listenBtn.classList.remove("speaking");
       }
-    });
+    }
   }
 
   if (document.readyState === "loading") {
