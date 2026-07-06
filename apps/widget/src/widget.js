@@ -1078,7 +1078,8 @@
       color: #8b96a5;
     }
 
-    .read-row {
+    .read-row,
+    .tile-wrap {
       position: relative;
       display: block;
     }
@@ -1100,7 +1101,30 @@
     }
     button.pause:hover:not(:disabled) { background: #24303e; }
     .read-row[data-playing="true"] button.pause { display: block; }
-    .read-row button.action { width: 100%; height: 100%; }
+    .read-row button.action,
+    .tile-wrap button.action { width: 100%; height: 100%; }
+
+    /* Undo overlay on the Translate / Easy Read tiles — appears once
+       that action has rewritten the page, same pattern as the pause
+       button on the Read tile. */
+    button.undo {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      background: #10151d;
+      border: 1px solid #4a6a96;
+      color: #e8edf2;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: none;
+      z-index: 2;
+    }
+    button.undo:hover { background: #24303e; border-color: #ffcf33; }
+    .tile-wrap[data-undoable="true"] button.undo { display: block; }
 
     .shortcuts-link {
       display: inline-block;
@@ -2685,17 +2709,23 @@
           <button class="pause" type="button" aria-label="Pause or resume" title="Pause (Space)">⏸</button>
         </div>
 
-        <button class="action translate" type="button">
-          <span class="ic" aria-hidden="true">🌐</span>
-          <span class="or" lang="or">ଅନୁବାଦ</span>
-          <span class="en translate-label">Translate</span>
-        </button>
+        <div class="tile-wrap translate-wrap">
+          <button class="action translate" type="button">
+            <span class="ic" aria-hidden="true">🌐</span>
+            <span class="or" lang="or">ଅନୁବାଦ</span>
+            <span class="en translate-label">Translate</span>
+          </button>
+          <button class="undo undo-translate" type="button" aria-label="Undo translation — show the original text" title="Undo translation">↺</button>
+        </div>
 
-        <button class="action easyread" type="button">
-          <span class="ic" aria-hidden="true">📖</span>
-          <span class="or" lang="or">ସହଜ ପଢ଼ା</span>
-          <span class="en easyread-label">Easy Read</span>
-        </button>
+        <div class="tile-wrap easyread-wrap">
+          <button class="action easyread" type="button">
+            <span class="ic" aria-hidden="true">📖</span>
+            <span class="or" lang="or">ସହଜ ପଢ଼ା</span>
+            <span class="en easyread-label">Easy Read</span>
+          </button>
+          <button class="undo undo-easyread" type="button" aria-label="Undo Easy Read" title="Undo Easy Read">↺</button>
+        </div>
 
         <button class="action ocr" type="button">
           <span class="ic" aria-hidden="true">📄</span>
@@ -3269,6 +3299,62 @@
       return translateChunk(text, pageLang, tgt, { timeoutMs: 20000 });
     }
 
+    /* ----- Undo for the in-place rewrites -----
+     * Translate and Easy Read both mutate the same text nodes, so undo
+     * is a LAYER STACK: each action snapshots node values before
+     * touching them. Undoing a layer restores from the top down to
+     * that layer (unwinding anything stacked on top) and rewinds
+     * pageLang / easyReadDone to what they were before it ran — so
+     * "undo translate" after translate→EasyRead restores the true
+     * original, while "undo Easy Read" alone returns to the translated
+     * page.
+     */
+    const undoLayers = []; // {kind, values: Map(node→text), prevPageLang, prevEasyReadDone}
+    const translateWrap = panel.querySelector(".translate-wrap");
+    const easyreadWrap = panel.querySelector(".easyread-wrap");
+
+    function snapshotNodes(nodes) {
+      const m = new Map();
+      for (const node of nodes) m.set(node, node.nodeValue);
+      return m;
+    }
+
+    function refreshUndoUI() {
+      translateWrap.setAttribute(
+        "data-undoable",
+        undoLayers.some((l) => l.kind === "translate") ? "true" : "false",
+      );
+      easyreadWrap.setAttribute(
+        "data-undoable",
+        undoLayers.some((l) => l.kind === "easyread") ? "true" : "false",
+      );
+    }
+
+    function undoRewrite(kind) {
+      if (translateInFlight || easyReadInFlight) return;
+      const idx = undoLayers.map((l) => l.kind).lastIndexOf(kind);
+      if (idx === -1) return;
+      // Restore top-down: each layer holds the values from before ITS
+      // action, so finishing with layer idx leaves its (earliest) text.
+      for (let i = undoLayers.length - 1; i >= idx; i--) {
+        for (const [node, text] of undoLayers[i].values) {
+          if (node.isConnected) node.nodeValue = text;
+        }
+      }
+      const layer = undoLayers[idx];
+      pageLang = layer.prevPageLang;
+      easyReadDone = layer.prevEasyReadDone;
+      undoLayers.length = idx;
+      refreshUndoUI();
+      updateTranslateLabel();
+      setStatus(
+        kind === "translate" ? "Original text restored" : "Easy Read undone",
+        "ok",
+      );
+    }
+    panel.querySelector(".undo-translate").addEventListener("click", () => undoRewrite("translate"));
+    panel.querySelector(".undo-easyread").addEventListener("click", () => undoRewrite("easyread"));
+
     let translateInFlight = false;
     async function translatePageInPlace() {
       if (translateInFlight || easyReadInFlight) return;
@@ -3279,20 +3365,26 @@
       // text back through the engine labelled as pageLang and corrupt
       // the page, so refuse fast with a friendly status instead.
       if (tgt === pageLang) {
-        setStatus(
-          `Page is already in ${LANG_DISPLAY[tgt] || tgt} — reload to see the original`,
-          "notice",
-        );
+        const hint = undoLayers.length ? " — ↺ on the tile restores the original" : "";
+        setStatus(`Page is already in ${LANG_DISPLAY[tgt] || tgt}${hint}`, "notice");
         return;
       }
       translateInFlight = true;
       translateBtn.disabled = true;
+      let layer = null;
       try {
         const nodes = collectTranslatableNodes();
         if (!nodes.length) {
           statusEl.textContent = "Nothing to translate on this page";
           return;
         }
+        layer = {
+          kind: "translate",
+          values: snapshotNodes(nodes),
+          prevPageLang: pageLang,
+          prevEasyReadDone: easyReadDone,
+        };
+        undoLayers.push(layer);
         statusEl.textContent =
           `Translating 0 / ${nodes.length} → ${LANG_DISPLAY[tgt] || tgt}…`;
         const BATCH = 5;
@@ -3318,15 +3410,22 @@
             `Translating ${done} / ${nodes.length} → ${LANG_DISPLAY[tgt] || tgt}…`;
         }
         statusEl.textContent =
-          `Page translated → ${LANG_DISPLAY[tgt] || tgt} (reload to revert)`;
+          `Page translated → ${LANG_DISPLAY[tgt] || tgt} (↺ on the tile restores the original)`;
         // The DOM is now in the target language; let read-aloud,
         // Easy Read, voice nav and repeat clicks act on that fact.
         // Guarded so a total failure (gateway down, every node left
         // untouched) doesn't mislabel an untranslated page.
-        if (changed) pageLang = tgt;
+        if (changed) {
+          pageLang = tgt;
+        } else if (layer) {
+          // Nothing was rewritten — drop the useless undo layer.
+          undoLayers.pop();
+          layer = null;
+        }
       } finally {
         translateBtn.disabled = false;
         translateInFlight = false;
+        refreshUndoUI();
       }
     }
     translateBtn.addEventListener("click", translatePageInPlace);
@@ -3355,7 +3454,7 @@
     async function easyReadPageInPlace() {
       if (easyReadInFlight || translateInFlight) return;
       if (easyReadDone) {
-        setStatus("Page is already in Easy Read — reload to see the original", "notice");
+        setStatus("Page is already in Easy Read — ↺ on the tile undoes it", "notice");
         return;
       }
       easyReadInFlight = true;
@@ -3363,12 +3462,20 @@
       const tgt = resolvedLang() || pageLang;
       const chain = tgt !== pageLang;
       const suffix = chain ? ` → ${LANG_DISPLAY[tgt] || tgt}` : "";
+      let layer = null;
       try {
         const nodes = collectTranslatableNodes();
         if (!nodes.length) {
           setStatus("Nothing to simplify on this page");
           return;
         }
+        layer = {
+          kind: "easyread",
+          values: snapshotNodes(nodes),
+          prevPageLang: pageLang,
+          prevEasyReadDone: easyReadDone,
+        };
+        undoLayers.push(layer);
         setStatus(`Simplifying 0 / ${nodes.length}${suffix}…`);
         const BATCH = 5;
         let done = 0;
@@ -3397,6 +3504,8 @@
           // certainly unreachable — bail out instead of grinding
           // through every node just to fail on each one.
           if (!succeeded && i === 0) {
+            undoLayers.pop(); // nothing was rewritten
+            layer = null;
             setStatus("Easy Read unavailable — check that services are running", "error");
             return;
           }
@@ -3407,10 +3516,11 @@
         // Chained Easy Read leaves the DOM in the target language —
         // record it so read-aloud / voice nav / translate see reality.
         if (chain) pageLang = tgt;
-        setStatus(`Page in Easy Read${suffix} (reload to revert)`, "ok");
+        setStatus(`Page in Easy Read${suffix} (↺ on the tile undoes it)`, "ok");
       } finally {
         easyreadBtn.disabled = false;
         easyReadInFlight = false;
+        refreshUndoUI();
       }
     }
     easyreadBtn.addEventListener("click", easyReadPageInPlace);
