@@ -17,13 +17,22 @@ Output:
     stdout                           -- step log + bundle size + next steps
 
 Ships four services: gateway (proxy + static UI), tts (Odia VITS via
-Meta MMS), stt (mock speech-to-text), translate (mock Indic↔English).
+Meta MMS), stt (mock speech-to-text), translate (mock Indic↔English
+translation, REAL Tesseract OCR + rule-based /simplify).
 The STT/Translate mock engines are deterministic and zero-weight, so
 the bundle fits on a 2 GB USB. Source builds now default to the real
 AI4Bharat engines (see ``services/stt/app/config.py``); the bundle
 launchers explicitly override back to mock because torch isn't shipped.
 Real engines in the bundle require pre-fetched weights and the
 ``[indic]`` extras — see ``docs/bundle-build.md``.
+
+OCR ships REAL: the translate build installs the ``[ocr]`` extra,
+prefetches ori/hin/eng traineddata, and the bundle carries a minimal
+Tesseract runtime (tesseract.exe + DLLs, copied from the build
+machine's install) so the widget's "Read document" feature scans
+actual notices on the judge laptop instead of returning mock text.
+If Tesseract isn't installed on the build machine the bundle still
+assembles — OCR then falls back to mock and the build log warns.
 
 The script is intentionally a single file — it runs on a fresh Windows
 box without a pnpm install or Node at all. The only prerequisite is a
@@ -437,9 +446,18 @@ def build_stt(clean: bool) -> Path:
 
 
 def build_translate(clean: bool) -> Path:
-    step("build Translate bundle (mock engine)")
+    step("build Translate bundle (mock MT engine, real Tesseract OCR)")
     py = ensure_venv(TR_DIR, clean)
-    pip_install_editable(py, TR_DIR, extras=["dev", "bundle"])
+    pip_install_editable(py, TR_DIR, extras=["dev", "bundle", "ocr"])
+
+    # Traineddata for ori/hin/eng — idempotent, ~15 MB total. Without
+    # this the bundled /ocr silently degrades to the mock engine.
+    prefetch = TR_DIR / "bundle" / "prefetch_tessdata.py"
+    if prefetch.is_file():
+        run([str(py), str(prefetch)], cwd=TR_DIR)
+    else:
+        info(f"WARNING: {prefetch} missing — bundled OCR will be mock")
+
     distpath, workpath = _pyinstaller_out(TR_DIR, "aaas-translate")
     info(f"output: dist={distpath}  work={workpath}")
     run(
@@ -711,6 +729,34 @@ def assemble(
         shutil.copy2(BUNDLE_ASSETS / fname, BUNDLE_OUT / fname)
     shutil.copytree(BUNDLE_ASSETS / "tools", BUNDLE_OUT / "tools")
 
+    # Real OCR on the judge laptop: ship the ori/hin/eng traineddata
+    # next to the translate exe, plus a minimal Tesseract runtime
+    # (tesseract.exe + DLLs — no training tools or docs). Both start.bat
+    # and the bundle smoke point AAAS_TRANSLATE_* env vars at these.
+    tessdata_src = TR_DIR / "models" / "tessdata"
+    if tessdata_src.is_dir():
+        tessdata_dst = BUNDLE_OUT / "services" / "aaas-translate" / "models" / "tessdata"
+        info(f"copy {tessdata_src}  ->  {tessdata_dst}")
+        shutil.copytree(tessdata_src, tessdata_dst)
+    else:
+        info("WARNING: no tessdata prefetched — bundled OCR will be mock")
+
+    tess_src = Path(r"C:\Program Files\Tesseract-OCR")
+    if (tess_src / "tesseract.exe").is_file():
+        tess_dst = BUNDLE_OUT / "services" / "tesseract"
+        tess_dst.mkdir(parents=True)
+        copied = 0
+        for item in tess_src.iterdir():
+            if item.name == "tesseract.exe" or item.suffix.lower() == ".dll":
+                shutil.copy2(item, tess_dst / item.name)
+                copied += 1
+        info(f"copy tesseract runtime -> {tess_dst} ({copied} files)")
+    else:
+        info(
+            "WARNING: Tesseract not installed on this machine — bundled "
+            "OCR will run as MOCK. Install UB-Mannheim Tesseract and rebuild."
+        )
+
     # Copy the browser extension as an unpacked folder so judges can sideload
     # it directly (chrome://extensions → Load unpacked → extension/). The
     # zipped copy at dist/AaaS-Extension.zip is the shareable artefact.
@@ -801,6 +847,16 @@ def smoke_bundle() -> None:
     env_stt.update({"STT_HOST": "127.0.0.1", "STT_PORT": str(stt_port)})
     env_tr = os.environ.copy()
     env_tr.update({"TRANSLATE_HOST": "127.0.0.1", "TRANSLATE_PORT": str(tr_port)})
+    # Point OCR at the bundled Tesseract runtime + traineddata, exactly
+    # as start.bat does on the judge laptop.
+    bundled_tess = BUNDLE_OUT / "services" / "tesseract" / "tesseract.exe"
+    bundled_tessdata = (
+        BUNDLE_OUT / "services" / "aaas-translate" / "models" / "tessdata"
+    )
+    if bundled_tess.is_file():
+        env_tr["AAAS_TRANSLATE_TESSERACT_CMD"] = str(bundled_tess)
+    if bundled_tessdata.is_dir():
+        env_tr["AAAS_TRANSLATE_TESSDATA_DIR"] = str(bundled_tessdata)
     env_gw = os.environ.copy()
     env_gw.update(
         {
@@ -869,6 +925,65 @@ def smoke_bundle() -> None:
                         )
                     else:
                         info("bundle translate round-trip OK")
+
+                    # OCR through the gateway with a real scan — the whole
+                    # point of shipping Tesseract. Expect engine=tesseract
+                    # when the runtime was bundled; warn (don't fail) when
+                    # the build machine had no Tesseract install.
+                    scan = (
+                        REPO / "apps" / "demo-sites" / "jajpur-collectorate"
+                        / "assets" / "notice-scan.png"
+                    )
+                    if scan.is_file():
+                        import json as _json2
+
+                        boundary = b"aaasocr"
+                        payload = (
+                            b"--" + boundary + b"\r\n"
+                            b'Content-Disposition: form-data; name="file"; '
+                            b'filename="notice-scan.png"\r\n'
+                            b"Content-Type: image/png\r\n\r\n"
+                            + scan.read_bytes()
+                            + b"\r\n--" + boundary + b"\r\n"
+                            b'Content-Disposition: form-data; name="lang"\r\n\r\nen'
+                            b"\r\n--" + boundary + b"--\r\n"
+                        )
+                        req = urllib.request.Request(
+                            f"http://127.0.0.1:{gw_port}/translate/ocr",
+                            data=payload,
+                            method="POST",
+                            headers={
+                                "Content-Type": (
+                                    "multipart/form-data; boundary=aaasocr"
+                                ),
+                                "X-API-Key": SEED_API_KEY,
+                            },
+                        )
+                        try:
+                            with urllib.request.urlopen(req, timeout=120.0) as resp:
+                                ocr_body = resp.read()
+                                ocr_status = resp.status
+                        except urllib.error.HTTPError as exc:
+                            ocr_body = exc.read() if exc.fp else b""
+                            ocr_status = exc.code
+                        if ocr_status != 200:
+                            die(f"bundle OCR HTTP {ocr_status}: {ocr_body[:200]!r}")
+                        ocr_obj = _json2.loads(ocr_body)
+                        if ocr_obj.get("engine") == "tesseract":
+                            if "hereby" not in (ocr_obj.get("text") or "").lower():
+                                die(
+                                    "bundle OCR ran tesseract but text missed "
+                                    f"'hereby': {ocr_obj.get('text', '')[:120]!r}"
+                                )
+                            info("bundle OCR round-trip OK — engine=tesseract")
+                        else:
+                            info(
+                                "WARNING: bundle OCR is running the MOCK engine "
+                                "— Read document will return canned text on the "
+                                "judge laptop."
+                            )
+                    else:
+                        info(f"skipping OCR smoke — {scan} not found")
 
                     # Negative path: English text against the default Odia
                     # model must 4xx cleanly (the MMS Odia tokeniser drops

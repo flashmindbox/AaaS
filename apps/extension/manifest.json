@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "AaaS Accessibility Companion (Odisha)",
   "short_name": "AaaS Companion",
-  "version": "0.3.2",
-  "description": "Read any website aloud in Odia, Hindi or English, and translate the whole page (IndicTrans2 when the AaaS gateway is reachable, Google otherwise). Speak to fill forms. Dyslexia-friendly rendering. On-device mode runs TTS and STT entirely offline via WebAssembly — works on any site, no backend required.",
+  "version": "0.4.0",
+  "description": "Read any website aloud in Odia, Hindi or English, and translate the whole page (IndicTrans2 when the AaaS gateway is reachable, Google otherwise). Fill forms by voice — it asks for each field aloud. Navigate by voice command. Read scanned notices and PDFs (OCR) side by side with their translation. OpenDyslexic comfortable-letters mode. On-device mode runs TTS and STT offline via WebAssembly.",
   "author": "Team SUBARNAREKHA",
   "icons": {
     "16": "icons/icon-16.png",

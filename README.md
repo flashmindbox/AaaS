@@ -1,121 +1,116 @@
 # AaaS — Accessibility as a Service
 
-> A centralized, cloud-based accessibility infrastructure for Indian public
-> institutions. Plug-and-play APIs for speech, translation, screen-reader
-> support, and WCAG monitoring — so no citizen is shut out of
-> their own government.
+> One floating ଅ button on any government website that reads pages aloud in
+> Odia, translates them, simplifies them, reads scanned notices, fills forms
+> by voice, and navigates by voice — backed by on-prem Indic AI services.
+> Built for Odisha, designed for every Indian public institution.
 
-**Team:** SUBARNAREKHA · **License:** Apache-2.0 · **Status:** Phase 0 — foundations
+**Team:** SUBARNAREKHA · **License:** Apache-2.0 · **Status:** working demo —
+widget + extension + four services, verified on real Odisha government sites
 
 ## Why this exists
 
-Every Indian university, exam board, and government portal today builds its
-own (usually poor, usually absent) accessibility. That duplication leaves
-millions of citizens with disabilities, with learning differences, or who
-speak languages other than English, unable to use their own government's
-digital services. AaaS builds that layer **once, centrally** so every
-institution can switch it on in a day.
+Every Indian university, exam board, and government portal builds its own
+(usually poor, usually absent) accessibility. That leaves millions of citizens
+with disabilities, with learning differences, or who speak languages other
+than English unable to use their own government's digital services — and the
+most important documents are often *scans*, invisible to every assistive tool.
+AaaS builds the assistive layer **once, centrally**: any site switches it on
+with one script tag, and our browser extension covers the sites that haven't.
 
-Read more:
+## What works today
 
-- [`WHAT_WE_ARE_BUILDING.md`](./WHAT_WE_ARE_BUILDING.md) — plain-English vision
-- [`PLAN.md`](./PLAN.md) — technical blueprint and phase-wise roadmap
-- [`docs/`](./docs) — threat model, DPDP data-flow mapping, WCAG checklist
+| Feature (widget tile) | What it does |
+|---|---|
+| ପଢ଼ି ଶୁଣାଅ · **Read aloud** | Speaks the page in Odia/Hindi/English, highlights each block as it reads, ⏮/⏭ skip & replay, pause |
+| ଅନୁବାଦ · **Translate → Odia** | Whole-page in-place translation (AI4Bharat IndicTrans2), one-tap ↺ undo |
+| ସହଜ ପଢ଼ା · **Easy Read** | Rule-based plain-language rewriting, offline, same language as the page, ↺ undo |
+| ଦଲିଲ ପଢ଼ · **Read document** | Finds scans/PDFs, OCRs them (Tesseract), shows original and translation side by side, reads aloud with per-page highlight |
+| କହି ଲେଖ · **Speak to fill** | Guided voice form filling: asks each field aloud, transliterates names (never translates them), parses spoken numbers, never auto-submits |
+| କହି ଚଲାଅ · **Voice command** | Voice navigation with phonetic matching (English links heard through Odia ears), reaches carousel/menu links, offers "did you mean" buttons instead of dead ends |
 
-## Quickstart (10-minute setup)
+Plus **Reading comfort**: OpenDyslexic "Comfortable letters" mode, a reading
+ruler, hover/selection speech — and a keyboard-shortcuts overlay.
+
+## Architecture
+
+```
+browser ──> widget (520 KB vanilla JS, Shadow DOM)  or  MV3 extension
+                     │  X-API-Key
+                     ▼
+            gateway :8000 ── static demo sites + catch-all proxy
+             ├── tts :8001        Meta MMS-TTS (or/hi/en) + Odia number speech
+             ├── stt :8002        AI4Bharat IndicWav2Vec (Odia)
+             └── translate :8003  AI4Bharat IndicTrans2 + /simplify + /ocr
+```
+
+Everything runs on-prem (one laptop for the demo; a state data centre in
+production). Every engine has a deterministic mock fallback, so the system
+degrades honestly instead of dying. Client (IndexedDB) and server caches make
+repeated operations instant.
+
+## Quickstart
+
+```bat
+:: Windows, from the repo root — starts all four services in dev mode
+start-dev.bat
+```
+
+Then open <http://127.0.0.1:8000/demo/> and click the ଅ button on any demo
+page. Primary demos:
+
+- `/demo/real-jajpur/` — mirror of the real Jajpur district portal
+- `/demo/bse-odisha/` — mirror of BSE Odisha (has the scanned 2-page circular)
+- `/demo/jajpur-collectorate/` — has the grievance form for voice filling
+
+Per-service setup (models, HF tokens, Tesseract) is documented in each
+service's README under [`services/`](./services). The zero-install judge
+bundle is built by `python scripts/build_bundle.py` → `dist/AaaS-Demo/`
+(see [`docs/bundle-build.md`](./docs/bundle-build.md)).
+
+### Browser extension (any real website)
+
+```
+chrome://extensions → Developer mode → Load unpacked → apps/extension/
+```
+
+Injects the same widget into any site — we verified it on
+jajpur.odisha.gov.in, bseodisha.ac.in, odisha.gov.in, ssepd.odisha.gov.in and
+india.gov.in. See [`apps/extension/README.md`](./apps/extension/README.md).
+
+## Repository layout
+
+```
+apps/
+  widget/       the ଅ widget (src → built dist via scripts/build_widget.py)
+  extension/    MV3 browser extension (ships the same widget)
+  demo-sites/   mirrored government sites + fixtures served by the gateway
+  admin/        minimal admin/demo landing pages
+services/
+  gateway/      auth, tenancy, static hosting, catch-all proxy
+  tts/          Meta MMS-TTS + Odia number verbalization + script splicing
+  stt/          AI4Bharat IndicWav2Vec (mock fallback)
+  translate/    AI4Bharat IndicTrans2 + rule-based /simplify + Tesseract /ocr
+scripts/        build_widget.py, build_bundle.py, demo fixtures
+hackathon/      demo script, pitch, judge Q&A, presenter brief
+docs/           plan-v2 (current plan), bundle build, install guides, compliance
+```
+
+## Testing
 
 ```bash
-# 1. Prerequisites (one-time, global)
-#    Node 20+, pnpm 10+, Docker Desktop, Git.
-#    Optional for services/: Python 3.11+, Go 1.22+.
-node -v && pnpm -v && docker -v
+# widget (pure-function smoke suites)
+node apps/widget/tests/dyslexia_smoke.js     # + ruler, voice_match, ocr_pick, form_fill
 
-# 2. Install dependencies
-pnpm install
-
-# 3. Boot the local dev stack (Postgres, Redis, MinIO, Keycloak, Jaeger, MailHog)
-pnpm infra:up
-
-# 4. Build everything and run tests
-pnpm build
-pnpm test
-pnpm a11y    # WCAG 2.2 AA harness self-test
+# services (per service)
+cd services/translate && python -m pytest    # same for tts, stt, gateway
 ```
 
-| Dashboard       | URL                    | Credentials           |
-| --------------- | ---------------------- | --------------------- |
-| Keycloak        | http://localhost:8080  | admin / admin         |
-| Keycloak user   | same                   | dev / dev (realm: aaas) |
-| MinIO console   | http://localhost:9001  | aaas-dev / aaas-dev-secret |
-| MailHog         | http://localhost:8025  | —                     |
-| Jaeger          | http://localhost:16686 | —                     |
-| Postgres        | localhost:5432         | aaas / change-me-in-dev (db: aaas) |
+222 checks across five suites at last count.
 
-Shut down with `pnpm infra:down`; wipe volumes with `pnpm infra:reset`.
+## Read more
 
-## Repo layout
-
-```
-aaas/
-├── apps/          # end-user apps (widget, dashboard, mobile, kiosk)
-├── services/      # backend microservices (gateway, stt, tts, mt ...)
-├── packages/      # shared libraries
-│   ├── config/       # @aaas/config — eslint, tsconfig, prettier presets
-│   ├── ui/           # @aaas/ui — accessible design system (AAA contrast)
-│   └── a11y-test/    # @aaas/a11y-test — axe + Playwright WCAG harness
-├── infra/         # docker-compose dev stack, Keycloak realm, Postgres init
-├── docs/          # threat model, DPDP, WCAG checklist
-├── .github/       # workflows, CODEOWNERS, PR/issue templates
-└── (root configs) # pnpm-workspace, turbo, tsconfig.base, eslint, prettier
-```
-
-## Common commands
-
-| Command                     | What it does                                         |
-| --------------------------- | ---------------------------------------------------- |
-| `pnpm dev`                  | Watch-mode dev across all workspaces                 |
-| `pnpm build`                | Build all packages (Turbo runs in parallel, cached)  |
-| `pnpm lint`                 | ESLint + jsx-a11y strict rules                       |
-| `pnpm typecheck`            | Strict TypeScript across all packages                |
-| `pnpm test`                 | Vitest unit tests (incl. axe + contrast regressions) |
-| `pnpm a11y`                 | WCAG 2.2 AA audit harness                            |
-| `pnpm format`               | Prettier --write                                     |
-| `pnpm format:check`         | CI-safe format check                                 |
-| `pnpm infra:up / down / reset` | Dev stack lifecycle                               |
-
-Turbo is configured with proper input/output tracking, so reruns that
-touch nothing hit cache in milliseconds.
-
-## Quality gates
-
-CI (GitHub Actions) enforces the following on every PR:
-
-1. **Install** — `pnpm install --frozen-lockfile`
-2. **Lint + format** — ESLint with `jsx-a11y/strict`, Prettier check
-3. **Typecheck** — strict TS
-4. **Unit tests** — including `jest-axe` for every component and
-   color-contrast regression tests for the design system
-5. **A11y audit** — `pnpm a11y` (axe-core via Playwright)
-6. **Build** — full monorepo build
-7. **SBOM + vuln scan** — CycloneDX SBOM via Syft; Grype on high-severity;
-   SARIF uploaded to GitHub Code Scanning
-
-## Contributing
-
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md). The short version:
-
-- Accessibility is a correctness concern, not a nice-to-have. PRs that
-  regress `pnpm a11y` are blocked.
-- Keep scope tight — smaller PRs merge faster.
-- Security and privacy changes need a threat-model / DPDP review before
-  merge (see `docs/` and `CODEOWNERS`).
-
-## Security
-
-Responsible disclosure: see [`SECURITY.md`](./SECURITY.md).
-Threat model: [`docs/threat-model.md`](./docs/threat-model.md).
-Data protection: [`docs/dpdp-data-flow.md`](./docs/dpdp-data-flow.md).
-
-## License
-
-Apache-2.0. See [`LICENSE`](./LICENSE).
+- [`docs/plan-v2.md`](./docs/plan-v2.md) — the current technical plan
+- [`hackathon/DEMO_SCRIPT.md`](./hackathon/DEMO_SCRIPT.md) — the live demo, scene by scene
+- [`WHAT_WE_ARE_BUILDING.md`](./WHAT_WE_ARE_BUILDING.md) — original vision (historical; see plan-v2 for what shipped)
+- [`docs/`](./docs) — threat model, DPDP data-flow, WCAG checklist

@@ -65,8 +65,10 @@ echo Starting STT...
 start "AaaS STT" /MIN cmd /c "set STT_PORT=!STT_PORT! && services\aaas-stt\aaas-stt.exe > logs\stt.log 2>&1"
 
 REM -- 4. Launch Translate --------------------------------------------
+REM    OCR runs REAL Tesseract from the bundled runtime; if the folder
+REM    is absent the service falls back to mock OCR on its own.
 echo Starting Translate...
-start "AaaS Translate" /MIN cmd /c "set TRANSLATE_PORT=!TRANSLATE_PORT! && services\aaas-translate\aaas-translate.exe > logs\translate.log 2>&1"
+start "AaaS Translate" /MIN cmd /c "set TRANSLATE_PORT=!TRANSLATE_PORT! && set AAAS_TRANSLATE_TESSERACT_CMD=%~dp0services\tesseract\tesseract.exe && set AAAS_TRANSLATE_TESSDATA_DIR=%~dp0services\aaas-translate\models\tessdata && services\aaas-translate\aaas-translate.exe > logs\translate.log 2>&1"
 
 REM -- 5. Launch Gateway (tell it where the backends are) -------------
 echo Starting Gateway...

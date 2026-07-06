@@ -9,15 +9,24 @@ computer. No technical knowledge required.
 
 AaaS Companion is a browser add-on. Once you install it, a small floating
 **ଅ** button appears on **every** website you visit. Click it and a panel
-opens with five features:
+opens with six feature tiles plus reading-comfort options:
 
 | Feature | What it does |
 |---|---|
-| **🔊 Read this page** | Reads the page aloud in Odia, Hindi, or English |
-| **🌐 Translate this page** | Translates the page to Odia in place (Google Translate) |
-| **🎙️ Speak to fill forms** | Speak into your microphone, text appears in the form field |
-| **Dyslexia mode** | Wider letter spacing and softer contrast — easier to read |
-| **Hover to speak** | Move your mouse over anything on the page; it's read aloud |
+| **🔊 ପଢ଼ି ଶୁଣାଅ · Read aloud** | Reads the page aloud in Odia, Hindi, or English, highlighting each line as it speaks. ⏮/⏭ buttons replay or skip a section. |
+| **🌐 ଅନୁବାଦ · Translate → Odia** | Translates the whole page to Odia in place. The ↺ button undoes it. |
+| **📖 ସହଜ ପଢ଼ା · Easy Read** | Rewrites difficult official language into plain, simple words. ↺ undoes it. |
+| **📄 ଦଲିଲ ପଢ଼ · Read document** | Finds scanned notices and PDFs on the page, asks which one you want, then shows the original and the Odia text side by side while reading aloud. |
+| **🎙️ କହି ଲେଖ · Speak to fill** | Fills forms by voice. With no field selected it asks for each answer aloud, one by one. It never presses Submit for you. |
+| **🧭 କହି ଚଲାଅ · Voice command** | Say the name of a link or button ("ଟେଣ୍ଡର") and it opens it. If unsure, it shows you choices to tap. |
+
+And under **ପଢ଼ିବା ଆରାମ · Reading comfort**:
+
+| Option | What it does |
+|---|---|
+| **ଆରାମ ଅକ୍ଷର · Comfortable letters** | Switches the page to the OpenDyslexic font with extra spacing — much easier reading for dyslexia |
+| **ପଢ଼ା ରେଖା · Reading ruler** | A light band follows your pointer so your eyes keep their place |
+| **ଛୁଇଁଲେ କୁହେ · Hover to speak** | Move your mouse over anything and it is read aloud; select text to hear just that |
 
 This guide walks you through installing the extension and using it for
 the first time.
@@ -36,7 +45,7 @@ You will need:
 You should have received a file named:
 
 ```
-AaaS-Companion-Extension-v0.2.1.zip
+AaaS-Extension.zip (v0.4.0)
 ```
 
 If you don't have this file yet, ask the person who shared the extension
@@ -219,15 +228,48 @@ the change to take effect.
 
 ### Speak instead of type
 
+**One field:**
+
 1. Click inside any form field (e.g. a search box).
-2. Click the floating **ଅ** → **Speak (fill by voice)**.
+2. Click the floating **ଅ** → **କହି ଲେଖ · Speak to fill**.
 3. When your browser asks for microphone permission, click **Allow**.
 4. Speak clearly — your words appear in the form field when you stop.
 
-### Dyslexia mode
+**A whole form, hands-free:**
 
-Click **Dyslexia mode** in the panel. Letters widen and colours
-soften. Click again to revert.
+1. Don't click any field — just open the panel and tap
+   **କହି ଲେଖ · Speak to fill**.
+2. It highlights the first empty field, asks for it aloud in Odia,
+   beeps, and listens. Answer, and it moves to the next field.
+3. Names and villages are written in English letters exactly as you
+   said them; phone numbers and ages become digits even if you spoke
+   them as words.
+4. At the end it says "Done — please check the answers." **It never
+   presses Submit** — look over the form and press Submit yourself.
+   Press **Esc** at any time to stop.
+
+### Read a scanned notice (Read document)
+
+1. On a page with a scanned notice or a PDF link, tap
+   **ଦଲିଲ ପଢ଼ · Read document**.
+2. It asks which document you want — tap one.
+3. The original pages appear on the left and the Odia text on the
+   right, and it starts reading aloud. The page being read glows amber
+   on both sides. ⛶ makes the window bigger; **Esc** closes it.
+
+### Voice command
+
+1. Tap **କହି ଚଲାଅ · Voice command** and say the name of any link or
+   button — in Odia or English ("ଟେଣ୍ଡର", "Contact").
+2. It highlights what it found and opens it. If it isn't sure, it shows
+   you up to three buttons — tap the one you meant.
+
+### Comfortable letters
+
+Open **ପଢ଼ିବା ଆରାମ · Reading comfort** and tick
+**ଆରାମ ଅକ୍ଷର · Comfortable letters**. The page switches to the
+OpenDyslexic font with wider spacing and a warm background. Untick to
+revert. Odia text keeps its proper Odia font either way.
 
 ### Hover to speak
 
@@ -278,7 +320,7 @@ Read the red error box on the extension card — it usually says exactly
 what's wrong:
 
 - **"Default locale was specified, but _locales subtree is missing"**
-  → you have an older version. Update to v0.2.1 or later.
+  → you have an older version. Update to v0.4.0 or later.
 - **"Manifest file is missing or unreadable"**
   → you picked a subfolder instead of the `AaaS-Companion` folder
   itself. Redo Step 4.

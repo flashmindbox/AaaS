@@ -36,6 +36,13 @@ hiddenimports += collect_submodules("app")
 hiddenimports += collect_submodules("httpx")
 hiddenimports += collect_submodules("httpcore")
 hiddenimports += ["certifi", "h11", "anyio", "sniffio", "idna"]
+# OCR deps are imported lazily inside engine methods; include them when
+# installed ([ocr] extra) so the bundled /ocr runs real Tesseract.
+for _ocr_pkg in ("pytesseract", "pypdfium2", "PIL"):
+    try:
+        hiddenimports += collect_submodules(_ocr_pkg)
+    except Exception:
+        pass
 
 _EXCLUDES = [
     "tkinter",

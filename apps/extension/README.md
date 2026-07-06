@@ -22,40 +22,58 @@ On every page you visit, the extension:
 
 1. Injects `widget.js` into the page's main world (MV3 `world: "MAIN"`).
 2. Widget paints a floating ଅ button in the bottom-right corner.
-3. Click → panel with:
-   - **Read this page** (Meta MMS-TTS — no browser-voice fallback)
-   - **Speak (fill by voice)** (dispatches `aaas-transcript` event)
-   - **Navigate by voice** (Alt+V) — speak a command or a link name in
-     Odia/Hindi/English; the widget matches it against the page's links
-     and buttons (built-in Odia→English nav glossary + translation),
-     highlights the winner, announces it, then clicks. Refuses and
-     lists candidates when it isn't confident. Scriptable without a
-     mic via the `aaas-voice-command` CustomEvent.
-   - **Translate this page** (in-place; IndicTrans2 via gateway,
-     Google fallback)
-   - **Easy Read this page** — rule-based plain-language rewriting of
+3. Click → icon-grid panel (Odia-first labels) with six tiles:
+   - **ପଢ଼ି ଶୁଣାଅ · Read aloud** (Meta MMS-TTS — no browser-voice
+     fallback). Highlights each block as it's spoken; ⏮/⏭ buttons (and
+     ←/→ keys) replay or skip a section, Space pauses, Esc stops.
+   - **ଅନୁବାଦ · Translate → Odia** — whole-page in-place translation
+     (IndicTrans2 via gateway, Google fallback), with a one-tap ↺ undo
+     on the tile.
+   - **ସହଜ ପଢ଼ା · Easy Read** — rule-based plain-language rewriting of
      the whole page (legalese → everyday words, long sentences split)
      **in the page's current language**: an English page stays English,
-     a translated-to-Odia page gets the Odia rules. Composes with
-     Translate (translate first, then Easy Read → simple Odia).
-     **Needs the gateway** — no Google fallback for this.
-   - **Read a document to me** — the widget finds the scanned images
-     and PDF links on the page itself: one document goes straight to
-     processing, several open a big plain-language chooser (hovering a
-     row highlights the document on the page), none offers a
-     point-at-it fallback. The document goes through the gateway's
-     Tesseract OCR, then simplify + translate, and the result appears
-     large-print in a centered modal that **starts reading aloud
-     automatically**. **Needs the gateway.** Same-origin documents work
-     (the normal government-portal case); cross-origin CDN images may
-     be blocked by the page's CORS.
-   - **Language picker** (Auto / Odia / Hindi / English)
-   - **Dyslexia mode** toggle — bundles Atkinson Hyperlegible (Latin
-     subset, base64-inlined) so the font swap works on any machine;
-     letter-spacing applies to Latin text only and is explicitly reset
-     on Odia/Hindi subtrees (conjunct-safe).
-   - **Reading ruler** toggle — a line-focus band that follows the
-     pointer (and keyboard focus), dimming everything outside it.
+     a translated-to-Odia page gets the Odia rules. ↺ undo. Composes
+     with Translate. **Needs the gateway** — no Google fallback.
+   - **ଦଲିଲ ପଢ଼ · Read document** — finds the scanned images and PDF
+     links on the page and always asks which one to read. The document
+     goes through the gateway's Tesseract OCR, then simplify +
+     translate, and opens **side by side**: the original page images on
+     the left, the text on the right, reading aloud automatically with
+     an amber highlight following the voice across pages. ⛶ maximizes.
+     **Needs the gateway.** Same-origin documents work (the normal
+     government-portal case); cross-origin CDN images may be blocked by
+     the page's CORS.
+   - **କହି ଲେଖ · Speak to fill** — with a field focused, dictates into
+     that field. With nothing focused, **guided form fill**: walks every
+     empty field, speaks its label aloud, beeps, listens, writes the
+     answer, and moves on — with a progress counter and one automatic
+     retry for numbers. Odia names/addresses are **transliterated to
+     Latin letters** (Purnnachandra, never "full moon"); spoken numbers
+     become digits (Odia words, phonetic English, "double" forms, tens
+     words for ages); emails assemble from spoken at/dot. It never
+     presses Submit — it parks focus on the button and leaves the
+     decision to the user. Esc cancels.
+   - **କହି ଚଲାଅ · Voice command** (Alt+V) — speak a command or a link
+     name in Odia/Hindi/English. Matching survives real sites: English
+     link names heard phonetically through the Odia STT ("କଣ୍ଟାକ୍ଟ" →
+     Contact) are romanized and sound-matched; Odia names match across
+     matra/virama slips; links hidden in carousels and dropdown menus
+     are reachable; duplicate header/footer links count as one. When
+     not confident it shows the top candidates as **tappable buttons**
+     instead of an error. Scriptable without a mic via the
+     `aaas-voice-command` CustomEvent.
+   - **Language picker** (Auto / Odia / Hindi / English) and a
+     **Reading comfort** section:
+     - **ଆରାମ ଅକ୍ଷର · Comfortable letters** — bundles **OpenDyslexic**
+       (regular + bold, base64-inlined; Atkinson Hyperlegible as
+       fallback) so the font swap works on any machine; letter-spacing
+       applies to Latin text only and is explicitly reset on Odia/Hindi
+       subtrees (conjunct-safe).
+     - **ପଢ଼ା ରେଖା · Reading ruler** — a line-focus band that follows
+       the pointer (and keyboard focus), dimming everything outside it.
+     - **ଛୁଇଁଲେ କୁହେ · Hover to speak** — speaks what you point at;
+       selecting text reads the selection.
+     - A **keyboard-shortcuts overlay** (press ? with the panel open).
 4. **Translation uses Google Translate** by default. The widget runs in
    the page's MAIN world (no cross-origin access), so requests are relayed
    through the background service worker — the one context that can call
