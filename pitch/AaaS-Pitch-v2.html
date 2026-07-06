@@ -88,12 +88,21 @@
   .whostat b { display: block; font-size: 18pt; color: var(--navy); }
   .whostat span { font-size: 10pt; color: var(--muted); }
 
-  /* ---------- slide 3 ---------- */
+  /* ---------- slide 3: mini broken-website mockups ---------- */
   .brokengrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.16in; margin: 0.25in 0; }
   .brokengrid .site {
-    height: 0.85in; background: #eef0f4; border: 1px solid var(--line); border-radius: 0.08in;
-    display: flex; align-items: center; justify-content: center; color: var(--red);
-    font-size: 20pt; font-weight: 700;
+    position: relative; height: 0.95in; background: #fff; border: 1px solid var(--line);
+    border-radius: 0.08in; overflow: hidden; box-shadow: 0 2px 6px rgba(20,51,93,.08);
+  }
+  .site .bar { display: block; height: 0.16in; }
+  .site .ln { display: block; height: 0.055in; background: #dde3ea; border-radius: 3px; margin: 0.075in 0.12in 0; }
+  .site .ln.s { width: 55%; }
+  .site .ln.m { width: 78%; }
+  .site .x {
+    position: absolute; right: 0.08in; bottom: 0.07in; width: 0.3in; height: 0.3in;
+    background: var(--red); color: #fff; border-radius: 50%; font-size: 12pt; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(179,38,30,.4);
   }
   .sweep { display: flex; align-items: center; gap: 0.2in; margin-top: 0.25in; }
   .sweep .arrowline { flex: 1; height: 5px; background: linear-gradient(90deg, var(--red), var(--saffron)); border-radius: 3px; position: relative; }
@@ -190,16 +199,19 @@
   .tagline em { color: var(--saffron); font-style: normal; }
 
   /* ---------- slide 10 ---------- */
-  .radial { position: relative; height: 3.5in; margin-top: 0.15in; overflow: hidden; border-radius: 0.12in; }
-  .radial .ray { max-width: 2.35in; }
+  .radial { position: relative; height: 3.5in; margin-top: 0.15in; }
+  .radial svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
   .hub {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
     background: var(--navy); color: #fff; border-radius: 0.16in; padding: 0.18in 0.3in;
-    font-weight: 700; font-size: 14pt; text-align: center; box-shadow: 0 8px 24px rgba(20,51,93,.35); z-index: 2;
+    font-weight: 700; font-size: 14pt; text-align: center; box-shadow: 0 8px 24px rgba(20,51,93,.35); z-index: 3;
   }
   .hub small { display: block; font-weight: 400; font-size: 9.5pt; color: #b9c8de; }
-  .spoke { position: absolute; border-radius: 0.1in; padding: 0.07in 0.14in; font-size: 10.5pt; font-weight: 600; color: #fff; }
-  .ray { position: absolute; height: 2.5px; background: #b9c6d6; transform-origin: 0 50%; left: 50%; top: 50%; z-index: 1; }
+  .spoke {
+    position: absolute; transform: translate(-50%,-50%); z-index: 2;
+    border-radius: 0.1in; padding: 0.07in 0.16in; font-size: 10.5pt; font-weight: 600; color: #fff;
+    box-shadow: 0 3px 8px rgba(20,51,93,.25); white-space: nowrap;
+  }
   .codebox {
     margin-top: 0.18in; background: #10202f; color: #cfe7d8; border-radius: 0.12in;
     padding: 0.14in 0.22in; font-family: Consolas, monospace; font-size: 12pt;
@@ -290,10 +302,18 @@
     <li>Screen readers can't read a scan — and read <b>English</b> at Odia speakers</li>
   </ul>
   <div class="brokengrid">
-    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
-    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
-    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
-    <div class="site">✗</div><div class="site">✗</div><div class="site">✗</div>
+    <div class="site"><i class="bar" style="background:#1a5cc8"></i><i class="ln m"></i><i class="ln s"></i><i class="ln"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#8a2432"></i><i class="ln"></i><i class="ln m"></i><i class="ln s"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#157a3c"></i><i class="ln s"></i><i class="ln"></i><i class="ln m"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#e07b12"></i><i class="ln m"></i><i class="ln"></i><i class="ln s"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#0e7d70"></i><i class="ln"></i><i class="ln s"></i><i class="ln m"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#6236c9"></i><i class="ln s"></i><i class="ln m"></i><i class="ln"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#5a6b80"></i><i class="ln"></i><i class="ln m"></i><i class="ln s"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#14335d"></i><i class="ln m"></i><i class="ln s"></i><i class="ln"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#b3261e"></i><i class="ln s"></i><i class="ln"></i><i class="ln m"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#1a5cc8"></i><i class="ln"></i><i class="ln s"></i><i class="ln m"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#157a3c"></i><i class="ln m"></i><i class="ln"></i><i class="ln s"></i><span class="x">✗</span></div>
+    <div class="site"><i class="bar" style="background:#e07b12"></i><i class="ln s"></i><i class="ln m"></i><i class="ln"></i><span class="x">✗</span></div>
   </div>
   <div class="sweep">
     <p class="bigline">Accessibility must be <span style="color:var(--saffron)">infrastructure</span>, not remediation</p>
@@ -473,23 +493,25 @@
   <h1 class="t">Adoption: the UPI pattern</h1>
   <div class="rule"></div>
   <div class="radial">
-    <div class="ray" style="width:2.9in; transform: rotate(200deg);"></div>
-    <div class="ray" style="width:3.1in; transform: rotate(240deg);"></div>
-    <div class="ray" style="width:2.7in; transform: rotate(285deg);"></div>
-    <div class="ray" style="width:3.1in; transform: rotate(335deg);"></div>
-    <div class="ray" style="width:2.9in; transform: rotate(20deg);"></div>
-    <div class="ray" style="width:3.0in; transform: rotate(65deg);"></div>
-    <div class="ray" style="width:2.8in; transform: rotate(115deg);"></div>
-    <div class="ray" style="width:3.2in; transform: rotate(155deg);"></div>
+    <svg viewBox="0 0 1000 350" preserveAspectRatio="none" aria-hidden="true">
+      <line x1="500" y1="175" x2="255" y2="60"  stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="500" y1="175" x2="470" y2="32"  stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="500" y1="175" x2="720" y2="52"  stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="500" y1="175" x2="870" y2="175" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="500" y1="175" x2="740" y2="295" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="500" y1="175" x2="505" y2="322" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="500" y1="175" x2="245" y2="300" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="500" y1="175" x2="115" y2="180" stroke="#b9c6d6" stroke-width="2.5"/>
+    </svg>
+    <div class="spoke" style="left:25.5%; top:17%;  background:var(--c-blue)">District portals</div>
+    <div class="spoke" style="left:47%;   top:9%;   background:var(--c-maroon)">Universities</div>
+    <div class="spoke" style="left:72%;   top:15%;  background:var(--c-green)">Exam boards</div>
+    <div class="spoke" style="left:87%;   top:50%;  background:var(--c-saffron)">Central portals</div>
+    <div class="spoke" style="left:74%;   top:84%;  background:var(--c-teal)">Hospitals</div>
+    <div class="spoke" style="left:50.5%; top:92%;  background:var(--c-violet)">Welfare depts</div>
+    <div class="spoke" style="left:24.5%; top:86%;  background:var(--navy)">Municipalities</div>
+    <div class="spoke" style="left:11.5%; top:51.5%; background:#7a5a1e">Panchayats</div>
     <div class="hub">AaaS gateway<br/>at OCAC<small>deployed once, state-wide</small></div>
-    <div class="spoke" style="left:12%; top:6%;  background:var(--c-blue)">District portals</div>
-    <div class="spoke" style="left:44%; top:0%;  background:var(--c-maroon)">Universities</div>
-    <div class="spoke" style="left:74%; top:8%;  background:var(--c-green)">Exam boards</div>
-    <div class="spoke" style="left:86%; top:42%; background:var(--c-saffron)">Central portals</div>
-    <div class="spoke" style="left:70%; top:82%; background:var(--c-teal)">Hospitals</div>
-    <div class="spoke" style="left:38%; top:88%; background:var(--c-violet)">Welfare depts</div>
-    <div class="spoke" style="left:8%;  top:76%; background:var(--navy)">Municipalities</div>
-    <div class="spoke" style="left:2%;  top:40%; background:#7a5a1e">Panchayats</div>
   </div>
   <div class="codebox">&lt;script src="https://aaas.ocac.gov.in/widget.js" data-key="aaas_live_…" defer&gt;&lt;/script&gt;</div>
   <div class="adoptrow">
