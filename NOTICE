@@ -15,3 +15,9 @@ Bundled fonts:
 - Noto Sans Oriya (apps/widget/src/fonts/noto-sans-oriya-400-subset.woff2)
   Copyright 2022 The Noto Project Authors.
   Licensed under the SIL Open Font License, Version 1.1.
+- OpenDyslexic (apps/widget/src/fonts/opendyslexic-400.woff,
+  apps/widget/src/fonts/opendyslexic-700.woff)
+  Copyright (c) 2019-07-29, Abbie Gonzalez (https://abbiecod.es|support@abbiecod.es),
+  with Reserved Font Name OpenDyslexic.
+  Licensed under the SIL Open Font License, Version 1.1.
+  Source: https://opendyslexic.org

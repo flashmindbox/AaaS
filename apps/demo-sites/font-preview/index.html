@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AaaS · "Comfortable letters" font candidates</title>
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/opendyslexic" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap" />
+<style>
+  @font-face {
+    font-family: "Atkinson Hyperlegible";
+    src: url("assets/atkinson-hyperlegible-400-latin.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+  }
+  body { margin: 0; background: #eef1f5; color: #1c2733; font-family: "Segoe UI", sans-serif; padding: 1.2rem; }
+  h1 { font-size: 1.25rem; }
+  p.lead { color: #4a5a6a; max-width: 62rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 1.1rem; margin-top: 1rem; }
+  .card { background: #fff; border: 1px solid #cdd6e0; border-radius: 12px; overflow: hidden; }
+  .card header { background: #14335d; color: #fff; padding: 0.55rem 0.9rem; font-size: 0.95rem; display: flex; justify-content: space-between; }
+  .card header .tag { color: #ffd75e; }
+  /* the EXACT comfort rules the widget applies to page text */
+  .page {
+    padding: 1rem 1.2rem 1.2rem;
+    letter-spacing: 0.035em;
+    word-spacing: 0.08em;
+    line-height: 1.8;
+  }
+  .page h2 { font-size: 1.15rem; margin: 0.2rem 0 0.5rem; font-family: inherit; }
+  .page p { margin: 0.4rem 0; font-size: 1rem; }
+  .page .odia { font-size: 1.02rem; }
+  .page a { color: #14335d; font-weight: 600; }
+  .page .meta { font-size: 0.85rem; color: #5a6a7a; }
+</style>
+</head>
+<body>
+  <h1>"ଆରାମ ଅକ୍ଷର · Comfortable letters" — font candidates for WEBSITE text</h1>
+  <p class="lead">
+    The same government notice, with the comfort spacing already applied — only the
+    font changes. Odia lines always keep the Odia font; this choice affects
+    English/Latin text. Pick A, B, C or D.
+  </p>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    // This page COMPARES fonts, so the live "Comfortable letters"
+    // override (which forces one font onto everything) must stay off
+    // here — otherwise all four cards render identically.
+    setInterval(() => {
+      document.documentElement.removeAttribute("data-aaas-dyslexia");
+      document.documentElement.removeAttribute("data-aaas-dyslexia-latin");
+    }, 300);
+    const FONTS = [
+      { key: "A", name: "Atkinson Hyperlegible — current", stack: '"Atkinson Hyperlegible", "Segoe UI", sans-serif' },
+      { key: "B", name: "OpenDyslexic — bottom-weighted letters", stack: '"OpenDyslexic", "Open-Dyslexic", "OpenDyslexicRegular", "Segoe UI", sans-serif' },
+      { key: "C", name: "Lexend — modern readability font", stack: '"Lexend", "Segoe UI", sans-serif' },
+      { key: "D", name: "Verdana — wide classic screen font", stack: 'Verdana, Geneva, sans-serif' },
+    ];
+    const grid = document.getElementById("grid");
+    for (const f of FONTS) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <header><span>${f.key} · ${f.name}</span><span class="tag">comfort ON</span></header>
+        <div class="page" style='font-family:${f.stack};'>
+          <h2>Post-Matric Scholarship — Notification No. 1247</h2>
+          <p class="meta">Office of the District Collector, Jajpur · 02 April 2026</p>
+          <p>It is hereby notified that all applicants under the Post-Matric
+          Scholarship Scheme shall furnish the requisite documents on or before
+          <strong>15 April 2026</strong>. Applications received after the said
+          date shall be liable to rejection.</p>
+          <p class="odia">ଛାତ୍ରବୃତ୍ତି ପାଇଁ ଶେଷ ତାରିଖ ୧୫ ଏପ୍ରିଲ ୨୦୨୬। ଅଧିକ ସୂଚନା ପାଇଁ
+          ବ୍ଲକ କାର୍ଯ୍ୟାଳୟରେ ଯୋଗାଯୋଗ କରନ୍ତୁ।</p>
+          <p>Contact the <a href="#">Disability Cell</a> for help ·
+          Helpline 1800 345 6770 · Il1 O0 rn/m cl/d · Purnnachandra Mahanti</p>
+        </div>`;
+      grid.append(card);
+    }
+  </script>
+</body>
+</html>

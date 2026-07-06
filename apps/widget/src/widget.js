@@ -54,6 +54,12 @@
   // Latin-only subset; the unicode-range keeps it away from Indic text
   // so Odia keeps rendering with Noto Sans Oriya.
   const ATKINSON_WOFF2_BASE64 = "__AAAS_ATKINSON_B64__";
+  // OpenDyslexic (SIL-OFL): bottom-weighted letters that resist
+  // flipping/rotation. The Comfortable-letters stack always preferred
+  // it; bundling it makes that first choice real on every machine
+  // (user-picked over Atkinson from a side-by-side demo, 2026-07-06).
+  const OPENDYSLEXIC_WOFF_BASE64 = "__AAAS_OPENDYSLEXIC_B64__";
+  const OPENDYSLEXIC_BOLD_WOFF_BASE64 = "__AAAS_OPENDYSLEXIC_BOLD_B64__";
   const LATIN_UNICODE_RANGE =
     "U+0000-00FF, U+0131, U+0152-0153, U+2013-2014, U+2018-201D, U+2026";
 
@@ -2846,6 +2852,22 @@
    * nudges word-spacing instead.
    */
   const ATKINSON_FONT_FACE_CSS = `
+    @font-face {
+      font-family: 'OpenDyslexic';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(data:font/woff;base64,${OPENDYSLEXIC_WOFF_BASE64}) format('woff');
+      unicode-range: ${LATIN_UNICODE_RANGE};
+    }
+    @font-face {
+      font-family: 'OpenDyslexic';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url(data:font/woff;base64,${OPENDYSLEXIC_BOLD_WOFF_BASE64}) format('woff');
+      unicode-range: ${LATIN_UNICODE_RANGE};
+    }
     @font-face {
       font-family: 'Atkinson Hyperlegible';
       font-style: normal;

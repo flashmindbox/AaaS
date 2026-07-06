@@ -7,7 +7,10 @@ installed:
 - `__AAAS_NOTO_ORIYA_B64__` <- noto-sans-oriya-400-subset.woff2
   (Windows ships "Kalinga", which renders Oriya conjuncts poorly)
 - `__AAAS_ATKINSON_B64__` <- atkinson-hyperlegible-400-latin.woff2
-  (dyslexia-friendly Latin font used by Dyslexia mode)
+  (legibility fallback in the Comfortable-letters stack)
+- `__AAAS_OPENDYSLEXIC_B64__` / `__AAAS_OPENDYSLEXIC_BOLD_B64__` <-
+  opendyslexic-{400,700}.woff (the Comfortable-letters page font,
+  user-chosen; SIL-OFL)
 
 Also copies the built file to apps/extension/widget.js so the browser
 extension ships the same bundle.
@@ -34,6 +37,8 @@ FONTS_DIR = REPO / "apps" / "widget" / "src" / "fonts"
 FONTS = [
     ("__AAAS_NOTO_ORIYA_B64__", FONTS_DIR / "noto-sans-oriya-400-subset.woff2"),
     ("__AAAS_ATKINSON_B64__", FONTS_DIR / "atkinson-hyperlegible-400-latin.woff2"),
+    ("__AAAS_OPENDYSLEXIC_B64__", FONTS_DIR / "opendyslexic-400.woff"),
+    ("__AAAS_OPENDYSLEXIC_BOLD_B64__", FONTS_DIR / "opendyslexic-700.woff"),
 ]
 
 
