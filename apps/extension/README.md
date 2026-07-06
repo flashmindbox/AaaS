@@ -34,9 +34,11 @@ On every page you visit, the extension:
    - **Translate this page** (in-place; IndicTrans2 via gateway,
      Google fallback)
    - **Easy Read this page** — rule-based plain-language rewriting of
-     the whole page (legalese → everyday words, long sentences split);
-     chains through translation when the picker language differs from
-     the page's. **Needs the gateway** — no Google fallback for this.
+     the whole page (legalese → everyday words, long sentences split)
+     **in the page's current language**: an English page stays English,
+     a translated-to-Odia page gets the Odia rules. Composes with
+     Translate (translate first, then Easy Read → simple Odia).
+     **Needs the gateway** — no Google fallback for this.
    - **Read a document to me** — the widget finds the scanned images
      and PDF links on the page itself: one document goes straight to
      processing, several open a big plain-language chooser (hovering a

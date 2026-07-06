@@ -3441,12 +3441,12 @@
 
     // Simplify one text node. The service caps input at 2000 chars, so
     // longer nodes are pre-split at sentence boundaries and rejoined.
-    async function simplifyOne(text) {
-      if (text.length <= 1800) return simplifyChunk(text, pageLang);
+    async function simplifyOne(text, lang) {
+      if (text.length <= 1800) return simplifyChunk(text, lang);
       const pieces = splitIntoSentences(text, 1500);
       const out = [];
       for (const piece of pieces) {
-        out.push(await simplifyChunk(piece, pageLang));
+        out.push(await simplifyChunk(piece, lang));
       }
       return out.join(" ");
     }
@@ -3459,9 +3459,11 @@
       }
       easyReadInFlight = true;
       easyreadBtn.disabled = true;
-      const tgt = resolvedLang() || pageLang;
-      const chain = tgt !== pageLang;
-      const suffix = chain ? ` → ${LANG_DISPLAY[tgt] || tgt}` : "";
+      // Easy Read simplifies in the page's CURRENT language — an
+      // English page stays English, a translated-to-Odia page gets
+      // the Odia rules. Changing language is the Translate tile's
+      // job; the two compose (translate first, then Easy Read).
+      const lang = pageLang;
       let layer = null;
       try {
         const nodes = collectTranslatableNodes();
@@ -3476,7 +3478,7 @@
           prevEasyReadDone: easyReadDone,
         };
         undoLayers.push(layer);
-        setStatus(`Simplifying 0 / ${nodes.length}${suffix}…`);
+        setStatus(`Simplifying 0 / ${nodes.length}…`);
         const BATCH = 5;
         let done = 0;
         let succeeded = 0;
@@ -3485,12 +3487,7 @@
           await Promise.all(
             slice.map(async (node) => {
               try {
-                let out = await simplifyOne(node.nodeValue);
-                if (chain && out) {
-                  out = stripPassthroughAnnotation(
-                    await translateChunk(out, pageLang, tgt, { timeoutMs: 20000 }),
-                  );
-                }
+                const out = await simplifyOne(node.nodeValue, lang);
                 if (out) {
                   node.nodeValue = out;
                   succeeded++;
@@ -3510,13 +3507,10 @@
             return;
           }
           done += slice.length;
-          setStatus(`Simplifying ${done} / ${nodes.length}${suffix}…`);
+          setStatus(`Simplifying ${done} / ${nodes.length}…`);
         }
         easyReadDone = true;
-        // Chained Easy Read leaves the DOM in the target language —
-        // record it so read-aloud / voice nav / translate see reality.
-        if (chain) pageLang = tgt;
-        setStatus(`Page in Easy Read${suffix} (↺ on the tile undoes it)`, "ok");
+        setStatus("Page in Easy Read (↺ on the tile undoes it)", "ok");
       } finally {
         easyreadBtn.disabled = false;
         easyReadInFlight = false;

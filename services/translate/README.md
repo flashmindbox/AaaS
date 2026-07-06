@@ -66,9 +66,12 @@ slotted in later without touching the route or the widget. Reached
 through the gateway at `/translate/simplify` (catch-all proxy — no
 gateway changes needed).
 
-The widget's "Easy Read this page" button calls this per text node;
-when the user's language differs from the page's, it chains
-simplify → `/translate`, so an English notice renders as plain Odia.
+The widget's "Easy Read" tile calls this per text node **in the page's
+current language** — an English page stays English, a translated page
+gets the Indic rules (translate first, then Easy Read → simple Odia).
+The document reader ("Read a document to me") additionally chains
+simplify → `/translate` so a scanned English notice comes out as plain
+Odia speech.
 
 ## OCR (scanned notices)
 
