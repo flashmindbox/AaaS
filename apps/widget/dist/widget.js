@@ -1516,16 +1516,23 @@
   // elements are collected as {role:"prose"} atoms — that way the TTS
   // pipeline can chunk them for translate latency without breaking
   // mid-sentence and without announcing "paragraph" for every block.
+  // Block-level tags used as prose-flush boundaries AND as the visual
+  // highlight target while read-aloud speaks that text.
+  const PROSE_BLOCK_SELECTOR =
+    "p, li, td, th, blockquote, figcaption, dd, dt, h1, h2, h3, h4, h5, h6, pre, summary, caption, div, body";
+
   function collectAtoms(root) {
     const out = [];
     let proseBuf = [];
+    let proseBlockEl = null; // block element the current buffer belongs to
     const flushProse = () => {
       if (!proseBuf.length) return;
       const joined = proseBuf.join(" ").replace(/\s+/g, " ").trim();
+      const blockEl = proseBlockEl;
       proseBuf = [];
       if (!joined) return;
       for (const piece of splitLongProse(joined, CONFIG.maxChars)) {
-        out.push({ text: piece, prefix: "", role: "prose", element: null });
+        out.push({ text: piece, prefix: "", role: "prose", element: blockEl });
       }
     };
     const widgetHost = document.querySelector("[data-aaas-widget]");
@@ -1565,7 +1572,18 @@
     while ((node = walker.nextNode())) {
       if (node.nodeType === Node.TEXT_NODE) {
         const t = node.nodeValue.trim();
-        if (t) proseBuf.push(t);
+        if (t) {
+          // Flush at block boundaries so each prose atom maps to ONE
+          // block element — the thing the reading highlight outlines.
+          const blk = node.parentElement
+            ? node.parentElement.closest(PROSE_BLOCK_SELECTOR)
+            : null;
+          if (blk !== proseBlockEl) {
+            flushProse();
+            proseBlockEl = blk;
+          }
+          proseBuf.push(t);
+        }
         continue;
       }
       const el = node;
@@ -2052,7 +2070,10 @@
           this.audio.src = url;
           this._skipRequested = false;
           if (this.onAdvance) {
-            try { this.onAdvance(); } catch {}
+            // The blob is passed so callers can map playback position
+            // back to page elements (the reading highlight) — identity
+            // survives skip and replay, unlike a counter.
+            try { this.onAdvance(blob); } catch {}
           }
           try {
             await this.audio.play();
@@ -2509,6 +2530,41 @@
     _rulerLeave = null;
   }
 
+  /* ---------- reading highlight ----------
+   * While read-aloud speaks, the block being spoken gets an amber
+   * outline and the page scrolls to keep it in view — so a listener
+   * always knows WHERE on the page the voice is. Injected into the
+   * host page (outside the shadow root) like the other host styles.
+   */
+  let _readingHlEl = null;
+
+  function highlightReadingElement(el) {
+    if (el === _readingHlEl) return;
+    if (_readingHlEl) {
+      try { _readingHlEl.removeAttribute("data-aaas-reading"); } catch {}
+      _readingHlEl = null;
+    }
+    if (!el || !el.isConnected || el === document.body) return;
+    if (!document.getElementById("__aaas_readhl__")) {
+      const st = document.createElement("style");
+      st.id = "__aaas_readhl__";
+      st.textContent =
+        "[data-aaas-reading] {" +
+        " background: rgba(255, 207, 51, 0.24) !important;" +
+        " outline: 2px solid rgba(255, 207, 51, 0.75) !important;" +
+        " outline-offset: 2px;" +
+        " border-radius: 3px;" +
+        " scroll-margin: 130px;" +
+        "}";
+      (document.head || document.documentElement).appendChild(st);
+    }
+    el.setAttribute("data-aaas-reading", "");
+    _readingHlEl = el;
+    try {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+    } catch {}
+  }
+
   function getStoredFlag(key) {
     try {
       return window.localStorage?.getItem(key) === "1";
@@ -2878,6 +2934,7 @@
         stopRequested = true;
         if (currentAbort) { try { currentAbort.abort(); } catch {} }
         player.stop();
+        highlightReadingElement(null);
         setReadingUI(false, "Stopped.");
         return;
       }
@@ -2919,6 +2976,7 @@
             text: sentences[i],
             role: atom.role,
             prefix: i === 0 ? prefixFor(atom, tgt) : "",
+            element: atom.element || null,
           });
         }
       }
@@ -2959,6 +3017,7 @@
               text: unit.prefix + unit.text,
               lang: tgt,
               role: unit.role,
+              element: unit.element,
             });
             continue;
           }
@@ -2967,6 +3026,7 @@
               text: unit.prefix + unit.text,
               lang: tgt,
               role: unit.role,
+              element: unit.element,
             });
             translateOk++;
             continue;
@@ -2978,6 +3038,7 @@
                 text: unit.prefix + tt,
                 lang: tgt,
                 role: unit.role,
+                element: unit.element,
               });
               translateOk++;
             } else {
@@ -3010,7 +3071,7 @@
           if (!item) break;
           try {
             const blob = await synthesise(item.text, item.lang, { signal: abortSignal });
-            synthesized.push({ blob, text: item.text, lang: item.lang });
+            synthesized.push({ blob, text: item.text, lang: item.lang, element: item.element });
             synthOk++;
           } catch (err) {
             if (abortSignal.aborted) break;
@@ -3025,12 +3086,16 @@
       };
 
       // Consumer: feed Player. Progress chip ticks per advance so the
-      // judges see motion even on cold chunks.
+      // judges see motion even on cold chunks, and the blob→element map
+      // drives the on-page reading highlight (WeakMap keyed by blob
+      // identity, so skip → and replay ← stay correctly aligned).
       let played = 0;
-      player.onAdvance = () => {
+      const blobElements = new WeakMap();
+      player.onAdvance = (blob) => {
         played += 1;
         if (!stopRequested) {
           setStatus(`Playing ${played}/${units.length}…`, "ok");
+          highlightReadingElement(blob ? blobElements.get(blob) || null : null);
         }
       };
       const runPlay = async () => {
@@ -3039,6 +3104,7 @@
           if (stopRequested || abortSignal.aborted) break;
           const item = await synthesized.next();
           if (!item) break;
+          if (item.element) blobElements.set(item.blob, item.element);
           player.enqueue(item.blob);
         }
         player.finish();
@@ -3072,6 +3138,7 @@
       } finally {
         player.onAdvance = null;
         currentAbort = null;
+        highlightReadingElement(null);
         setReadingUI(false);
       }
     }
