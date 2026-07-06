@@ -97,9 +97,10 @@ extras are missing, the service logs `translate.ocr_engine_load_failed`
 and swaps in a deterministic **mock** (canned notice text) — OCR being
 unavailable never affects `/readyz` or the translate/simplify routes.
 
-The widget's "Read a scanned notice" button drives this: pick a scan
-on the page → `/ocr` → simplify → translate → result overlay with its
-own read-aloud. Limits: 15 MB per upload, first 10 PDF pages.
+The widget's "Read a document to me" button drives this: the widget
+finds the page's scans/PDFs (chooser when there are several) → `/ocr`
+→ simplify → translate → large-print modal that starts reading aloud
+automatically. Limits: 15 MB per upload, first 10 PDF pages.
 
 ## Backends
 
