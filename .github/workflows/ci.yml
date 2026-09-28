@@ -82,7 +82,7 @@ jobs:
       - run: pnpm test
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: '**/coverage/**'
@@ -108,7 +108,7 @@ jobs:
       - run: pnpm a11y
       - name: Upload a11y report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: a11y-report
           path: '**/a11y-report/**'
@@ -130,7 +130,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: '**/dist/**'
