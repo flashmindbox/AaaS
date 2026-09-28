@@ -1225,14 +1225,17 @@
       unicode-range: ${ORIYA_UNICODE_RANGE};
     }
   `;
+  // Sizes are px, not rem: rem follows the HOST page's <html> font-size,
+  // so sites with `html { font-size: 62.5% }` shrank the whole panel.
+  // 1rem was 16px on our demo sites; these values keep that look.
   const STYLE = `
     ${FONT_FACE_CSS}
     :host { all: initial; }
     * { box-sizing: border-box; font-family: 'Noto Sans Oriya', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     .fab {
       position: fixed;
-      right: 1.25rem;
-      bottom: 1.25rem;
+      right: 20px;
+      bottom: 20px;
       width: 56px;
       height: 56px;
       border-radius: 50%;
@@ -1240,7 +1243,7 @@
       color: white;
       border: 0;
       box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-      font-size: 1.6rem;
+      font-size: 25.6px;
       cursor: pointer;
       z-index: 2147483647;
     }
@@ -1249,15 +1252,15 @@
 
     .panel {
       position: fixed;
-      right: 1.25rem;
-      bottom: 5.5rem;
-      width: min(304px, calc(100vw - 2.5rem));
+      right: 20px;
+      bottom: 88px;
+      width: min(304px, calc(100vw - 40px));
       background: #0f1419;
       color: #e8edf2;
       border-radius: 16px;
       border: 1px solid #253040;
       box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-      padding: 0 0 0.6rem;
+      padding: 0 0 9.6px;
       z-index: 2147483647;
       display: none;
     }
@@ -1266,21 +1269,21 @@
     .whead {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.65rem 0.8rem 0.55rem;
+      gap: 8px;
+      padding: 10.4px 12.8px 8.8px;
       border-bottom: 1px solid #1d2733;
-      margin-bottom: 0.6rem;
+      margin-bottom: 9.6px;
     }
-    .title { font-size: 0.95rem; font-weight: 700; margin: 0; flex: 1; }
+    .title { font-size: 15.2px; font-weight: 700; margin: 0; flex: 1; }
 
     select.lang {
       background: #1b2530;
       color: #e8edf2;
       border: 1px solid #2c3a4c;
       border-radius: 8px;
-      padding: 0.3rem 0.4rem;
-      font-size: 0.82rem;
-      max-width: 8.5rem;
+      padding: 4.8px 6.4px;
+      font-size: 13.12px;
+      max-width: 136px;
     }
     select.lang:focus-visible { outline: 2px solid #ffcf33; outline-offset: 1px; }
 
@@ -1290,8 +1293,8 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 7px;
-      padding: 0 0.6rem;
-      margin-bottom: 0.55rem;
+      padding: 0 9.6px;
+      margin-bottom: 8.8px;
     }
     button.action {
       width: 100%;
@@ -1299,17 +1302,17 @@
       color: #e8edf2;
       border: 1px solid #2c3a4c;
       border-radius: 12px;
-      padding: 0.55rem 0.25rem 0.5rem;
+      padding: 8.8px 4px 8px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      min-height: 4.6rem;
+      min-height: 73.6px;
     }
-    button.action .ic { font-size: 1.35rem; line-height: 1.15; }
-    button.action .or { font-size: 0.86rem; font-weight: 700; line-height: 1.2; }
-    button.action .en { font-size: 0.64rem; color: #9fb2c8; line-height: 1.25; text-align: center; }
+    button.action .ic { font-size: 21.6px; line-height: 1.15; }
+    button.action .or { font-size: 13.76px; font-weight: 700; line-height: 1.2; }
+    button.action .en { font-size: 10.24px; color: #9fb2c8; line-height: 1.25; text-align: center; }
     button.action:hover:not(:disabled) { background: #24344a; border-color: #4a6a96; }
     button.action:focus-visible { outline: 2px solid #ffcf33; outline-offset: 1px; }
     button.action:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -1321,12 +1324,12 @@
     @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(199,68,76,0.35); } }
 
     .transcript {
-      margin: 0.3rem 0.8rem 0;
-      padding: 0.55rem 0.7rem;
+      margin: 4.8px 12.8px 0;
+      padding: 8.8px 11.2px;
       background: #1b2530;
       border-radius: 8px;
       border: 1px solid #2c3a4c;
-      font-size: 0.9rem;
+      font-size: 14.4px;
       color: #d0dce8;
       min-height: 1.2em;
       word-break: break-word;
@@ -1336,20 +1339,20 @@
     /* Tappable "did you mean" candidates after an unsure voice
        command — a dead-end error becomes a one-tap success. */
     .voice-choices {
-      margin: 0.35rem 0.8rem 0;
+      margin: 5.6px 12.8px 0;
       display: flex;
       flex-direction: column;
       gap: 5px;
     }
     .voice-choices:empty { display: none; }
-    .voice-choices .vc-hint { font-size: 0.72rem; color: #9fb2c8; }
+    .voice-choices .vc-hint { font-size: 11.52px; color: #9fb2c8; }
     .voice-choices button {
       background: #1d2938;
       border: 1px solid #4a6a96;
       border-radius: 9px;
       color: #e8edf2;
-      padding: 0.5rem 0.6rem;
-      font-size: 0.85rem;
+      padding: 8px 9.6px;
+      font-size: 13.6px;
       text-align: left;
       cursor: pointer;
       /* Long notice titles must WRAP — truncation makes two different
@@ -1364,10 +1367,10 @@
     .voice-choices button:hover { background: #24344a; border-color: #ffcf33; }
 
     .status {
-      margin: 0.45rem 0.8rem 0;
-      min-height: 1.3rem;
+      margin: 7.2px 12.8px 0;
+      min-height: 20.8px;
       color: #8b96a5;
-      font-size: 0.82rem;
+      font-size: 13.12px;
     }
     .status.error { color: #ff9898; }
     .status.ok    { color: #8fdba0; }
@@ -1379,7 +1382,7 @@
       background: rgba(255, 207, 51, 0.12);
       border: 1px solid rgba(255, 207, 51, 0.5);
       border-radius: 8px;
-      padding: 0.4rem 0.6rem;
+      padding: 6.4px 9.6px;
       font-weight: 600;
       animation: aaas-notice-pop 0.35s ease;
     }
@@ -1390,8 +1393,8 @@
     }
 
     .meta {
-      margin: 0.3rem 0.8rem 0;
-      font-size: 0.72rem;
+      margin: 4.8px 12.8px 0;
+      font-size: 11.52px;
       color: #5e6778;
     }
 
@@ -1402,13 +1405,13 @@
     .playctl {
       display: none;
       position: absolute;
-      right: 0.6rem;
-      bottom: 0.5rem;
-      gap: 0.35rem;
+      right: 9.6px;
+      bottom: 8px;
+      gap: 5.6px;
     }
     .panel[data-reading="true"] .playctl { display: flex; }
     .panel[data-reading="true"] .status,
-    .panel[data-reading="true"] .meta { margin-right: 5.6rem; }
+    .panel[data-reading="true"] .meta { margin-right: 89.6px; }
     .playctl button {
       width: 36px;
       height: 34px;
@@ -1416,7 +1419,7 @@
       border: 1px solid #31415a;
       border-radius: 9px;
       color: #e8edf2;
-      font-size: 0.95rem;
+      font-size: 15.2px;
       cursor: pointer;
       line-height: 1;
     }
@@ -1425,7 +1428,7 @@
 
     /* Reading-comfort settings: one collapsed row, toggles inside. */
     .comfort {
-      margin: 0 0.6rem 0.35rem;
+      margin: 0 9.6px 5.6px;
       border: 1px solid #2c3a4c;
       border-radius: 12px;
       overflow: hidden;
@@ -1435,13 +1438,13 @@
       background: #161f2a;
       color: #cdd9e5;
       border: 0;
-      padding: 0.5rem 0.7rem;
-      font-size: 0.8rem;
+      padding: 8px 11.2px;
+      font-size: 12.8px;
       cursor: pointer;
       text-align: left;
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 6.4px;
     }
     .comfort-head .chev { margin-left: auto; transition: transform 0.15s; }
     .comfort.open .comfort-head .chev { transform: rotate(180deg); }
@@ -1452,11 +1455,11 @@
       display: grid;
       grid-template-columns: auto 1fr;
       grid-template-rows: auto auto;
-      column-gap: 0.55rem;
+      column-gap: 8.8px;
       align-items: center;
-      padding: 0.4rem 0.45rem;
+      padding: 6.4px 7.2px;
       border-radius: 8px;
-      margin-bottom: 0.15rem;
+      margin-bottom: 2.4px;
       cursor: pointer;
       user-select: none;
     }
@@ -1469,12 +1472,12 @@
       cursor: pointer;
     }
     label.toggle .toggle-text {
-      font-size: 0.85rem;
+      font-size: 13.6px;
       color: #e8edf2;
       font-weight: 600;
     }
     label.toggle .toggle-hint {
-      font-size: 0.7rem;
+      font-size: 11.2px;
       color: #8b96a5;
     }
 
@@ -1494,7 +1497,7 @@
       border: 1px solid #c7444c;
       color: #e8edf2;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 13.6px;
       cursor: pointer;
       display: none;
       z-index: 2;
@@ -1518,7 +1521,7 @@
       border: 1px solid #4a6a96;
       color: #e8edf2;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 13.6px;
       cursor: pointer;
       display: none;
       z-index: 2;
@@ -1528,13 +1531,13 @@
 
     .shortcuts-link {
       display: inline-block;
-      margin-top: 0.25rem;
-      margin-bottom: 0.3rem;
+      margin-top: 4px;
+      margin-bottom: 4.8px;
       background: none;
       border: 0;
       padding: 0;
       color: #6e95cc;
-      font-size: 0.8rem;
+      font-size: 12.8px;
       cursor: pointer;
       text-decoration: underline dotted;
     }
@@ -1542,30 +1545,30 @@
 
     .shortcuts-overlay {
       position: absolute;
-      right: 1rem;
-      bottom: 1rem;
-      left: 1rem;
+      right: 16px;
+      bottom: 16px;
+      left: 16px;
       background: #1b2530;
       border: 1px solid #2c3a4c;
       border-radius: 10px;
-      padding: 0.8rem 0.9rem;
-      font-size: 0.82rem;
+      padding: 12.8px 14.4px;
+      font-size: 13.12px;
       color: #d0dce8;
       display: none;
       z-index: 10;
     }
     .shortcuts-overlay[data-open="true"] { display: block; }
     .shortcuts-overlay h4 {
-      margin: 0 0 0.5rem;
-      font-size: 0.88rem;
+      margin: 0 0 8px;
+      font-size: 14.08px;
       color: #e8edf2;
     }
     .shortcuts-overlay dl {
       margin: 0;
       display: grid;
       grid-template-columns: auto 1fr;
-      row-gap: 0.28rem;
-      column-gap: 0.8rem;
+      row-gap: 4.48px;
+      column-gap: 12.8px;
     }
     .shortcuts-overlay dt {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -1574,13 +1577,13 @@
     .shortcuts-overlay dd { margin: 0; }
     .shortcuts-overlay .close-overlay {
       position: absolute;
-      top: 0.3rem;
-      right: 0.5rem;
+      top: 4.8px;
+      right: 8px;
       background: none;
       border: 0;
       color: #8b96a5;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 16px;
     }
 
     /* Document reader modal — a big, centered, plain-language surface.
@@ -1606,32 +1609,32 @@
       max-height: 84vh;
       display: flex;
       flex-direction: column;
-      padding: 1.1rem 1.2rem 1.2rem;
+      padding: 17.6px 19.2px 19.2px;
       color: #e8edf2;
       box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
       position: relative;
     }
     .docmodal-title {
-      margin: 0 2rem 0.75rem 0;
-      font-size: 1.15rem;
+      margin: 0 32px 12px 0;
+      font-size: 18.4px;
       font-weight: 700;
     }
     .docmodal-close,
     .docmodal-max {
       position: absolute;
-      top: 0.7rem;
+      top: 11.2px;
       background: #22303f;
       border: 0;
       border-radius: 8px;
       color: #c7d3e0;
       cursor: pointer;
-      font-size: 1.1rem;
-      width: 2rem;
-      height: 2rem;
+      font-size: 17.6px;
+      width: 32px;
+      height: 32px;
       line-height: 1;
     }
-    .docmodal-close { right: 0.8rem; }
-    .docmodal-max { right: 3.1rem; font-size: 0.95rem; }
+    .docmodal-close { right: 12.8px; }
+    .docmodal-max { right: 49.6px; font-size: 15.2px; }
     .docmodal-close:hover,
     .docmodal-max:hover { background: #2d3f52; }
 
@@ -1656,64 +1659,77 @@
     .docmodal-box.maximized .doc-split .doc-text { max-height: 100%; }
     .docmodal-body {
       overflow-y: auto;
-      min-height: 4rem;
+      min-height: 64px;
     }
     /* Chooser rows: one big obvious button per document. */
     .doc-row {
       display: flex;
       align-items: center;
-      gap: 0.7rem;
+      gap: 11.2px;
       width: 100%;
       text-align: left;
       background: #1d2938;
       border: 1px solid #31415a;
       border-radius: 10px;
       color: #e8edf2;
-      padding: 0.75rem 0.8rem;
-      margin-bottom: 0.5rem;
-      font-size: 0.95rem;
+      padding: 12px 12.8px;
+      margin-bottom: 8px;
+      font-size: 15.2px;
       line-height: 1.45;
       cursor: pointer;
     }
     .doc-row:hover, .doc-row:focus { background: #24344a; border-color: #4a6a96; }
-    .doc-row .doc-ico { font-size: 1.3rem; flex: none; }
+    .doc-row .doc-ico {
+      flex: none;
+      width: 72px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border-radius: 6px;
+      background: #0f1822;
+      border: 1px solid #31415a;
+      overflow: hidden;
+    }
+    .doc-row .doc-ico img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .doc-row .doc-kind {
       flex: none;
-      font-size: 0.72rem;
+      font-size: 11.52px;
       color: #9fb2c8;
       border: 1px solid #31415a;
       border-radius: 6px;
-      padding: 0.1rem 0.4rem;
+      padding: 1.6px 6.4px;
       margin-left: auto;
     }
     /* Progress: big friendly step text + spinner. */
     .doc-progress {
       text-align: center;
-      padding: 1.6rem 0.5rem 1.2rem;
+      padding: 25.6px 8px 19.2px;
     }
     .doc-progress .doc-spin {
-      width: 2.4rem;
-      height: 2.4rem;
-      margin: 0 auto 0.9rem;
+      width: 38.4px;
+      height: 38.4px;
+      margin: 0 auto 14.4px;
       border: 4px solid #2c3a4c;
       border-top-color: #ffcf33;
       border-radius: 50%;
       animation: aaas-doc-spin 0.9s linear infinite;
     }
     @keyframes aaas-doc-spin { to { transform: rotate(360deg); } }
-    .doc-progress .doc-step { font-size: 1.1rem; font-weight: 600; }
-    .doc-progress .doc-substep { font-size: 0.88rem; color: #9fb2c8; margin-top: 0.4rem; }
+    .doc-progress .doc-step { font-size: 17.6px; font-weight: 600; }
+    .doc-progress .doc-substep { font-size: 14.08px; color: #9fb2c8; margin-top: 6.4px; }
     /* Result: large-print reading text. */
     .doc-text {
       user-select: text;
       -webkit-user-select: text;
-      font-size: 1.05rem;
+      font-size: 16.8px;
       line-height: 1.85;
       white-space: pre-wrap;
       background: #101820;
       border: 1px solid #2c3a4c;
       border-radius: 10px;
-      padding: 0.8rem 0.9rem;
+      padding: 12.8px 14.4px;
     }
     /* Side-by-side result: the document on the left, its text on the
        right, so the user SEES which page is being spoken. */
@@ -1721,7 +1737,7 @@
     .doc-split {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-      gap: 0.7rem;
+      gap: 11.2px;
     }
     @media (max-width: 760px) { .doc-split { grid-template-columns: 1fr; } }
     .doc-preview {
@@ -1730,15 +1746,15 @@
       background: #101820;
       border: 1px solid #2c3a4c;
       border-radius: 10px;
-      padding: 0.5rem;
+      padding: 8px;
     }
-    .doc-pagelabel { font-size: 0.7rem; color: #9fb2c8; margin: 0.15rem 0 0.3rem; }
+    .doc-pagelabel { font-size: 11.2px; color: #9fb2c8; margin: 2.4px 0 4.8px; }
     .doc-preview img.doc-page {
       width: 100%;
       display: block;
       border-radius: 6px;
       border: 2px solid #2c3a4c;
-      margin-bottom: 0.55rem;
+      margin-bottom: 8.8px;
       background: #fff;
     }
     .doc-preview img.doc-page.speaking {
@@ -1747,7 +1763,7 @@
     }
     .doc-split .doc-text { max-height: 56vh; overflow-y: auto; }
     .doc-ptext {
-      padding: 0.3rem 0.4rem 0.3rem 0.55rem;
+      padding: 4.8px 6.4px 4.8px 8.8px;
       border-left: 3px solid transparent;
       border-radius: 4px;
     }
@@ -1757,34 +1773,34 @@
     }
     .doc-ptext .doc-chip {
       display: block;
-      font-size: 0.68rem;
+      font-size: 10.88px;
       color: #9fb2c8;
-      margin-bottom: 0.15rem;
+      margin-bottom: 2.4px;
     }
     .doc-error {
-      font-size: 1rem;
+      font-size: 16px;
       line-height: 1.7;
-      padding: 0.8rem 0.4rem;
+      padding: 12.8px 6.4px;
     }
     .docmodal-actions {
       display: flex;
-      gap: 0.6rem;
-      margin-top: 0.9rem;
+      gap: 9.6px;
+      margin-top: 14.4px;
       flex: none;
     }
     .docmodal-actions button {
       border: 0;
       border-radius: 10px;
       color: #fff;
-      padding: 0.7rem 0.8rem;
-      font-size: 0.95rem;
+      padding: 11.2px 12.8px;
+      font-size: 15.2px;
       font-weight: 600;
       cursor: pointer;
     }
     .docmodal-actions .doc-primary {
       flex: 2;
       background: #2563b0;
-      font-size: 1.02rem;
+      font-size: 16.32px;
     }
     .docmodal-actions .doc-primary:hover { background: #2f74c8; }
     .docmodal-actions .doc-primary.speaking { background: #c7444c; }
@@ -3773,8 +3789,15 @@
             // them; the translator turns them into nonsense ("ଏ. ଆଇ.").
             if (!HAS_WORD.test(v)) return NodeFilter.FILTER_REJECT;
             // Honour the standard opt-outs sites already use for Google
-            // Translate.
-            if (p.closest('[translate="no"], .notranslate')) {
+            // Translate — but only on page parts. Gov portals (Jajpur) put
+            // translate="no" on <html> just to silence Chrome's own
+            // translate bar; the reader chose us, so that one doesn't count.
+            const optOut = p.closest('[translate="no"], .notranslate');
+            if (
+              optOut &&
+              optOut !== document.documentElement &&
+              optOut !== document.body
+            ) {
               return NodeFilter.FILTER_REJECT;
             }
             return NodeFilter.FILTER_ACCEPT;
@@ -5197,10 +5220,19 @@
         const row = document.createElement("button");
         row.type = "button";
         row.className = "doc-row";
+        // A real thumbnail tells "banner 3" from "banner 2" at a glance;
+        // the page already loaded the image, so it comes from cache.
         const ico = document.createElement("span");
         ico.className = "doc-ico";
         ico.setAttribute("aria-hidden", "true");
         ico.textContent = c.kind === "pdf" ? "📄" : "🖼️";
+        if (c.kind === "image" && c.url) {
+          const thumb = document.createElement("img");
+          thumb.alt = "";
+          thumb.decoding = "async";
+          thumb.onload = () => ico.replaceChildren(thumb);
+          thumb.src = c.url;
+        }
         const name = document.createElement("span");
         name.textContent = c.name;
         const kind = document.createElement("span");
