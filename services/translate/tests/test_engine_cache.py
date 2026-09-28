@@ -97,3 +97,46 @@ def test_lru_evicts_oldest() -> None:
     assert lru.get("b") is None
     assert lru.get("a") == 1
     assert lru.get("c") == 3
+
+
+async def test_translation_persists_across_instances(tmp_path) -> None:
+    db = tmp_path / "tr.sqlite3"
+    first = CountingTranslate()
+    await CachingTranslateEngine(first, persist_path=db).translate("hi", src_lang="en", tgt_lang="or")
+    assert first.calls == 1
+
+    # A fresh process (new wrapper, empty LRU) is served from disk.
+    second = CountingTranslate()
+    out = await CachingTranslateEngine(second, persist_path=db).translate(
+        "hi", src_lang="en", tgt_lang="or"
+    )
+    assert out.text == "HI"
+    assert second.calls == 0
+
+
+async def test_persisted_rows_are_per_engine(tmp_path) -> None:
+    db = tmp_path / "tr.sqlite3"
+    await CachingTranslateEngine(CountingTranslate(), persist_path=db).translate(
+        "hi", src_lang="en", tgt_lang="or"
+    )
+
+    class OtherEngine(CountingTranslate):
+        name = "other"
+
+    other = OtherEngine()
+    await CachingTranslateEngine(other, persist_path=db).translate("hi", src_lang="en", tgt_lang="or")
+    assert other.calls == 1
+
+
+async def test_fallback_results_are_not_persisted(tmp_path) -> None:
+    db = tmp_path / "tr.sqlite3"
+
+    class FallsBack(CountingTranslate):
+        async def translate(self, text, *, src_lang, tgt_lang):
+            self.calls += 1
+            return Translation(text="mocky", src_lang=src_lang, tgt_lang=tgt_lang, engine="mock")
+
+    await CachingTranslateEngine(FallsBack(), persist_path=db).translate("hi", src_lang="en", tgt_lang="or")
+    again = FallsBack()
+    await CachingTranslateEngine(again, persist_path=db).translate("hi", src_lang="en", tgt_lang="or")
+    assert again.calls == 1

@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     engine: EngineName = Field(default="google")
     model_cache_dir: str = Field(default="./models")
     max_input_chars: int = Field(default=2000)
+    # SQLite file that keeps translations across restarts, so a rehearsal
+    # warms the live demo. Empty string disables persistence.
+    result_cache_path: str = Field(default="./cache/translations.sqlite3")
 
     # OCR (/ocr — scanned notices). tesseract needs the external binary;
     # the app factory falls back to the mock engine when it's missing.

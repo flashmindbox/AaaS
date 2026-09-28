@@ -97,3 +97,6 @@ services/**/models/
 *.safetensors
 *.gguf
 pytorch_model.bin
+
+# translate result cache (warmed by demo rehearsals)
+services/translate/cache/

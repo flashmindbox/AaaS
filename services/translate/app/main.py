@@ -177,8 +177,16 @@ def create_app(
     # requests repeat constantly (static pages, demo rehearsals) and
     # IndicTrans2/Tesseract pay seconds each time. Simplify stays
     # uncached — the rules run in microseconds.
+    # Only the real, settings-built engine persists — injected (test)
+    # engines keep a purely in-memory cache.
+    persist = (
+        Path(settings.result_cache_path)
+        if engine is None and settings.result_cache_path
+        else None
+    )
     app.state.engine = CachingTranslateEngine(
-        engine if engine is not None else _build_default_engine(settings)
+        engine if engine is not None else _build_default_engine(settings),
+        persist_path=persist,
     )
     # Rule-based, no model weights, no load() — ready at import. An LLM
     # engine can be injected here later without touching the route.
