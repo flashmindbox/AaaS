@@ -213,7 +213,13 @@
   // blocked upgrade) degrades silently to "no cache" rather than breaking TTS.
   const persistentCache = (() => {
     const DB_NAME = "aaas-cache";
-    const DB_VERSION = 1;
+    // Translations saved before the server's number guard could carry
+    // altered dates/amounts ("48. 5 ଲକ୍ଷ", 2026→2021), so translate keys
+    // get a generation prefix and old rows are never read (they age out
+    // via MAX_ENTRIES). Deliberately NOT a DB version bump: an upgrade
+    // blocks until every other tab with the old widget closes, which
+    // froze the document reader mid-demo.
+    const KEY_GEN = { translate: "g2|" };
     const STORES = ["tts", "translate"];
     // Soft caps so the cache can't grow without bound; oldest writes evicted.
     const MAX_ENTRIES = { tts: 600, translate: 2000 };
@@ -224,7 +230,9 @@
       dbPromise = new Promise((resolve) => {
         let req;
         try {
-          req = indexedDB.open(DB_NAME, DB_VERSION);
+          // No version: opens whatever exists (a fresh DB starts at 1),
+          // so a profile that ever saw another version can't VersionError.
+          req = indexedDB.open(DB_NAME);
         } catch {
           resolve(null);
           return;
@@ -237,7 +245,20 @@
             }
           }
         };
-        req.onsuccess = () => resolve(req.result);
+        req.onsuccess = () => {
+          const db = req.result;
+          // Never be the tab that blocks someone else's upgrade.
+          db.onversionchange = () => {
+            db.close();
+            dbPromise = null; // next get/put reopens instead of failing
+          };
+          if (STORES.some((s) => !db.objectStoreNames.contains(s))) {
+            db.close();
+            resolve(null);
+            return;
+          }
+          resolve(db);
+        };
         req.onerror = () => resolve(null);
         req.onblocked = () => resolve(null);
       });
@@ -245,6 +266,7 @@
     }
 
     async function get(store, key) {
+      key = (KEY_GEN[store] || "") + key;
       const db = await openDb();
       if (!db) return undefined;
       return new Promise((resolve) => {
@@ -259,6 +281,7 @@
     }
 
     async function put(store, key, value) {
+      key = (KEY_GEN[store] || "") + key;
       const db = await openDb();
       if (!db) return;
       try {
@@ -436,7 +459,10 @@
   // sentence boundaries lets the translate→synth→play pipeline stream
   // — first audio arrives ~one sentence after we start, not one
   // paragraph. Terminator set mirrors the server's regex.
-  const _SENTENCE_SPLIT_RE = /[^.!?।॥]+[.!?।॥]+\s*|[^.!?।॥]+$/g;
+  // A terminator only ends a sentence when whitespace or the end follows,
+  // so "05.04.2026" / "Rs.1000" stay whole (they were split and rejoined
+  // as "05. 04. 2026").
+  const _SENTENCE_SPLIT_RE = /[\s\S]+?(?:[.!?।॥]+(?=\s|$)\s*|$)/g;
   function splitIntoSentences(text, maxChars) {
     const trimmed = (text || "").trim();
     if (!trimmed) return [];
@@ -5326,39 +5352,54 @@
           if (!live()) return;
           console.warn("[AaaS] OCR simplify failed:", err);
         }
+        // Short pieces: the CPU model's time grows steeply with length
+        // (800-char pieces took ~20 s and hit the timeout, silently
+        // leaving the English), and long inputs also garble details.
+        const DOC_PIECE_CHARS = 300;
+        let untranslated = 0;
+        const label = LANG_DISPLAY[tgt] || tgt;
         if (tgt !== srcLang) {
-          try {
-            const label = LANG_DISPLAY[tgt] || tgt;
-            let part = 0;
-            const totalParts = docPages.reduce(
-              (n, p) => n + splitIntoSentences(p.text, 800).length,
-              0,
-            );
-            for (const p of docPages) {
-              const pieces = splitIntoSentences(p.text, 800);
-              const translated = [];
-              for (const piece of pieces) {
-                part++;
-                updateDocProgress(
-                  `Turning it into ${label}…`,
-                  totalParts > 1 ? `part ${part} of ${totalParts}` : "",
-                );
+          let part = 0;
+          const totalParts = docPages.reduce(
+            (n, p) => n + splitIntoSentences(p.text, DOC_PIECE_CHARS).length,
+            0,
+          );
+          for (const p of docPages) {
+            const pieces = splitIntoSentences(p.text, DOC_PIECE_CHARS);
+            const translated = [];
+            for (const piece of pieces) {
+              part++;
+              updateDocProgress(
+                `Turning it into ${label}…`,
+                totalParts > 1 ? `part ${part} of ${totalParts}` : "",
+              );
+              // One slow or failed piece keeps its original text; the
+              // rest still translate.
+              try {
                 translated.push(
                   stripPassthroughAnnotation(
-                    await translateChunk(piece, srcLang, tgt, { timeoutMs: 20000 }),
+                    await translateChunk(piece, srcLang, tgt, { timeoutMs: 45000 }),
                   ),
                 );
-                if (!live()) return;
+              } catch (err) {
+                console.warn("[AaaS] OCR translate failed:", err);
+                translated.push(piece);
+                untranslated++;
               }
-              p.text = translated.join(" ");
+              if (!live()) return;
             }
-          } catch (err) {
-            if (!live()) return;
-            console.warn("[AaaS] OCR translate failed:", err);
+            p.text = translated.join(" ");
           }
         }
         if (!live()) return;
         showDocResult(docPages, result.engine === "mock", desc);
+        if (untranslated) {
+          const note = document.createElement("div");
+          note.className = "doc-error";
+          note.setAttribute("role", "status");
+          note.textContent = `Some parts couldn't be turned into ${label} and are shown as written.`;
+          docBody.prepend(note);
+        }
       } catch (err) {
         if (!live()) return;
         console.warn("[AaaS] OCR pipeline failed:", err);
