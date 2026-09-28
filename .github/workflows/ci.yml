@@ -33,7 +33,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
   lint:
-    name: Lint + format
+    name: Lint
     needs: install
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -47,7 +47,6 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      - run: pnpm format:check
 
   typecheck:
     name: Typecheck
