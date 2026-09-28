@@ -32,8 +32,17 @@ fails twice in rehearsal, cut the scene, not the honesty.
      page.
    - **Tab 2:** `http://127.0.0.1:8000/demo/bse-odisha/` — spare: BSE board
      mirror with the exam circular, in case a judge asks for a second site.
-   - **Tab 3:** `https://jajpur.odisha.gov.in/en` — the REAL district site,
-     with the browser extension loaded (chrome://extensions → verify it's on).
+   - **Tab 3:** `https://ssepd.odisha.gov.in/` — the REAL SSEPD department
+     site, with the browser extension loaded (chrome://extensions → verify
+     it's on). **Not Jajpur for voice:** since 2026 jajpur.odisha.gov.in
+     sends `Permissions-Policy: microphone=()`, which blocks every mic on
+     its pages. Jajpur still works for Read aloud / Translate / Read
+     document.
+     Extension settings for the booth (verified 2026-09-28): popup →
+     **On-device mode OFF** (uses the full local models); first visit to a
+     real site Chrome asks twice — microphone and "access other
+     apps/devices on this device" (local network) — click **Allow** both.
+     Do one Read aloud + Translate on Tab 3 during setup so they're cached.
 5. External microphone plugged in and tested — the built-in mic struggles with
    booth noise. One headphone bud in your ear for private TTS checks.
 6. Insurance: a screen recording of a full successful run, in a hidden tab.
@@ -146,19 +155,21 @@ counter reads 6/6.)*
 
 ## Scene 5 — Voice command on the REAL site (60 seconds)
 
-*Tab 3 — the real jajpur.odisha.gov.in, extension loaded.*
+*Tab 3 — the real ssepd.odisha.gov.in, extension loaded.*
 
-> "Everything so far ran on mirrors. This is the actual live district website
-> of Jajpur — we don't control it. The extension injects the same button."
+> "Everything so far ran on mirrors. This is the actual live website of the
+> SSEPD department — we don't control it. The extension injects the same
+> button."
 
-*Tap **କହି ଚଲାଅ · Voice command**. Speak: **"ଟେଣ୍ଡର"**.*
+*Tap **କହି ଚଲାଅ · Voice command**. Speak: **"ବିଜ୍ଞପ୍ତି"** (notifications).
+Other verified commands: "ବଜେଟ୍", "ଅଡିଓ ଲାଇବ୍ରେରୀ", "ଯୋଗାଯୋଗ".*
 
-> "The speech model only knows Odia — it hears English words like 'tender'
-> phonetically. We romanize and sound-match against every link on the page,
-> including ones hidden inside carousels and menus."
+> "Speak in Odia — we match what you said against every link on the page,
+> including ones hidden inside menus, and English link names are matched
+> phonetically, the way an Odia speaker says them."
 
-*It highlights and opens Tenders. If it shows the "did you mean" buttons
-instead, SAY SO — it's a feature:*
+*It highlights and opens Notifications. If it shows the "did you mean"
+buttons instead, SAY SO — it's a feature:*
 
 > "When it isn't sure, it never guesses — it shows the top candidates as
 > buttons. Voice gets you 90% there, one tap finishes it. No dead ends."
@@ -211,6 +222,9 @@ skip-button beat. **Never cut Scene 3 or 4** — they are the demo.
 - **Internet dies:** nothing in Scenes 1–4 and 6 needs internet. Scene 5
   (real site) does — swap to Tab 1's mirror of the same site and say
   "this mirror is byte-identical to the live site we can't reach from here."
+- **Real site says "Mic unavailable":** the site bans microphones (Jajpur
+  does, via its server). Say so — "this site's own security policy blocks
+  microphones; here's the same command on SSEPD" — and switch to Tab 3.
 - **Everything dies:** the hidden tab has the full recorded run. Narrate over
   it with the same script.
 
