@@ -18,6 +18,15 @@ from app.tenants import InMemoryTenantRepository, Tenant
 VALID_TEST_KEY = "aaas_live_" + "a" * 32
 REVOKED_TEST_KEY = "aaas_live_" + "b" * 32
 UNKNOWN_TEST_KEY = "aaas_live_" + "c" * 32
+OPERATOR_TEST_KEY = "aaas_live_" + "d" * 32
+
+OPERATOR_TENANT = Tenant(
+    id=UUID("00000000-0000-0000-0000-000000000001"),
+    slug="utkal-university",
+    display_name="Utkal University",
+    category="university",
+    region="IN-OD",
+)
 
 TEST_TENANT = Tenant(
     id=UUID("00000000-0000-0000-0000-000000000042"),
@@ -44,6 +53,7 @@ def tenant_repository() -> InMemoryTenantRepository:
     """A fresh repo per test, seeded with one active and one revoked key."""
     repo = InMemoryTenantRepository()
     repo.add(TEST_TENANT, raw_key=VALID_TEST_KEY, name="test-active")
+    repo.add(OPERATOR_TENANT, raw_key=OPERATOR_TEST_KEY, name="test-operator")
     revoked = repo.add(TEST_TENANT, raw_key=REVOKED_TEST_KEY, name="test-revoked")
     # Replace the revoked entry with one that has revoked_at set.
     from dataclasses import replace

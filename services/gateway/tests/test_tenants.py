@@ -85,11 +85,11 @@ class TestCreateTenantEndpoint:
     """POST /admin/api/tenants — the one-call onboarding flow."""
 
     def test_create_tenant_returns_working_key(self, client) -> None:
-        from tests.conftest import VALID_TEST_KEY
+        from tests.conftest import OPERATOR_TEST_KEY
 
         resp = client.post(
             "/admin/api/tenants",
-            headers={"X-API-Key": VALID_TEST_KEY},
+            headers={"X-API-Key": OPERATOR_TEST_KEY},
             json={"display_name": "Berhampur Municipality", "category": "government"},
         )
         assert resp.status_code == 201
@@ -103,17 +103,67 @@ class TestCreateTenantEndpoint:
         assert any(t["slug"] == "berhampur-municipality" for t in who.json())
 
     def test_duplicate_slug_conflicts(self, client) -> None:
-        from tests.conftest import VALID_TEST_KEY
+        from tests.conftest import OPERATOR_TEST_KEY
 
         first = client.post(
             "/admin/api/tenants",
-            headers={"X-API-Key": VALID_TEST_KEY},
+            headers={"X-API-Key": OPERATOR_TEST_KEY},
             json={"display_name": "Twin City"},
         )
         assert first.status_code == 201
         dup = client.post(
             "/admin/api/tenants",
-            headers={"X-API-Key": VALID_TEST_KEY},
+            headers={"X-API-Key": OPERATOR_TEST_KEY},
             json={"display_name": "Twin  City"},
         )
         assert dup.status_code == 409
+
+
+class TestAdminTenantScoping:
+    """Only the operator tenant manages other tenants."""
+
+    def test_non_operator_cannot_onboard(self, client) -> None:
+        from tests.conftest import VALID_TEST_KEY
+
+        resp = client.post(
+            "/admin/api/tenants",
+            headers={"X-API-Key": VALID_TEST_KEY},
+            json={"display_name": "Rogue Tenant"},
+        )
+        assert resp.status_code == 403
+
+    def test_non_operator_cannot_mint_for_other_tenant(self, client) -> None:
+        from tests.conftest import VALID_TEST_KEY
+
+        resp = client.post(
+            "/admin/api/tenants/utkal-university/keys",
+            headers={"X-API-Key": VALID_TEST_KEY},
+            json={"name": "stolen"},
+        )
+        assert resp.status_code == 404
+
+    def test_non_operator_can_mint_own_key(self, client) -> None:
+        from tests.conftest import VALID_TEST_KEY
+
+        resp = client.post(
+            "/admin/api/tenants/test-tenant/keys",
+            headers={"X-API-Key": VALID_TEST_KEY},
+            json={"name": "rotation"},
+        )
+        assert resp.status_code == 201
+
+    def test_non_operator_sees_only_itself(self, client) -> None:
+        from tests.conftest import VALID_TEST_KEY
+
+        resp = client.get("/admin/api/tenants", headers={"X-API-Key": VALID_TEST_KEY})
+        assert [t["slug"] for t in resp.json()] == ["test-tenant"]
+        other = client.get(
+            "/admin/api/tenants/utkal-university", headers={"X-API-Key": VALID_TEST_KEY}
+        )
+        assert other.status_code == 404
+
+    def test_operator_sees_all(self, client) -> None:
+        from tests.conftest import OPERATOR_TEST_KEY
+
+        resp = client.get("/admin/api/tenants", headers={"X-API-Key": OPERATOR_TEST_KEY})
+        assert {t["slug"] for t in resp.json()} >= {"test-tenant", "utkal-university"}

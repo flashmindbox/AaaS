@@ -108,6 +108,20 @@ class UsageResponse(BaseModel):
 
 # --- Helpers ----------------------------------------------------------
 
+# The seed tenant that plays "platform operator" in the demo narrative.
+# It sees and manages every tenant; any other key only sees its own.
+OPERATOR_SLUG = "utkal-university"
+
+
+def _is_operator(auth: AuthContext) -> bool:
+    return auth.tenant.slug == OPERATOR_SLUG
+
+
+def _require_operator_or_self(auth: AuthContext, slug: str) -> None:
+    if not _is_operator(auth) and auth.tenant.slug != slug:
+        # 404 rather than 403 so tenant slugs can't be probed.
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown tenant")
+
 
 def _require_in_memory_repo(
     auth: Annotated[AuthContext, Depends(require_api_key)],
@@ -161,6 +175,8 @@ async def list_tenants(
         # For Postgres-backed repos, fall through to listing just the
         # current tenant (enough for the demo; stays safe).
         return [_tenant_to_out(auth.tenant)]
+    if not _is_operator(auth):
+        return [_tenant_to_out(auth.tenant)]
     return [_tenant_to_out(t) for t in repo.tenants.values()]
 
 
@@ -170,6 +186,7 @@ async def get_tenant(
     auth: Annotated[AuthContext, Depends(require_api_key)],
     request: Request,
 ) -> TenantDetail:
+    _require_operator_or_self(auth, slug)
     repo = request.app.state.tenant_repository
     if not isinstance(repo, InMemoryTenantRepository):
         if auth.tenant.slug != slug:
@@ -197,13 +214,16 @@ async def get_tenant(
 )
 async def create_tenant(
     payload: NewTenantRequest,
+    auth: Annotated[AuthContext, Depends(require_api_key)],
     repo: Annotated[InMemoryTenantRepository, Depends(_require_in_memory_repo)],
 ) -> NewTenantResponse:
     """Onboard a new website: create the tenant and mint its first key.
 
     This is the whole adoption story in one call — the response's raw
-    key goes straight into the site's widget script tag.
+    key goes straight into the site's widget script tag. Operator only.
     """
+    if not _is_operator(auth):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the platform operator can onboard tenants")
     from uuid import uuid4  # noqa: PLC0415
 
     name = payload.display_name.strip()
@@ -237,8 +257,10 @@ async def create_tenant(
 async def mint_key(
     slug: str,
     payload: NewKeyRequest,
+    auth: Annotated[AuthContext, Depends(require_api_key)],
     repo: Annotated[InMemoryTenantRepository, Depends(_require_in_memory_repo)],
 ) -> NewKeyResponse:
+    _require_operator_or_self(auth, slug)
     tenant = next((t for t in repo.tenants.values() if t.slug == slug), None)
     if tenant is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown tenant")
@@ -323,7 +345,7 @@ async def usage(
     events = log.recent(minutes=minutes)
     # Filter to the caller's tenant unless they're the seed tenant
     # (which is the "operator" in the demo narrative).
-    if auth.tenant.slug != "utkal-university":
+    if not _is_operator(auth):
         events = [e for e in events if e.tenant_slug == auth.tenant.slug]
     return _summarise_usage(events, bucket_minutes=int(bucket_minutes))
 
@@ -336,7 +358,7 @@ async def usage_csv(
 ) -> PlainTextResponse:
     log = request.app.state.audit_log
     events = log.recent(minutes=minutes)
-    if auth.tenant.slug != "utkal-university":
+    if not _is_operator(auth):
         events = [e for e in events if e.tenant_slug == auth.tenant.slug]
     out = io.StringIO()
     w = csv.writer(out)
