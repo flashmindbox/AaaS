@@ -3726,6 +3726,12 @@
     const translateLabel = translateBtn.querySelector(".translate-label");
     const LANG_DISPLAY = { or: "Odia", hi: "Hindi", en: "English" };
     const HAS_SCRIPT_CHAR = /[A-Za-zऀ-ॿ଀-୿]/;
+    const HAS_WORD = /[A-Za-zऀ-ॿ଀-୿]{2}/;
+    const SCRIPT_CHARS = { or: /[଀-୿]/g, hi: /[ऀ-ॿ]/g, en: /[A-Za-z]/g };
+    function scriptCount(text, lang) {
+      const re = SCRIPT_CHARS[lang];
+      return re ? (text.match(re) || []).length : 0;
+    }
     const SKIP_TAGS = new Set([
       "SCRIPT",
       "STYLE",
@@ -3763,6 +3769,14 @@
             const v = n.nodeValue;
             if (!v || v.length < 2) return NodeFilter.FILTER_REJECT;
             if (!HAS_SCRIPT_CHAR.test(v)) return NodeFilter.FILTER_REJECT;
+            // UI glyph labels like "A-", "A+", "×" have no real word in
+            // them; the translator turns them into nonsense ("ଏ. ଆଇ.").
+            if (!HAS_WORD.test(v)) return NodeFilter.FILTER_REJECT;
+            // Honour the standard opt-outs sites already use for Google
+            // Translate.
+            if (p.closest('[translate="no"], .notranslate')) {
+              return NodeFilter.FILTER_REJECT;
+            }
             return NodeFilter.FILTER_ACCEPT;
           },
         },
@@ -3853,7 +3867,12 @@
       translateBtn.disabled = true;
       let layer = null;
       try {
-        const nodes = collectTranslatableNodes();
+        // Bilingual pages already carry target-language lines (an Odia
+        // subtitle under an English heading). Feeding those through an
+        // en→or model returns dots and dashes, so leave them as they are.
+        const nodes = collectTranslatableNodes().filter(
+          (n) => scriptCount(n.nodeValue, tgt) <= scriptCount(n.nodeValue, pageLang),
+        );
         if (!nodes.length) {
           statusEl.textContent = "Nothing to translate on this page";
           return;
