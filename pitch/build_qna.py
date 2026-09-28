@@ -1,160 +1,162 @@
-"""Render the anticipated judge Q&A to a print-ready A4 PDF (Odisha theme).
+"""Render the anticipated judge Q&A to a print-ready A4 PDF.
 
-Builds a self-contained HTML (chakra + Odia font embedded as base64) and lets a
-separate Chrome --print-to-pdf pass rasterise it. Content is the prepared Q&A.
+    python pitch/build_qna.py        # writes pitch/AaaS-Judge-QnA.html + .pdf
+
+Content mirrors hackathon/JUDGE_QA.md (the longer speaking notes). Keep every
+claim here true of the shipped system — see "Never say" at the bottom.
 """
-import base64, pathlib
+import pathlib
+import subprocess
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-AST = REPO / "pitch" / "assets"
-CHAKRA = base64.b64encode((AST / "chakra_gold.png").read_bytes()).decode()
-FONTB = base64.b64encode(
-    (REPO / "apps" / "widget" / "src" / "fonts" / "noto-sans-oriya-400-subset.woff2").read_bytes()
-).decode()
+CHROME = pathlib.Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
 
 SECTIONS = [
-    ("Differentiation", [
-        ("Isn't this just another accessibility overlay (accessiBe / UserWay)?",
-         "Overlays are site-owner products: English-centric, cloud-based, proprietary, and widely "
-         "criticised for falsely claiming a script makes a site “compliant.” We are the "
-         "opposite on every count. <strong>AaaS is user-controlled (a browser extension that works "
-         "on any site), Indian-language-first, on-device, open-source, and honest — an "
-         "assistive layer plus an API toolkit, not a compliance band-aid.</strong>"),
-        ("Why not just use Google Translate plus a normal screen reader?",
-         "A blind Odia-speaking farmer will not stitch together three separate tools. AaaS is one "
-         "button that reads aloud, translates and fills forms by voice — in Odia — on any "
-         "page, including the many that mainstream screen readers handle poorly because they are "
-         "built English-first. <strong>We package fragmented capabilities into one accessible, "
-         "Indian-language experience.</strong>"),
-        ("Why not simply use Bhashini, the Government of India's language platform?",
-         "Bhashini is an excellent translation / ASR backend — and we are complementary, not "
-         "competing. AaaS is the accessibility delivery layer (widget, cross-site extension, "
-         "screen-reader, dyslexia rendering) on top of it. <strong>Our translation "
-         "engine is pluggable — we can run on Bhashini, AI4Bharat IndicTrans2, or fully "
-         "on-device — so we ride India's own rails, not against them.</strong>"),
-        ("What stops Google or Microsoft from simply building this?",
-         "Nothing — but they build horizontal, English-first products, not Odia-first public "
-         "infrastructure that a state can audit and self-host. <strong>Our moat is focus, openness "
-         "and sovereignty: an open, Indian-language accessibility stack the government owns rather "
-         "than rents.</strong>"),
+    ("Why this, why Odisha", [
+        ("Why Odisha first? Hindi has more speakers.",
+         "Three reasons. Odia is badly served by global tools, so that is where the real gap is. Odisha has an "
+         "active digital-service mandate in 5T and Mo Sarkar. And this is our state, so this is where we can "
+         "credibly land a pilot. <strong>Odia-first is the hard problem; the engines already cover 22 Indian "
+         "languages for what comes next.</strong>"),
+        ("Doesn't Bhashini already do this?",
+         "Bhashini is the language-engine layer: translation and speech as APIs. AaaS is the accessibility "
+         "product on top of it: guided voice form-filling, name transliteration, scanned notices read side by side, "
+         "voice navigation without dead ends. <strong>Bhashini gives India voices; AaaS gives Odisha's citizens "
+         "hands, eyes and ears. We could plug Bhashini in as an engine tomorrow.</strong> "
+         "<em>If they ask “so you're just a UI?”:</em> so is UPI: the rails existed, the product made a billion "
+         "people use them."),
+        ("Why not Chrome's read-aloud, Google Translate and a screen reader?",
+         "An elderly Odia-speaking citizen will not combine three tools. None of them speak Odia numbers, read "
+         "scanned circulars into Odia, or fill a form by voice, and most send data to the cloud. <strong>We put "
+         "those pieces together as one button, in Odia, running offline.</strong>"),
+        ("Isn't this just an accessibility “overlay” like accessiBe?",
+         "Overlays claim a script makes a site “compliant” and are rightly criticised for it. <strong>We claim "
+         "nothing about the host site. We give the citizen a working way through it, and we are open source, "
+         "self-hosted and auditable.</strong>"),
     ]),
-    ("Technical", [
-        ("How accurate is the Odia voice and the translation, and what about errors?",
-         "The voice is Meta's MMS-TTS (a VITS model; Odia is a first-class supported language) and "
-         "translation is Indic-tuned (AI4Bharat IndicTrans2). This is assistive output, not legal "
-         "text — and the user always retains the original on screen. <strong>A slightly "
-         "imperfect Odia reading is incomparably better than an English page the citizen cannot use "
-         "at all.</strong>"),
-        ("How does it work on sites that don't cooperate, or that block scripts via CSP?",
-         "The browser extension injects independently of the website, and the AI runs on-device in "
-         "a sandboxed WebAssembly worker, so it is not blocked by the page's Content-Security-"
-         "Policy. <strong>We demonstrated it working live on Wikipedia — one of the strictest-"
-         "CSP sites on the web.</strong>"),
-        ("Is on-device AI fast enough on a low-end laptop?",
-         "The first use loads the model (a few seconds, shown as a clear status), after which it is "
-         "cached and responsive, and results are cached across page reloads. If a device is too "
-         "weak, the very same engines run on the gateway as a fallback. <strong>Same voice — "
-         "two places to run it.</strong>"),
-        ("The extension injects into every website — isn't that a security and privacy risk?",
-         "It requests minimal permissions, renders its UI inside an isolated Shadow DOM that cannot "
-         "read the host page's data, and <strong>processes voice and text on-device — nothing "
-         "is sent to a server.</strong> Because it is open-source, any security team (including the "
-         "government's) can audit exactly what it does."),
+    ("What we built", [
+        ("Did you build this yourself?",
+         "<em>Answer truthfully, in your own words:</em> what you designed and decided, what you wrote, and "
+         "who helped (guide teacher, open-source models, any AI coding tools). Judges reward honesty. "
+         "<strong>Show ownership by knowing the architecture and the hard problems below cold. That proves "
+         "understanding better than any claim.</strong>"),
+        ("Which AI models do you run?",
+         "Four open-source engines, all on this laptop: <b>IndicWav2Vec</b> (AI4Bharat) for Odia speech-to-text, "
+         "<b>IndicTrans2</b> (AI4Bharat) for translation, <b>MMS-TTS</b> (Meta) for Odia, Hindi and English "
+         "voices, and <b>Tesseract</b> for OCR. Easy Read is our own rule engine. <strong>No cloud APIs, no "
+         "chatbot.</strong>"),
+        ("Isn't it just a wrapper around existing models? What's hard?",
+         "The models are commodities; the product is everything between the citizen and the model. The Odia voice "
+         "model is <b>silent on digits</b>, so we turn numbers into Odia words. The speech model writes English words "
+         "<b>phonetically in Odia script</b>, so we match links by sound. Word-for-word translation turns the name "
+         "Purnnachandra into <b>“full moon”</b>, so we transliterate names. The translator also <b>changed dates</b> "
+         "on long notices (2026 came back as 2021), so we hide numbers from it and put them back afterwards. "
+         "<strong>None of that ships in any model.</strong>"),
+        ("Why rules for Easy Read, not an AI chatbot?",
+         "A government notice with an invented deadline is worse than no notice. Rules are predictable, "
+         "auditable line by line, and run offline on an ordinary laptop. <strong>They cannot make up facts.</strong>"),
+        ("How accurate are the voice, translation and OCR?",
+         "Good on clear speech and printed notices; weaker on noisy rooms and poor scans. Handwriting does not "
+         "work. That is why voice commands offer choices instead of guessing, forms ask again, and documents are "
+         "shown <b>next to the original</b>. <strong>An imperfect Odia reading beats an English page the citizen "
+         "cannot use at all, and the original is always on screen.</strong>"),
     ]),
-    ("Trust & Compliance", [
-        ("Does installing this make a website WCAG- or legally compliant?",
-         "<strong>No — and we deliberately do not claim that</strong> (that false promise is "
-         "precisely why overlays face lawsuits). We help institutions meet the RPwD Act 2016, GIGW "
-         "3.0 and WCAG 2.1, and we log WCAG results as evidence — but genuine compliance is "
-         "built with our API, never faked with a script."),
+    ("Deployment, privacy and cost", [
+        ("What does a website have to change?",
+         "One line of code (a script tag). The widget is about 0.5 MB, has no dependencies, and is isolated so it "
+         "cannot break the page. For sites that haven't adopted it, our Chrome extension adds the same button. "
+         "<strong>We ran it on the real jajpur.odisha.gov.in and ssepd.odisha.gov.in.</strong>"),
         ("Where does citizen data go? (DPDP Act 2023)",
-         "For the extension, voice and page text stay on the device. For the gateway, processing is "
-         "in-country and self-hostable. <strong>No citizen data leaves the country or touches a "
-         "foreign cloud — DPDP Act 2023 by design.</strong>"),
+         "To the institution's own server, for example at OCAC, and nowhere else. Audio is processed in memory "
+         "and discarded, and we keep no accounts and log no content: only usage counts per feature. "
+         "<strong>Data stays in Odisha.</strong>"),
+        ("Does adding this make a website WCAG-compliant?",
+         "<strong>No, and we deliberately do not claim that.</strong> Real compliance means fixing the site. "
+         "AaaS gives citizens a way through today while that work happens."),
+        ("Will it scale? How fast is it?",
+         "Four stateless services behind one gateway, so scaling is standard server work. Repeated pages and "
+         "sentences come from cache, including a translation cache that survives restarts. "
+         "<strong>Don't quote numbers: show it. First use takes seconds; repeats are instant.</strong>"),
+        ("What if a model fails, or there is no internet?",
+         "Everything runs offline on the laptop. Each service has a backup mode, and the widget shows which "
+         "engine answered. <strong>It degrades honestly instead of dying.</strong>"),
+        ("Who pays? How is it sustained?",
+         "The state, once, for every department: one deployment at OCAC serves every portal. It is open source "
+         "(Apache-2.0), so there is no lock-in, any IT firm can run it, and other states adopt it free. "
+         "<strong>Like UPI: shared rails, adoption first; support and hosting sustain it.</strong>"),
     ]),
-    ("Adoption & Sustainability", [
-        ("It is open-source — how do you sustain it?",
-         "An open core (free for institutions to deploy, as a public good), sustained through "
-         "deployment and integration support, hosting, custom language and voice packs, and "
-         "government / CSR grants. <strong>The goal is public infrastructure, like UPI — "
-         "adoption first, sustainability through the services around it.</strong>"),
-        ("How would a government actually adopt this?",
-         "Begin with a single department or university portal as a pilot — no rebuild needed, "
-         "as it works on the existing site. Prove usage and WCAG evidence, then scale state-wide. "
-         "<strong>Our ask is exactly that: give us one site.</strong>"),
-    ]),
-    ("Roadmap & Honesty", [
-        ("Is the sign-language avatar working today?",
-         "We are upfront: <strong>it is our flagship next milestone, currently in development</strong> "
-         "— text → Indian Sign Language gloss → 3D avatar, built on the official "
-         "ISLRTC ISL dictionary. We present the vision because no competitor even attempts sign "
-         "language."),
-        ("What did you actually build, versus use off the shelf?",
-         "We stand openly on open models — Meta MMS-TTS, OpenAI Whisper, AI4Bharat IndicTrans2. "
-         "<strong>What we built is the platform: the multi-tenant API gateway, the drop-in widget, "
-         "the cross-site browser extension, the on-device WebAssembly pipeline, and the admin "
-         "dashboard</strong> — turning open models into deployable public "
-         "accessibility infrastructure."),
+    ("Honest scope", [
+        ("Does it do sign language?",
+         "Not yet, and we say so. A three.js concept exists in the repo, but a half-good avatar would hurt deaf "
+         "users more than help. <strong>We chose to perfect voice, reading and forms first.</strong>"),
+        ("Which languages? What does adding one cost?",
+         "Odia, Hindi and English today. The engines support most scheduled Indian languages, so a new language "
+         "is configuration plus native-speaker testing. <strong>A new language, not a new product.</strong>"),
+        ("What's next after the hackathon?",
+         "A pilot on one district portal (Jajpur) and one board site (BSE Odisha); a native-speaker review of the "
+         "Odia wording; and Bhashini as an alternative engine. <strong>Our ask: give us one site.</strong>"),
     ]),
 ]
 
-NOTE = (
-    "Translation engine: the deck presents AI4Bharat IndicTrans2; the live demo currently runs on "
-    "Google Translate for speed and coverage. If asked directly, the honest line is — "
-    "“the engine is pluggable; the demo uses Google for reliability, production targets "
-    "IndicTrans2 / Bhashini for sovereignty.” Never present the demo as IndicTrans2."
-)
+NEVER = [
+    "Models we don't run: Whisper, IndicConformer, Piper, NLLB, or any LLM / chatbot",
+    "An exam module (cut) or a working sign-language avatar (concept only)",
+    "That a site becomes “WCAG-compliant”",
+    "Latency or accuracy numbers from memory: demonstrate instead",
+    "“21 lakh disabled people in Odisha” (unverified). Use Census 2011: 2.68 crore disabled people in India",
+]
 
-qa_html = ""
-n = 0
+qa_html, n = "", 0
 for sec, items in SECTIONS:
-    qa_html += f'<div class="sec"><span class="seclabel">{sec}</span></div>\n'
+    qa_html += f'<h2>{sec}</h2>\n'
     for q, a in items:
         n += 1
-        qa_html += (f'<div class="qa"><p class="q"><span class="num">Q{n}.</span> {q}</p>'
-                    f'<p class="a">{a}</p></div>\n')
+        qa_html += f'<div class="qa"><p class="q"><span class="num">Q{n}</span>{q}</p><p class="a">{a}</p></div>\n'
+never_html = "".join(f"<li>{x}</li>" for x in NEVER)
 
-HTML = f"""<!doctype html><html><head><meta charset="utf-8"><style>
-@font-face {{ font-family:'OdiaE'; src:url(data:font/woff2;base64,{FONTB}) format('woff2'); }}
-@page {{ size:A4; margin:16mm 15mm 18mm 15mm; }}
+HTML = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>AaaS Judge Q&amp;A</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Noto+Sans+Oriya:wght@600;700&display=swap" rel="stylesheet">
+<style>
+@page {{ size:A4; margin:14mm 15mm 15mm;
+  @bottom-left {{ content:"Team SUBARNAREKHA · AaaS · Judge Q&A"; font:7.5pt 'Noto Sans',sans-serif; color:#6b7280; }}
+  @bottom-right {{ content:counter(page) " / " counter(pages); font:7.5pt 'Noto Sans',sans-serif; color:#6b7280; }} }}
+:root {{ --ink:#16202e; --muted:#4b5566; --line:#d5dbe5; --brand:#1d3a8a; --soft:#e8edf8; --amber:#b45309; --amber-soft:#fdf3e2; }}
 * {{ box-sizing:border-box; }}
-html,body {{ margin:0; padding:0; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; color:#2a2118; }}
-.odia {{ font-family:'OdiaE','Noto Sans Oriya',sans-serif; }}
-.header {{ background:linear-gradient(100deg,#7c1428,#a8213b 60%,#ef7d16); border-radius:10px;
-  border:2px solid #e6b93f; padding:14px 18px; display:flex; align-items:center; gap:16px; margin-bottom:14px; }}
-.header img {{ width:64px; height:64px; }}
-.htext h1 {{ margin:0; color:#fff3da; font-size:21px; letter-spacing:.2px; }}
-.htext .sub {{ color:#ffe6bf; font-size:11.5px; margin-top:3px; }}
-.htext .od {{ color:#ffe6bf; font-size:13px; margin-top:2px; font-weight:600; }}
-.intro {{ font-size:11px; color:#7a5a38; margin:0 2px 12px; font-style:italic; }}
-.sec {{ margin:14px 0 6px; border-bottom:2px solid #e6b93f; padding-bottom:3px; }}
-.seclabel {{ color:#8d1b2f; font-weight:800; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; }}
-.qa {{ break-inside:avoid; page-break-inside:avoid; margin:9px 0 11px; }}
-.q {{ margin:0 0 4px; color:#7c1428; font-weight:700; font-size:12.6px; line-height:1.3; }}
-.num {{ color:#c9952a; }}
-.a {{ margin:0; font-size:11.6px; line-height:1.5; color:#33291d; }}
-.a strong {{ color:#7c1428; }}
-.note {{ margin-top:16px; background:#fdf3dd; border:1.5px solid #c9952a; border-left:6px solid #ef7d16;
-  border-radius:8px; padding:10px 14px; font-size:11px; line-height:1.5; color:#33291d; break-inside:avoid; }}
-.note b {{ color:#8d1b2f; }}
-.foot {{ position:fixed; bottom:6mm; left:15mm; right:15mm; display:flex; justify-content:space-between;
-  font-size:9px; color:#a08a63; border-top:1px solid #e0cfa0; padding-top:3px; }}
+html,body {{ margin:0; background:#fff; }}
+body {{ font-family:'Noto Sans','Nirmala UI',sans-serif; color:var(--ink); font-size:9.3pt; line-height:1.42;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+.head {{ background:var(--brand); color:#fff; border-radius:3px; padding:4.5mm 6mm; display:flex; align-items:center; gap:5mm; margin-bottom:3mm; }}
+.logo {{ width:14mm; height:14mm; border-radius:50%; background:#fff; color:var(--brand); display:grid; place-items:center;
+  font-family:'Noto Sans Oriya','Nirmala UI',sans-serif; font-size:22pt; font-weight:700; flex:none; }}
+.head h1 {{ margin:0; font-size:17pt; line-height:1.15; }}
+.head .sub {{ font-size:8.6pt; color:#dbe4f7; margin-top:1mm; }}
+.intro {{ font-size:8.8pt; color:var(--muted); margin:0 0 1mm; }}
+h2 {{ font-size:10.5pt; color:var(--brand); text-transform:uppercase; letter-spacing:.07em; margin:3.6mm 0 1.4mm;
+  padding-bottom:1mm; border-bottom:1.2pt solid var(--brand); break-after:avoid; }}
+.qa {{ break-inside:avoid; margin:0 0 2.1mm; }}
+.q {{ margin:0 0 .6mm; font-weight:700; font-size:9.8pt; display:flex; gap:2mm; }}
+.num {{ color:#fff; background:var(--amber); border-radius:2px; font-size:7.8pt; padding:.3mm 1.3mm; height:fit-content; margin-top:.5mm; flex:none; }}
+.a {{ margin:0 0 0 9mm; }}
+.a strong {{ color:var(--brand); }}
+.a em {{ color:var(--amber); font-style:normal; font-weight:600; }}
+.never {{ margin-top:4mm; background:var(--amber-soft); border-left:2.5pt solid var(--amber); border-radius:2px; padding:3mm 4.5mm; break-inside:avoid; }}
+.never b {{ color:var(--amber); }}
+.never ul {{ margin:1mm 0 0; padding-left:5mm; }}
+.never li {{ margin-bottom:.6mm; }}
 </style></head><body>
-<div class="foot"><span>Team SUBARNAREKHA &nbsp;·&nbsp; Accessibility as a Service (AaaS)</span>
-<span>Smart Odisha Hackathon '25 &nbsp;·&nbsp; Jajpur, Odisha</span></div>
-<div class="header">
-  <img src="data:image/png;base64,{CHAKRA}"/>
-  <div class="htext">
-    <h1>Anticipated Judge Q&amp;A &mdash; with prepared responses</h1>
-    <div class="sub">Accessibility as a Service (AaaS) &nbsp;·&nbsp; Team SUBARNAREKHA &nbsp;·&nbsp; Smart Odisha Hackathon '25, Jajpur</div>
-    <div class="od odia">ସମସ୍ତଙ୍କ ପାଇଁ ସୁଗମ ସେବା</div>
-  </div>
-</div>
-<p class="intro">Likely questions from the evaluation panel, with concise, defensible answers. The bold line in each answer is the point to land.</p>
+<div class="head"><div class="logo">ଅ</div><div>
+  <h1>Judge Q&amp;A: prepared answers</h1>
+  <div class="sub">AaaS · Accessibility as a Service &nbsp;·&nbsp; Team SUBARNAREKHA &nbsp;·&nbsp; Pratikshya Padhi, OAV Jamdhar &nbsp;·&nbsp; Odiapreneur 3.0</div>
+</div></div>
+<p class="intro">Presenter prep. Keep answers to 15–30 seconds; the <strong style="color:#1d3a8a">bold line</strong> is the point to land. If you don't know, say so: “I don't know yet; here is how we'd find out.”</p>
 {qa_html}
-<div class="note"><b>Internal prep note (not for the slides):</b> {NOTE}</div>
+<div class="never"><b>Never say</b><ul>{never_html}</ul></div>
 </body></html>"""
 
 out = REPO / "pitch" / "AaaS-Judge-QnA.html"
 out.write_text(HTML, encoding="utf-8")
-print("wrote", out, f"({len(HTML):,} bytes, {n} questions)")
+pdf = out.with_suffix(".pdf")
+subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+                "--virtual-time-budget=15000", f"--print-to-pdf={pdf}", out.as_uri()],
+               check=True, capture_output=True)
+print("wrote", pdf, f"({n} questions)")

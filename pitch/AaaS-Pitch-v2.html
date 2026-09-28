@@ -205,8 +205,8 @@
   .tagline em { color: var(--saffron); font-style: normal; }
 
   /* ---------- slide 10 ---------- */
-  .radial { position: relative; height: 3.5in; margin-top: 0.15in; }
-  .radial svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+  .radial { position: relative; margin-top: 0.1in; }
+  .radial svg { display: block; width: 100%; height: auto; }
   .hub {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
     background: var(--navy); color: #fff; border-radius: 0.16in; padding: 0.18in 0.3in;
@@ -499,25 +499,26 @@
   <h1 class="t">Adoption: the UPI pattern</h1>
   <div class="rule"></div>
   <div class="radial">
-    <svg viewBox="0 0 1000 350" preserveAspectRatio="none" aria-hidden="true">
-      <line x1="500" y1="175" x2="255" y2="60"  stroke="#b9c6d6" stroke-width="2.5"/>
-      <line x1="500" y1="175" x2="470" y2="32"  stroke="#b9c6d6" stroke-width="2.5"/>
-      <line x1="500" y1="175" x2="720" y2="52"  stroke="#b9c6d6" stroke-width="2.5"/>
-      <line x1="500" y1="175" x2="870" y2="175" stroke="#b9c6d6" stroke-width="2.5"/>
-      <line x1="500" y1="175" x2="740" y2="295" stroke="#b9c6d6" stroke-width="2.5"/>
-      <line x1="500" y1="175" x2="505" y2="322" stroke="#b9c6d6" stroke-width="2.5"/>
-      <line x1="500" y1="175" x2="245" y2="300" stroke="#b9c6d6" stroke-width="2.5"/>
-      <line x1="500" y1="175" x2="115" y2="180" stroke="#b9c6d6" stroke-width="2.5"/>
+    <svg viewBox="0 0 1146 413" width="100%" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs><filter id="sh" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#14335d" flood-opacity=".25"/></filter><filter id="sh2" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#14335d" flood-opacity=".35"/></filter></defs>
+      <line x1="573" y1="206" x2="573" y2="44" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="573" y1="206" x2="895" y2="92" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="573" y1="206" x2="1028" y2="206" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="573" y1="206" x2="895" y2="321" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="573" y1="206" x2="573" y2="368" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="573" y1="206" x2="251" y2="321" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="573" y1="206" x2="118" y2="207" stroke="#b9c6d6" stroke-width="2.5"/>
+      <line x1="573" y1="206" x2="251" y2="92" stroke="#b9c6d6" stroke-width="2.5"/>
+      <g><rect x="497" y="26" width="153" height="38" rx="10" fill="#8a2432" filter="url(#sh)"/><text x="573" y="50" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">Universities</text></g>
+      <g><rect x="823" y="73" width="143" height="38" rx="10" fill="#157a3c" filter="url(#sh)"/><text x="895" y="97" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">Exam boards</text></g>
+      <g><rect x="938" y="188" width="181" height="38" rx="10" fill="#e07b12" filter="url(#sh)"/><text x="1028" y="212" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">Central portals</text></g>
+      <g><rect x="832" y="302" width="125" height="38" rx="10" fill="#0e7d70" filter="url(#sh)"/><text x="895" y="327" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">Hospitals</text></g>
+      <g><rect x="492" y="350" width="162" height="38" rx="10" fill="#6236c9" filter="url(#sh)"/><text x="573" y="374" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">Welfare depts</text></g>
+      <g><rect x="165" y="302" width="172" height="38" rx="10" fill="#14335d" filter="url(#sh)"/><text x="251" y="327" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">Municipalities</text></g>
+      <g><rect x="51" y="188" width="134" height="38" rx="10" fill="#7a5a1e" filter="url(#sh)"/><text x="118" y="212" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">Panchayats</text></g>
+      <g><rect x="156" y="73" width="190" height="38" rx="10" fill="#1a5cc8" filter="url(#sh)"/><text x="251" y="97" text-anchor="middle" font-size="15.5" font-weight="600" fill="#fff">District portals</text></g>
+      <rect x="438" y="152" width="270" height="108" rx="16" fill="#14335d" filter="url(#sh2)"/><text x="573" y="192" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">AaaS gateway at OCAC</text><text x="573" y="220" text-anchor="middle" font-size="13.5" fill="#b9c8de">deployed once, state-wide</text><text x="573" y="242" text-anchor="middle" font-size="13.5" fill="#b9c8de">one key per institution</text>
     </svg>
-    <div class="spoke" style="left:25.5%; top:17%;  background:var(--c-blue)">District portals</div>
-    <div class="spoke" style="left:47%;   top:9%;   background:var(--c-maroon)">Universities</div>
-    <div class="spoke" style="left:72%;   top:15%;  background:var(--c-green)">Exam boards</div>
-    <div class="spoke" style="left:87%;   top:50%;  background:var(--c-saffron)">Central portals</div>
-    <div class="spoke" style="left:74%;   top:84%;  background:var(--c-teal)">Hospitals</div>
-    <div class="spoke" style="left:50.5%; top:92%;  background:var(--c-violet)">Welfare depts</div>
-    <div class="spoke" style="left:24.5%; top:86%;  background:var(--navy)">Municipalities</div>
-    <div class="spoke" style="left:11.5%; top:51.5%; background:#7a5a1e">Panchayats</div>
-    <div class="hub">AaaS gateway<br/>at OCAC<small>deployed once, state-wide</small></div>
   </div>
   <div class="codebox">&lt;script src="https://aaas.ocac.gov.in/widget.js" data-key="aaas_live_…" defer&gt;&lt;/script&gt;</div>
   <div class="adoptrow">
