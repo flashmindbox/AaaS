@@ -63,9 +63,9 @@ using it, then how it works."
 slightly, like paper. Right half: the four bullet lines. The last line alone,
 saffron, larger.
 
-**SAY** — "This is not an edge case. Odisha has twenty-one lakh persons with
-disabilities by the 2011 census — undercounted — and forty-two million Odia
-speakers. The most important documents their government publishes are scans:
+**SAY** — "This is not an edge case. Three and three-quarter crore people speak
+Odia as their mother tongue, and more than a quarter of Odisha aged seven and
+above cannot read — Census 2011. The most important documents their government publishes are scans:
 to a blind citizen, this notice does not exist."
 
 ---
@@ -178,7 +178,7 @@ same models would not work in front of a real citizen."
 **ON SLIDE**
 > One gateway, six kinds of institution:
 > district · university · exam board · welfare dept · hospital · central govt
-> **228 automated checks · offline USB bundle · real OCR inside**
+> **240+ automated checks · portable offline package · real OCR inside**
 
 **VISUAL** — Two screenshots side by side:
 1. The demo gallery card grid (`http://127.0.0.1:8000/demo/`) — six colours.
@@ -243,7 +243,7 @@ sets a standard the rest of India can copy."
 > Honest today:
 > - OCR: printed notices yes, handwriting no
 > - STT wants clear speech — so we retry, and show tappable choices
-> - USB bundle ships mock translation (torch doesn't fit); laptop runs real
+> - First translation of a long page takes minutes on CPU, then it's cached and instant
 >
 > Next:
 > - Pilot: one district portal + one board site

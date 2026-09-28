@@ -15,6 +15,10 @@ should be able to answer every line from memory.
   designed for every Indian public institution.
 - **One-liner:** *One button on any government website that reads, translates,
   simplifies, scans and listens — in Odia, by voice. Odisha first, India next.*
+- **Team:** Pratikshya Padhi (Class XI), the only member · Odisha Adarsha
+  Vidyalaya, Jamdhar · Guide teacher: Somali Priyadarshini Mohanty
+  (98611 37602) · Odiapreneur 3.0, theme *Accessibility, Ecommerce &
+  Cyber Security*.
 - **License:** Apache-2.0. Say this early in any conversation.
 
 ---
@@ -46,11 +50,12 @@ so the demo cannot die.
 - All six widget tiles + comfort toggles, verified on real government sites
   (jajpur.odisha.gov.in, bseodisha.ac.in, odisha.gov.in, ssepd.odisha.gov.in)
 - Browser extension (MV3, v0.4.0) — injects the widget into any site
-- Four services + gateway, 222 automated checks green
+- Four services + gateway, 240+ automated checks green
 - Odia number-speech in TTS (digits → spoken Odia words)
 - Name **transliteration** (not translation) for voice form fill
 - Spoken-number understanding (Odia words, phonetic English, "double" forms)
-- USB judge bundle with real TTS + real OCR, offline
+- Portable package (`SUBARNAREKHA-Setup.zip`): the full real stack runs
+  offline on any Windows laptop, nothing to install
 
 **Roadmap (say "designed for, not built"):**
 - More Indic languages beyond or/hi/en (the engines already support them)
@@ -69,8 +74,9 @@ so the demo cannot die.
 | What | Number |
 |---|---|
 | Odia speakers worldwide | ~42M (L1: ~37.5M per 2011 Census) |
-| Persons with disabilities in Odisha | ~21 lakh (2011 Census — undercounted) |
-| Odisha population | ~4.65 crore |
+| Odisha population | ~4.2 crore (2011 Census) |
+| Odisha literacy | 72.9% — about 27% aged 7+ cannot read (2011 Census) |
+| Persons with disabilities, all India | 2.68 crore = 2.21% (2011 Census) |
 | Odia — declared classical language | 2014 (6th in India) |
 | State IT agency | OCAC |
 | State digital mandate | 5T + Mo Sarkar |
@@ -81,7 +87,7 @@ so the demo cannot die.
 |---|---|
 | Widget size, self-contained | ~520 KB, zero dependencies |
 | Services | 4 (gateway, TTS, STT, translate+OCR+simplify) |
-| Automated checks | 222 across 5 suites |
+| Automated checks | 240+ across 5 suites |
 | Languages live today | Odia, Hindi, English |
 | Real sites verified | 6 incl. jajpur.odisha.gov.in, india.gov.in |
 | Cloud calls required | 0 (fully on-prem) |
@@ -131,7 +137,7 @@ and can't hallucinate a wrong deadline into a government notice."
   notices yes, handwriting no.
 - STT needs reasonably clear speech; booth noise hurts — that's why the
   guided form fill retries and the voice nav shows "did you mean" buttons.
-- Translation in the offline USB bundle is the mock corpus (torch doesn't fit
-  the USB); the full-stack laptop demo runs real IndicTrans2.
-- Two-person team, hackathon timeline — breadth over per-feature depth,
+- Translating a long page for the first time takes a couple of minutes on
+  CPU; after that it is cached and instant.
+- One-student team, hackathon timeline — breadth over per-feature depth,
   by design.

@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AaaS Synopsis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&family=Noto+Sans+Oriya:wght@400;600;700&family=Noto+Serif:ital,wght@1,400&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --ink: #16202e;
+    --muted: #4b5566;
+    --line: #d5dbe5;
+    --brand: #1d3a8a;
+    --brand-soft: #e8edf8;
+    --amber: #b45309;
+    --amber-soft: #fdf3e2;
+    --green: #166534;
+    --green-soft: #e7f4ec;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body {
+    font-family: "Noto Sans", "Noto Sans Oriya", "Nirmala UI", sans-serif;
+    color: var(--ink);
+    font-size: 9.6pt;
+    line-height: 1.42;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .or { font-family: "Noto Sans Oriya", "Nirmala UI", sans-serif; }
+  .page {
+    width: 210mm;
+    height: 297mm;
+    padding: 13mm 15mm 11mm;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* running header / footer */
+  .run {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 7.8pt; color: var(--muted);
+    border-bottom: 1.2pt solid var(--brand);
+    padding-bottom: 2mm; margin-bottom: 5mm;
+  }
+  .run b { color: var(--brand); letter-spacing: .04em; }
+  .foot {
+    margin-top: auto;
+    display: flex; justify-content: space-between;
+    font-size: 7.5pt; color: var(--muted);
+    border-top: .6pt solid var(--line); padding-top: 2mm;
+  }
+
+  h1 { font-size: 23pt; line-height: 1.1; margin: 0; font-weight: 800; letter-spacing: -.01em; }
+  h2 {
+    font-size: 12.5pt; margin: 0 0 2.5mm; color: var(--brand); font-weight: 800;
+    display: flex; align-items: baseline; gap: 2.5mm;
+  }
+  h2 .n {
+    font-size: 8pt; color: #fff; background: var(--brand);
+    border-radius: 2px; padding: .4mm 1.6mm; font-weight: 700; position: relative; top: -1pt;
+  }
+  h3 { font-size: 10pt; margin: 0 0 1.2mm; font-weight: 700; }
+  p { margin: 0 0 2mm; }
+  section { margin-bottom: 5mm; }
+  ul { margin: 0; padding-left: 4.5mm; }
+  li { margin-bottom: 1mm; }
+  .muted { color: var(--muted); }
+  .small { font-size: 8.4pt; }
+
+  /* cover block */
+  .cover {
+    display: grid; grid-template-columns: 24mm 1fr; gap: 5mm; align-items: center;
+    margin-bottom: 4mm;
+  }
+  .logo {
+    width: 24mm; height: 24mm; border-radius: 50%;
+    background: var(--brand); color: #fff;
+    display: grid; place-items: center;
+    font-family: "Noto Sans Oriya", "Nirmala UI", sans-serif; font-size: 30pt; font-weight: 700;
+    line-height: 1;
+  }
+  .kicker { font-size: 8.4pt; font-weight: 700; color: var(--amber); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1mm; }
+  .sub { font-size: 11.5pt; color: var(--muted); margin-top: 1mm; }
+
+  .facts {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: .8pt solid var(--line); border-radius: 3px; margin-bottom: 5mm;
+  }
+  .facts div { padding: 1.8mm 3mm; border-bottom: .6pt solid var(--line); font-size: 8.8pt; }
+  .facts div:nth-child(odd) { border-right: .6pt solid var(--line); }
+  .facts div:nth-last-child(-n+2) { border-bottom: 0; }
+  .facts span { display: block; font-size: 7pt; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  .pitch {
+    background: var(--brand-soft); border-left: 3pt solid var(--brand);
+    padding: 3mm 4mm; margin-bottom: 5mm; font-size: 11pt; font-weight: 600; line-height: 1.35;
+  }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5mm; margin: 2mm 0 3mm; }
+  .stat { border: .8pt solid var(--line); border-radius: 3px; padding: 2.2mm 2.5mm; }
+  .stat b { display: block; font-size: 15pt; color: var(--brand); line-height: 1.1; }
+  .impact .stat b { font-size: 11.5pt; }
+  .impact .stat { padding: 1.8mm 2.5mm; }
+  .stat span { font-size: 7.8pt; color: var(--muted); line-height: 1.3; display: block; margin-top: .8mm; }
+
+  .barriers { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm; }
+  .barrier { border: .8pt solid var(--line); border-radius: 3px; padding: 2.2mm 3mm; }
+  .barrier h3 { color: var(--amber); }
+  .barrier p { margin: 0; font-size: 8.8pt; }
+
+  .story {
+    background: var(--amber-soft); border-radius: 3px; padding: 3mm 4mm;
+    font-family: "Noto Serif", Georgia, serif; font-style: italic; font-size: 9.6pt;
+  }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .box { border: .8pt solid var(--line); border-radius: 3px; padding: 3mm 3.5mm; }
+  .box.brand { background: var(--brand-soft); border-color: #c3cfeb; }
+  .box.green { background: var(--green-soft); border-color: #bcdcc8; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 8.8pt; }
+  th, td { text-align: left; vertical-align: top; padding: 1.7mm 2mm; border-bottom: .6pt solid var(--line); }
+  th { font-size: 7.4pt; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 1pt solid var(--ink); }
+  td.feat { width: 33mm; font-weight: 700; }
+  td.feat .or { display: block; font-weight: 600; color: var(--brand); font-size: 9.4pt; }
+  .tag {
+    display: inline-block; font-size: 7pt; border-radius: 2px; padding: .2mm 1.3mm; margin: 0 .8mm .6mm 0;
+    background: #eef1f5; color: #334155; font-weight: 600; white-space: nowrap;
+  }
+
+  .diagram { border: .8pt solid var(--line); border-radius: 3px; padding: 3mm; margin-bottom: 4mm; }
+  .hard { counter-reset: h; list-style: none; padding: 0; }
+  .hard li { counter-increment: h; position: relative; padding-left: 7mm; margin-bottom: 2mm; }
+  .hard li::before {
+    content: counter(h); position: absolute; left: 0; top: .2mm;
+    width: 4.6mm; height: 4.6mm; border-radius: 50%; background: var(--amber); color: #fff;
+    font-size: 7.4pt; font-weight: 700; display: grid; place-items: center;
+  }
+  .hard b { display: block; }
+
+  .road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 1mm 0 0; }
+  .step { padding: 2.5mm 3mm 2.5mm 4mm; border: .8pt solid var(--line); border-right: 0; position: relative; }
+  .step:last-child { border-right: .8pt solid var(--line); }
+  .step .when { font-size: 7.2pt; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: .06em; }
+  .step h3 { margin-top: .6mm; }
+  .step p { font-size: 8.4pt; margin: 0; }
+
+  .check li { list-style: none; position: relative; padding-left: 4.5mm; }
+  .check { padding-left: 0; }
+  .check li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+  .later li::before { content: "→"; color: var(--muted); }
+
+  .close {
+    background: var(--brand); color: #fff; border-radius: 3px; padding: 4mm 5mm;
+    display: grid; grid-template-columns: 1.15fr 1fr; gap: 5mm; align-items: center;
+  }
+  .close .line { font-size: 10.8pt; font-weight: 700; line-height: 1.3; }
+  .p4 section { margin-bottom: 3.6mm; }
+  .p4 td { padding: 1.3mm 2mm; }
+  .p4 .run { margin-bottom: 4mm; }
+  .close .who { font-size: 8.4pt; text-align: right; line-height: 1.5; opacity: .95; }
+</style>
+</head>
+<body>
+
+<!-- ============================ PAGE 1 ============================ -->
+<div class="page">
+  <div class="run"><b>PROJECT SYNOPSIS</b><span>Odiapreneur 3.0 · Smart Odisha Hackathon</span></div>
+
+  <div class="cover">
+    <div class="logo">ଅ</div>
+    <div>
+      <div class="kicker">Theme: Accessibility, Ecommerce &amp; Cyber Security</div>
+      <h1>AaaS — Accessibility as a Service</h1>
+      <div class="sub">Accessibility infrastructure for public institutions: Odisha first, India next</div>
+    </div>
+  </div>
+
+  <div class="facts">
+    <div><span>Team</span>SUBARNAREKHA &nbsp;·&nbsp; Team No. 827</div>
+    <div><span>Team member</span>Pratikshya Padhi (Class XI)</div>
+    <div><span>School</span>Odisha Adarsha Vidyalaya, Jamdhar</div>
+    <div><span>Guide teacher</span>Somali Priyadarshini Mohanty &nbsp;·&nbsp; +91 98611 37602</div>
+  </div>
+
+  <div class="pitch">
+    One button on any government website that <u>reads</u>, <u>translates</u>, <u>simplifies</u>,
+    <u>reads scanned documents</u> and <u>listens</u>: in Odia, by voice, with no cloud.
+  </div>
+
+  <section>
+    <h2><span class="n">1</span>The problem</h2>
+    <p>Pensions, scholarships, exam results, grievances: Odisha’s public services have moved online.
+      Most of the citizens who need them most have not. The websites were built for people who read English easily,
+      can see small text, and can type.</p>
+    <div class="stats">
+      <div class="stat"><b>4.2 crore</b><span>people in Odisha (Census 2011)</span></div>
+      <div class="stat"><b>3.75 crore</b><span>speak Odia as their mother tongue (Census 2011)</span></div>
+      <div class="stat"><b>27%</b><span>of Odisha’s people aged 7+ cannot read (literacy 72.9%, Census 2011)</span></div>
+      <div class="stat"><b>2.68 crore</b><span>Indians live with a disability (Census 2011)</span></div>
+    </div>
+    <div class="barriers">
+      <div class="barrier"><h3>English-first pages</h3><p>Notices and forms are written in English and in heavy official language.</p></div>
+      <div class="barrier"><h3>Scanned notices</h3><p>Important circulars are photos of paper. A screen reader or translator sees nothing.</p></div>
+      <div class="barrier"><h3>Typing-only forms</h3><p>Elderly people, people with shaky hands and people who cannot read are locked out of applying.</p></div>
+      <div class="barrier"><h3>No Odia voice</h3><p>Common tools cannot speak Odia well. Most cannot even say Odia numbers.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="story">
+      Arun is 68, a farmer near Jajpur. He has arthritis in both hands and reads only a little Odia. His pension rate just
+      went up, but the order is a scanned English circular and the application form wants typed answers. His government
+      is online. Arun is not. His grandson has to do it for him.
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span>Our solution</h2>
+    <p>AaaS puts one round <b class="or">ଅ</b> button on any website. Tapping it opens six tools, labelled in Odia first,
+      that let a citizen <b>listen to, understand and fill in</b> the page, without the website being rebuilt.</p>
+    <div class="two">
+      <div class="box brand">
+        <h3>For a government website</h3>
+        <p class="small" style="margin:0">The website owner adds <b>one line of code</b>. Every visitor gets the button.
+          One shared server (for example at OCAC) can serve every department.</p>
+      </div>
+      <div class="box brand">
+        <h3>For any website, today</h3>
+        <p class="small" style="margin:0">Our <b>Chrome extension</b> adds the same button to sites that haven’t adopted
+          AaaS yet. We tested it on the real Jajpur district and SSEPD department websites.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot"><span>Team SUBARNAREKHA · OAV Jamdhar</span><span>1 / 4</span></div>
+</div>
+
+<!-- ============================ PAGE 2 ============================ -->
+<div class="page">
+  <div class="run"><b>AaaS — WHAT IT DOES</b><span>Team SUBARNAREKHA</span></div>
+
+  <section>
+    <h2><span class="n">3</span>Six tools behind one button</h2>
+    <table>
+      <thead><tr><th>Tool</th><th>What happens</th><th style="width:34mm">Who it helps</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="feat"><span class="or">ପଢ଼ି ଶୁଣାଅ</span>Read aloud</td>
+          <td>The page is read aloud in a natural Odia voice. Each part is highlighted as it is spoken, so the reader can follow. Skip, replay and pause buttons. Numbers are spoken as Odia words (“୩୦୦ ଟଙ୍କା” → “three hundred rupees” in Odia).</td>
+          <td><span class="tag">blind</span><span class="tag">low vision</span><span class="tag">cannot read</span><span class="tag">elderly</span></td>
+        </tr>
+        <tr>
+          <td class="feat"><span class="or">ଅନୁବାଦ</span>Translate</td>
+          <td>The whole page turns into Odia in place, keeping its layout. Dates, amounts and reference numbers stay exactly correct. One tap (↺) brings back the original.</td>
+          <td><span class="tag">Odia speakers</span><span class="tag">rural citizens</span></td>
+        </tr>
+        <tr>
+          <td class="feat"><span class="or">ସହଜ ପଢ଼ା</span>Easy Read</td>
+          <td>Heavy official language becomes simple words: “shall furnish the requisite documents” → “must give the papers”. Works in English or Odia.</td>
+          <td><span class="tag">low literacy</span><span class="tag">learning difficulty</span></td>
+        </tr>
+        <tr>
+          <td class="feat"><span class="or">ଦଲିଲ ପଢ଼</span>Read document</td>
+          <td>Finds scanned notices and PDFs on the page and reads the text off them (OCR). It turns the text into Odia and shows the original page and the Odia text <b>side by side</b>, reading aloud with a highlight that follows the voice.</td>
+          <td><span class="tag">blind</span><span class="tag">cannot read</span><span class="tag">everyone</span></td>
+        </tr>
+        <tr>
+          <td class="feat"><span class="or">କହି ଲେଖ</span>Speak to fill</td>
+          <td>Goes through a form field by field, asks each question aloud in Odia and listens to the answer. Names are written in English letters, not translated. Spoken numbers become digits. It <b>never presses Submit</b>: the citizen decides.</td>
+          <td><span class="tag">motor disability</span><span class="tag">elderly</span><span class="tag">cannot type</span></td>
+        </tr>
+        <tr>
+          <td class="feat"><span class="or">କହି ଚଲାଅ</span>Voice command</td>
+          <td>Say where you want to go (“ବିଜ୍ଞପ୍ତି” for notifications) and it opens that link, even links hidden inside menus. If it isn’t sure, it shows the top choices as buttons instead of guessing.</td>
+          <td><span class="tag">blind</span><span class="tag">motor disability</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="small muted" style="margin-top:2mm">Also included: <b class="or">ଆରାମ ଅକ୍ଷର</b> Comfortable letters (OpenDyslexic font, extra
+      spacing, warm background) for dyslexic readers, a reading ruler, bigger text and speech for any text you select or point at.</p>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span>Two journeys it makes possible</h2>
+    <div class="two">
+      <div class="box">
+        <h3>Arun applies for his pension, alone</h3>
+        <ul class="small">
+          <li>Taps <span class="or">ଦଲିଲ ପଢ଼</span>: hears the scanned pension order read out in Odia, with the date and
+            amount correct.</li>
+          <li>Taps <span class="or">କହି ଲେଖ</span>: speaks his name “ପୂର୍ଣ୍ଣଚନ୍ଦ୍ର ମହାନ୍ତି”, and the form shows
+            <i>Purnnachandra Mahanti</i> (not “full moon”, which is what word-for-word translation gives).</li>
+          <li>Says his phone number as “ନଅ ଆଠ ସାତ… ଡବଲ ପାଞ୍ଚ” and gets <i>98755…</i></li>
+          <li>Checks the ✓ marks and presses Submit himself.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>A blind student checks an exam circular</h3>
+        <ul class="small">
+          <li>Opens the BSE Odisha site. The circular is a scanned image.</li>
+          <li>Voice command: “ବିଜ୍ଞପ୍ତି”. The notices page opens.</li>
+          <li><span class="or">ଦଲିଲ ପଢ଼</span> reads the circular in Odia, with the exam dates spoken correctly.</li>
+          <li>No sighted helper and no paid software needed.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="box green">
+      <h3>Designed for the people who use it</h3>
+      <p class="small" style="margin:0">Big icon tiles with Odia labels first · works with keyboard only (Space pauses, Esc stops) ·
+        our own panel follows accessibility rules (screen-reader labels, strong contrast, size set so the host page can’t shrink it) ·
+        every action can be undone · the voice never submits anything for you.</p>
+    </div>
+  </section>
+
+  <div class="foot"><span>Team SUBARNAREKHA · OAV Jamdhar</span><span>2 / 4</span></div>
+</div>
+
+<!-- ============================ PAGE 3 ============================ -->
+<div class="page">
+  <div class="run"><b>AaaS — HOW IT WORKS</b><span>Team SUBARNAREKHA</span></div>
+
+  <section>
+    <h2><span class="n">5</span>Architecture</h2>
+    <div class="diagram">
+      <svg viewBox="0 0 700 250" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans, Nirmala UI, sans-serif">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1d3a8a"/>
+          </marker>
+        </defs>
+        <!-- citizen side -->
+        <rect x="8" y="20" width="190" height="210" rx="6" fill="#f6f8fb" stroke="#d5dbe5"/>
+        <text x="103" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#16202e">Citizen’s browser</text>
+        <rect x="24" y="54" width="158" height="60" rx="4" fill="#fff" stroke="#d5dbe5"/>
+        <text x="103" y="76" text-anchor="middle" font-size="10.5" fill="#16202e">Any government website</text>
+        <text x="103" y="93" text-anchor="middle" font-size="9" fill="#4b5566">jajpur / ssepd / bseodisha …</text>
+        <circle cx="165" cy="104" r="11" fill="#1d3a8a"/>
+        <text x="165" y="109" text-anchor="middle" font-size="12" fill="#fff" font-family="Noto Sans Oriya, Nirmala UI">ଅ</text>
+        <rect x="24" y="126" width="158" height="44" rx="4" fill="#e8edf8" stroke="#c3cfeb"/>
+        <text x="103" y="145" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1d3a8a">AaaS widget (~0.5 MB)</text>
+        <text x="103" y="160" text-anchor="middle" font-size="9" fill="#4b5566">one line of code, or extension</text>
+        <text x="103" y="190" text-anchor="middle" font-size="9" fill="#4b5566">mic · speaker · screen</text>
+        <text x="103" y="205" text-anchor="middle" font-size="9" fill="#4b5566">no install for the citizen</text>
+
+        <!-- arrow to gateway -->
+        <line x1="200" y1="125" x2="262" y2="125" stroke="#1d3a8a" stroke-width="2" marker-end="url(#ar)" marker-start="url(#ar)"/>
+        <text x="231" y="116" text-anchor="middle" font-size="8.5" fill="#4b5566">HTTPS</text>
+
+        <!-- gateway -->
+        <rect x="266" y="72" width="130" height="106" rx="6" fill="#1d3a8a"/>
+        <text x="331" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Gateway</text>
+        <text x="331" y="120" text-anchor="middle" font-size="9" fill="#dbe4f7">API key per institution</text>
+        <text x="331" y="135" text-anchor="middle" font-size="9" fill="#dbe4f7">usage counts</text>
+        <text x="331" y="150" text-anchor="middle" font-size="9" fill="#dbe4f7">admin console</text>
+
+        <!-- services -->
+        <g font-size="9">
+          <line x1="398" y1="125" x2="440" y2="42" stroke="#1d3a8a" stroke-width="1.6" marker-end="url(#ar)"/>
+          <line x1="398" y1="125" x2="440" y2="99" stroke="#1d3a8a" stroke-width="1.6" marker-end="url(#ar)"/>
+          <line x1="398" y1="125" x2="440" y2="156" stroke="#1d3a8a" stroke-width="1.6" marker-end="url(#ar)"/>
+          <line x1="398" y1="125" x2="440" y2="213" stroke="#1d3a8a" stroke-width="1.6" marker-end="url(#ar)"/>
+          <rect x="444" y="20" width="248" height="44" rx="4" fill="#fff" stroke="#d5dbe5"/>
+          <text x="456" y="38" font-size="10.5" font-weight="700" fill="#16202e">Speech → text</text>
+          <text x="456" y="54" fill="#4b5566">IndicWav2Vec (AI4Bharat) · Odia</text>
+          <rect x="444" y="77" width="248" height="44" rx="4" fill="#fff" stroke="#d5dbe5"/>
+          <text x="456" y="95" font-size="10.5" font-weight="700" fill="#16202e">Text → speech</text>
+          <text x="456" y="111" fill="#4b5566">MMS-TTS (Meta) · Odia, Hindi, English</text>
+          <rect x="444" y="134" width="248" height="44" rx="4" fill="#fff" stroke="#d5dbe5"/>
+          <text x="456" y="152" font-size="10.5" font-weight="700" fill="#16202e">Translate + Easy Read</text>
+          <text x="456" y="168" fill="#4b5566">IndicTrans2 (AI4Bharat) · our own rule engine</text>
+          <rect x="444" y="191" width="248" height="44" rx="4" fill="#fff" stroke="#d5dbe5"/>
+          <text x="456" y="209" font-size="10.5" font-weight="700" fill="#16202e">Read scanned documents (OCR)</text>
+          <text x="456" y="225" fill="#4b5566">Tesseract · images and PDFs</text>
+        </g>
+        <text x="568" y="248" text-anchor="middle" font-size="8.5" fill="#b45309" font-weight="700">ALL ON OUR OWN SERVER: NO CLOUD</text>
+      </svg>
+    </div>
+    <p class="small">The widget is plain JavaScript with no outside libraries, kept separate from the host page so it cannot break the page and the page cannot break it.
+      The four AI services are open-source models running on a normal laptop CPU (no graphics card needed).
+      Every service has a backup mode, so if one fails the button stays alive and says so.</p>
+  </section>
+
+  <section>
+    <h2><span class="n">6</span>Hard problems we solved</h2>
+    <ol class="hard small">
+      <li><b>The Odia voice model is silent on numbers.</b>We convert “୩୦୦ ଟଙ୍କା” or “12.05.2026” into Odia words before
+        speaking, so amounts and dates are actually heard.</li>
+      <li><b>Translation changes names and dates.</b>Word-for-word translation turns the name Purnnachandra into “full moon”,
+        so for names we write the Odia sounds in English letters instead of translating the meaning. The translation model
+        also changed dates on long notices (“2026” came back as “2021”), so we hide every number from the model and put the
+        originals back afterwards.</li>
+      <li><b>People say English menu names in Odia.</b>The speech model writes “Contact” as “କଣ୍ଟାକ୍ଟ”. We compare how words
+        sound, so an Odia speaker can open English-named links by voice, including ones hidden in menus.</li>
+      <li><b>Spoken numbers.</b>“ନଅ ଆଠ ସାତ ଡବଲ ପାଞ୍ଚ” or “ଷାଠିଏ ପାଞ୍ଚ” become 98755 and 65 in the form field.</li>
+      <li><b>Scanned documents.</b>Finds images and PDFs on the page, lets the user pick one by its thumbnail, reads the text,
+        then simplifies, translates and speaks it, page by page.</li>
+      <li><b>Real government websites.</b>They block microphones, hide links and mark pages “do not translate”. We handle each
+        case and tell the user clearly when a website itself blocks something.</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="two">
+      <div class="box brand">
+        <h3>Privacy and safety by design</h3>
+        <ul class="small">
+          <li>Voice, documents and form answers never leave the government’s own server: no cloud AI, and it fits India’s DPDP Act.</li>
+          <li>Easy Read uses rules, not a chatbot, so it can never invent a wrong deadline.</li>
+          <li>It never submits a form on its own.</li>
+        </ul>
+      </div>
+      <div class="box brand">
+        <h3>Cheap to run, free to adopt</h3>
+        <ul class="small">
+          <li>Runs on one ordinary laptop or server CPU, and works fully offline.</li>
+          <li>Open source (Apache-2.0): no licence fee, and Odisha owns it.</li>
+          <li>Repeated pages are served from a cache, so they are instant.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot"><span>Team SUBARNAREKHA · OAV Jamdhar</span><span>3 / 4</span></div>
+</div>
+
+<!-- ============================ PAGE 4 ============================ -->
+<div class="page p4">
+  <div class="run"><b>AaaS — IMPACT &amp; ROLLOUT</b><span>Team SUBARNAREKHA</span></div>
+
+  <section>
+    <h2><span class="n">7</span>Why AaaS is different</h2>
+    <table>
+      <thead><tr><th style="width:38mm">Existing option</th><th>What it gives</th><th>What AaaS adds</th></tr></thead>
+      <tbody>
+        <tr><td><b>Bhashini</b> (national language AI)</td><td>Language engines as APIs: translation, speech.</td>
+          <td>The finished citizen-facing product on top: guided voice form-filling, name handling, scanned-notice reading, voice navigation. Bhashini could be plugged in as an engine.</td></tr>
+        <tr><td><b>Browser read-aloud / translate</b></td><td>Generic reading and translation, usually through the cloud.</td>
+          <td>Odia numbers spoken correctly, OCR of scanned circulars side by side, form filling by voice, fully offline.</td></tr>
+        <tr><td><b>Accessibility “overlays”</b></td><td>Plug-ins that claim to make a site compliant.</td>
+          <td>We claim nothing about the host site. We give the citizen a working way through it, and we are open source and auditable.</td></tr>
+        <tr><td><b>Rebuilding every portal</b></td><td>Years of work and budget per department.</td>
+          <td>One line of code per website, one shared server for the whole state.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="n">8</span>Rollout plan</h2>
+    <div class="road">
+      <div class="step"><div class="when">Step 1</div><h3>Pilot</h3><p>One district website (Jajpur) and one board site (BSE Odisha). One line of code each.</p></div>
+      <div class="step"><div class="when">Step 2</div><h3>OCAC server</h3><p>One shared install at the state data centre, with an API key per department.</p></div>
+      <div class="step"><div class="when">Step 3</div><h3>All of Odisha</h3><p>Every department portal, in line with 5T and Mo Sarkar. The extension covers the rest.</p></div>
+      <div class="step"><div class="when">Step 4</div><h3>India</h3><p>The engines already cover 22 Indian languages: add a language, not a product.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">9</span>Where it stands today</h2>
+    <div class="two">
+      <div class="box green">
+        <h3>Built and working (live demo)</h3>
+        <ul class="check small">
+          <li>All six tools and the reading-comfort options</li>
+          <li>Chrome extension, tested on the real jajpur.odisha.gov.in and ssepd.odisha.gov.in websites</li>
+          <li>Demo copies of the SSEPD and BSE Odisha websites with real scanned notices</li>
+          <li>Four AI services and a gateway, running fully offline on one laptop</li>
+          <li>240+ automated tests passing</li>
+          <li>Admin console showing usage for each institution</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Next steps</h3>
+        <ul class="check later small">
+          <li>More Indian languages (Hindi and English voices already work)</li>
+          <li>Better OCR for poor-quality or handwritten scans</li>
+          <li>Tuning speech recognition for noisy places and village accents</li>
+          <li>Accessibility-check reports for website owners</li>
+          <li>Sign-language avatar (early concept only)</li>
+        </ul>
+        <p class="small muted" style="margin:2mm 0 0">Honest limits today: printed scans work well and handwriting does not;
+          speech needs a reasonably quiet room, which is why the tool asks again or offers choices when unsure.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">10</span>Expected impact</h2>
+    <div class="stats impact" style="grid-template-columns:repeat(3,1fr); margin-bottom:0">
+      <div class="stat"><b>Independence</b><span>Elderly, disabled and non-reading citizens use online services without a middleman or a fee</span></div>
+      <div class="stat"><b>Reach</b><span>Every existing Odisha portal becomes Odia-speaking, with no redesign</span></div>
+      <div class="stat"><b>Trust</b><span>Scanned notices become understandable; data stays in Odisha</span></div>
+    </div>
+  </section>
+
+  <div class="close" style="margin-top:auto; margin-bottom:3mm">
+    <div class="line">“Your portals stay exactly as they are.<br>Your citizens stop needing help to use them.”</div>
+    <div class="who">Pratikshya Padhi · Class XI · OAV Jamdhar<br>Guide: Somali Priyadarshini Mohanty<br>github.com/flashmindbox/AaaS</div>
+  </div>
+
+  <div class="foot" style="margin-top:0"><span>Team SUBARNAREKHA · OAV Jamdhar</span><span>4 / 4</span></div>
+</div>
+
+</body>
+</html>

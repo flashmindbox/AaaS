@@ -26,8 +26,8 @@ Then go straight to the Read-document demo. Don't pitch past the hook.
 
 ## The 60-second pitch (elevator / intro round)
 
-**Problem.** Odisha has over 21 lakh persons with disabilities and 42 million
-Odia speakers. Nearly every public portal — pensions, scholarships, results,
+**Problem.** Odisha has 4.2 crore people; more than a quarter of those aged 7+
+cannot read, and 3.75 crore speak Odia as their mother tongue. Nearly every public portal — pensions, scholarships, results,
 grievances — is built English-first, keyboard-only, and screen-reader-broken.
 Worse: the documents that matter most are *scans*. To a blind citizen, a
 scanned circular does not exist.
@@ -60,8 +60,8 @@ and he speaks only Odia. His village water pipe broke three weeks ago. The
 grievance portal exists — it's in English, it wants typed input, and the
 notification about repair schedules is a scanned photograph of a paper
 notice. Arun's government is online; Arun is not. His grandson files the
-complaint. Twenty-one lakh Odias with disabilities live some version of this
-story every week.
+complaint. Lakhs of elderly, disabled and non-reading Odias live some version
+of this story every week.
 
 **What we built.** One button — ଅ — that sits on any website. For Arun it does
 six things, and I can show you all six right now on this laptop:

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AaaS Charts</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800;900&family=Noto+Sans+Oriya:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Three A3 landscape charts, one per page. */
+  @page { size: 420mm 297mm; margin: 0; }
+  :root {
+    --ink: #111a2b;
+    --muted: #46526a;
+    --line: #d3dae6;
+    --brand: #1d3a8a;
+    --brand-deep: #13275e;
+    --brand-soft: #e8edf8;
+    --amber: #c2570c;
+    --amber-soft: #fdf1df;
+    --green: #15803d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; }
+  body {
+    font-family: "Noto Sans", "Noto Sans Oriya", "Nirmala UI", sans-serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .or { font-family: "Noto Sans Oriya", "Nirmala UI", sans-serif; }
+  .chart {
+    width: 420mm; height: 297mm; overflow: hidden; page-break-after: always;
+    display: flex; flex-direction: column;
+  }
+  .chart:last-child { page-break-after: auto; }
+
+  .top {
+    background: var(--brand); color: #fff;
+    padding: 9mm 18mm 8mm;
+    display: grid; grid-template-columns: 22mm 1fr auto; gap: 7mm; align-items: center;
+  }
+  .logo {
+    width: 22mm; height: 22mm; border-radius: 50%; background: #fff; color: var(--brand);
+    display: grid; place-items: center; font-family: "Noto Sans Oriya", "Nirmala UI", sans-serif;
+    font-size: 40pt; font-weight: 800; line-height: 1;
+  }
+  .kicker { font-size: 12pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #ffd59a; }
+  h1 { margin: 1mm 0 0; font-size: 34pt; font-weight: 900; line-height: 1.05; }
+  .chartno { font-size: 12pt; color: #dbe4f7; text-align: right; line-height: 1.4; }
+  .chartno b { display: block; font-size: 30pt; color: #fff; }
+
+  .body { flex: 1; padding: 11mm 18mm 0; display: flex; flex-direction: column; }
+  .foot {
+    margin-top: auto; padding: 5mm 18mm; border-top: .5mm solid var(--line);
+    display: flex; justify-content: space-between; font-size: 11pt; color: var(--muted);
+  }
+  .foot b { color: var(--brand); }
+
+  /* ---------- chart 1: how it works ---------- */
+  .flow { display: grid; grid-template-columns: 1fr 12mm 1fr 12mm 1fr 12mm 1.25fr; align-items: stretch; margin-bottom: 9mm; }
+  .node { border: .8mm solid var(--line); border-radius: 4mm; padding: 6mm; display: flex; flex-direction: column; }
+  .node .step { font-size: 11pt; font-weight: 800; color: var(--amber); letter-spacing: .08em; text-transform: uppercase; }
+  .node h3 { font-size: 21pt; margin: 1mm 0 3mm; font-weight: 900; }
+  .node p, .node li { font-size: 15pt; line-height: 1.4; margin: 0; }
+  .node ul { margin: 0; padding-left: 5mm; }
+  .node li { margin-bottom: 1.2mm; }
+  .node.brand { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .node.brand .step { color: #ffd59a; }
+  .node.soft { background: var(--brand-soft); border-color: #c3cfeb; }
+  .arrow { display: grid; place-items: center; }
+  .arrow svg { width: 12mm; height: 12mm; }
+  .svc { border-top: .5mm solid var(--line); padding: 2.2mm 0; }
+  .svc:first-of-type { border-top: 0; padding-top: 0; }
+  .svc b { display: block; font-size: 15pt; }
+  .svc span { font-size: 13pt; color: var(--muted); }
+
+  .example { background: var(--amber-soft); border-radius: 4mm; padding: 6mm 8mm; }
+  .example h3 { margin: 0 0 4mm; font-size: 19pt; color: var(--amber); }
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5mm; }
+  .steps div { font-size: 14.5pt; line-height: 1.4; }
+  .steps b { display: grid; place-items: center; width: 10mm; height: 10mm; border-radius: 50%; background: var(--amber); color: #fff; font-size: 14pt; margin-bottom: 2mm; }
+  .promises { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6mm; margin-top: 8mm; }
+  .promises div { border-left: 1.4mm solid var(--brand); padding: 1mm 0 1mm 4mm; }
+  .promises b { display: block; font-size: 17pt; }
+  .promises span { font-size: 13.5pt; color: var(--muted); }
+
+  /* ---------- chart 2: matrix ---------- */
+  table.matrix { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .matrix th, .matrix td { border-bottom: .5mm solid var(--line); padding: 3.6mm 3mm; text-align: center; vertical-align: middle; }
+  .matrix thead th {
+    font-size: 14pt; font-weight: 800; color: var(--brand); line-height: 1.25;
+    border-bottom: .9mm solid var(--brand); vertical-align: bottom; padding-bottom: 3mm;
+  }
+  .matrix thead th .ico { display: block; font-size: 22pt; margin-bottom: 1mm; }
+  .matrix td.tool { text-align: left; width: 100mm; }
+  .matrix td.tool .odia { font-family: "Noto Sans Oriya", "Nirmala UI", sans-serif; font-size: 20pt; font-weight: 800; color: var(--brand); line-height: 1.15; }
+  .matrix td.tool .en { font-size: 16pt; font-weight: 800; }
+  .matrix td.tool .what { font-size: 12.5pt; color: var(--muted); display: block; line-height: 1.3; margin-top: .5mm; }
+  .dot { display: inline-block; width: 9mm; height: 9mm; border-radius: 50%; background: var(--green); position: relative; }
+  .dot::after { content: "✓"; color: #fff; font-weight: 900; font-size: 15pt; position: absolute; inset: 0; display: grid; place-items: center; line-height: 1; }
+  .part { display: inline-block; width: 9mm; height: 9mm; border-radius: 50%; border: .8mm solid var(--green); }
+  .matrix tbody tr:nth-child(even) td { background: #f7f9fc; }
+  .legend { display: flex; gap: 10mm; align-items: center; font-size: 13.5pt; color: var(--muted); margin-top: 5mm; }
+  .legend span { display: inline-flex; align-items: center; gap: 2.5mm; }
+  .legend .dot, .legend .part { width: 6.5mm; height: 6.5mm; }
+  .legend .dot::after { font-size: 10pt; }
+
+  /* ---------- chart 3: rollout ---------- */
+  .road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-bottom: 9mm; }
+  .stage {
+    padding: 8mm 12mm 8mm 16mm; min-height: 44mm;
+    clip-path: polygon(0 0, calc(100% - 11mm) 0, 100% 50%, calc(100% - 11mm) 100%, 0 100%, 11mm 50%);
+    margin-right: -5mm; color: #fff;
+  }
+  .stage:first-child { clip-path: polygon(0 0, calc(100% - 11mm) 0, 100% 50%, calc(100% - 11mm) 100%, 0 100%); padding-left: 10mm; }
+  .stage:nth-child(1) { background: #3b5bb5; }
+  .stage:nth-child(2) { background: #2d4aa0; }
+  .stage:nth-child(3) { background: #1d3a8a; }
+  .stage:nth-child(4) { background: #13275e; }
+  .stage .when { font-size: 11pt; font-weight: 800; color: #ffd59a; letter-spacing: .08em; text-transform: uppercase; }
+  .stage h3 { font-size: 26pt; margin: 1mm 0 1.5mm; font-weight: 900; }
+  .stage p { font-size: 14.5pt; margin: 0; color: #dbe4f7; line-height: 1.3; }
+  .details { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6mm; }
+  .detail { border: .8mm solid var(--line); border-radius: 4mm; padding: 5mm 6mm; }
+  .detail h4 { margin: 0 0 1.2mm; font-size: 11.5pt; text-transform: uppercase; letter-spacing: .08em; color: var(--amber); }
+  .detail p { margin: 0 0 4mm; font-size: 14.5pt; line-height: 1.4; }
+  .detail p:last-child { margin-bottom: 0; }
+  .banner {
+    margin-top: 8mm; background: var(--brand-soft); border-radius: 4mm; padding: 5mm 8mm;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8mm;
+  }
+  .banner div b { display: block; font-size: 18pt; color: var(--brand); }
+  .banner div span { font-size: 14pt; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<!-- ======================= CHART 1: HOW AaaS WORKS ======================= -->
+<div class="chart">
+  <div class="top">
+    <div class="logo">ଅ</div>
+    <div><div class="kicker">AaaS · Accessibility as a Service</div><h1>How AaaS works</h1></div>
+    <div class="chartno">Chart<b>1 / 3</b></div>
+  </div>
+  <div class="body">
+    <div class="flow">
+      <div class="node soft">
+        <div class="step">Step 1</div>
+        <h3>Any website</h3>
+        <ul>
+          <li>A government portal adds <b>one line of code</b></li>
+          <li>or the citizen uses our <b>Chrome extension</b></li>
+          <li>The website itself is not changed</li>
+        </ul>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h13M12 6l6 6-6 6" stroke="#1d3a8a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node soft">
+        <div class="step">Step 2</div>
+        <h3><span class="or">ଅ</span> widget</h3>
+        <ul>
+          <li>Round button, six tools, Odia labels first</li>
+          <li>Uses the phone or laptop mic, speaker and screen</li>
+          <li>About 0.5 MB, nothing to install</li>
+        </ul>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h13M12 6l6 6-6 6" stroke="#1d3a8a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node brand">
+        <div class="step">Step 3</div>
+        <h3>Gateway</h3>
+        <ul>
+          <li>One API key per institution</li>
+          <li>Counts usage for each department</li>
+          <li>Admin console for the operator (e.g. OCAC)</li>
+        </ul>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h13M12 6l6 6-6 6" stroke="#1d3a8a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="node">
+        <div class="step">Step 4 · Four AI services</div>
+        <div class="svc" style="margin-top:2mm"><b>Speech → text</b><span>IndicWav2Vec (AI4Bharat) · Odia</span></div>
+        <div class="svc"><b>Text → speech</b><span>MMS-TTS (Meta) · Odia, Hindi, English</span></div>
+        <div class="svc"><b>Translate + Easy Read</b><span>IndicTrans2 (AI4Bharat) · our rule engine</span></div>
+        <div class="svc"><b>Read scanned documents</b><span>Tesseract OCR · images and PDFs</span></div>
+      </div>
+    </div>
+
+    <div class="example">
+      <h3>Example: a citizen taps <span class="or">ଦଲିଲ ପଢ଼</span> (Read document) on a scanned pension circular</h3>
+      <div class="steps">
+        <div><b>1</b>The widget finds the scans and PDFs on the page and shows their thumbnails</div>
+        <div><b>2</b>OCR reads the text off the chosen scan</div>
+        <div><b>3</b>Easy Read simplifies it, then IndicTrans2 turns it into Odia, keeping dates and numbers exact</div>
+        <div><b>4</b>MMS-TTS reads the Odia aloud, with numbers spoken as Odia words</div>
+        <div><b>5</b>The citizen sees the original page and the Odia text side by side, with a highlight that follows the voice</div>
+      </div>
+    </div>
+
+    <div class="promises">
+      <div><b>No cloud</b><span>Voice and documents stay on the government’s own server</span></div>
+      <div><b>Works offline</b><span>Runs on one ordinary laptop CPU, with no graphics card</span></div>
+      <div><b>Never dies</b><span>Every service has a backup mode, so the button stays alive</span></div>
+      <div><b>Open source</b><span>Apache-2.0: no licence fee, and Odisha owns it</span></div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Team SUBARNAREKHA</b> · Pratikshya Padhi · OAV Jamdhar</span><span>Odiapreneur 3.0 · Smart Odisha Hackathon</span></div>
+</div>
+
+<!-- ======================= CHART 2: TOOLS x PEOPLE ======================= -->
+<div class="chart">
+  <div class="top">
+    <div class="logo">ଅ</div>
+    <div><div class="kicker">AaaS · Accessibility as a Service</div><h1>The six tools and who they help</h1></div>
+    <div class="chartno">Chart<b>2 / 3</b></div>
+  </div>
+  <div class="body">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th style="text-align:left">Tool</th>
+          <th><span class="ico">🦯</span>Blind</th>
+          <th><span class="ico">👓</span>Low vision</th>
+          <th><span class="ico">📖</span>Cannot read well</th>
+          <th><span class="ico">👴</span>Elderly</th>
+          <th><span class="ico">✋</span>Hand / motor disability</th>
+          <th><span class="ico">🔤</span>Dyslexia</th>
+          <th><span class="ico">🗣️</span>Odia-only speakers</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tool"><span class="odia">ପଢ଼ି ଶୁଣାଅ</span> <span class="en">Read aloud</span><span class="what">Reads the page in Odia with a follow-along highlight</span></td>
+          <td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="part"></span></td><td><span class="dot"></span></td><td><span class="part"></span></td>
+        </tr>
+        <tr>
+          <td class="tool"><span class="odia">ଅନୁବାଦ</span> <span class="en">Translate</span><span class="what">The whole page turns into Odia, and one tap undoes it</span></td>
+          <td><span class="part"></span></td><td></td><td><span class="part"></span></td><td><span class="dot"></span></td><td></td><td></td><td><span class="dot"></span></td>
+        </tr>
+        <tr>
+          <td class="tool"><span class="odia">ସହଜ ପଢ଼ା</span> <span class="en">Easy Read</span><span class="what">Official language becomes simple words</span></td>
+          <td></td><td></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td></td><td><span class="dot"></span></td><td><span class="part"></span></td>
+        </tr>
+        <tr>
+          <td class="tool"><span class="odia">ଦଲିଲ ପଢ଼</span> <span class="en">Read document</span><span class="what">Scanned notices and PDFs are read, turned into Odia and read aloud</span></td>
+          <td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td></td><td><span class="part"></span></td><td><span class="dot"></span></td>
+        </tr>
+        <tr>
+          <td class="tool"><span class="odia">କହି ଲେଖ</span> <span class="en">Speak to fill</span><span class="what">Answer form questions by voice; it never presses Submit</span></td>
+          <td><span class="dot"></span></td><td><span class="part"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="part"></span></td><td><span class="dot"></span></td>
+        </tr>
+        <tr>
+          <td class="tool"><span class="odia">କହି ଚଲାଅ</span> <span class="en">Voice command</span><span class="what">Say where to go and it opens the link</span></td>
+          <td><span class="dot"></span></td><td><span class="part"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td><span class="dot"></span></td><td></td><td><span class="dot"></span></td>
+        </tr>
+        <tr>
+          <td class="tool"><span class="odia">ଆରାମ ଅକ୍ଷର</span> <span class="en">Comfortable letters</span><span class="what">Dyslexia-friendly font, extra spacing, warm background</span></td>
+          <td></td><td><span class="part"></span></td><td></td><td><span class="part"></span></td><td></td><td><span class="dot"></span></td><td></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="legend">
+      <span><span class="dot"></span> Main help</span>
+      <span><span class="part"></span> Also helps</span>
+      <span>Every tool works with keyboard only (Space pauses, Esc stops), and every change can be undone.</span>
+    </div>
+  </div>
+  <div class="foot"><span><b>Team SUBARNAREKHA</b> · Pratikshya Padhi · OAV Jamdhar</span><span>Odiapreneur 3.0 · Smart Odisha Hackathon</span></div>
+</div>
+
+<!-- ======================= CHART 3: ROLLOUT ======================= -->
+<div class="chart">
+  <div class="top">
+    <div class="logo">ଅ</div>
+    <div><div class="kicker">AaaS · Accessibility as a Service</div><h1>Rollout plan: Jajpur → OCAC → Odisha → India</h1></div>
+    <div class="chartno">Chart<b>3 / 3</b></div>
+  </div>
+  <div class="body">
+    <div class="road">
+      <div class="stage"><div class="when">Step 1</div><h3>Pilot: Jajpur</h3><p>One district portal and one board site (BSE Odisha)</p></div>
+      <div class="stage"><div class="when">Step 2</div><h3>OCAC</h3><p>One shared server at the state data centre</p></div>
+      <div class="stage"><div class="when">Step 3</div><h3>All Odisha</h3><p>Every department portal</p></div>
+      <div class="stage"><div class="when">Step 4</div><h3>India</h3><p>Other states, in their own languages</p></div>
+    </div>
+
+    <div class="details">
+      <div class="detail">
+        <h4>What happens</h4><p>Add one line of code to jajpur.odisha.gov.in and bseodisha.ac.in. Run AaaS on one server.</p>
+        <h4>What it takes</h4><p>One ordinary server CPU, no rebuild of either site, and no cost to citizens.</p>
+        <h4>How we know it works</h4><p>Citizens and staff try it; we count use of each tool and collect feedback.</p>
+      </div>
+      <div class="detail">
+        <h4>What happens</h4><p>AaaS runs once at OCAC. Each department gets its own API key and usage report.</p>
+        <h4>What it takes</h4><p>One install serves every portal. Data stays inside the state data centre.</p>
+        <h4>How we know it works</h4><p>The admin console shows use by each department.</p>
+      </div>
+      <div class="detail">
+        <h4>What happens</h4><p>Every department portal adds the line: pensions, scholarships, results, grievances.</p>
+        <h4>What it takes</h4><p>Fits 5T (Technology, Transparency) and Mo Sarkar. The Chrome extension covers sites that haven’t adopted it yet.</p>
+        <h4>How we know it works</h4><p>Fewer citizens need a middleman to use online services.</p>
+      </div>
+      <div class="detail">
+        <h4>What happens</h4><p>Other states adopt it, adding Hindi, Bengali, Telugu and other languages.</p>
+        <h4>What it takes</h4><p>The AI engines already cover 22 Indian languages: add a language, not a new product. Bhashini can be plugged in as an engine.</p>
+        <h4>How we know it works</h4><p>Open source (Apache-2.0), so any state can adopt it for free.</p>
+      </div>
+    </div>
+
+    <div class="banner">
+      <div><b>Portals stay as they are</b><span>No redesign; one line of code per site</span></div>
+      <div><b>One server, whole state</b><span>Shared infrastructure, like UPI for accessibility</span></div>
+      <div><b>Ready today</b><span>Working prototype, tested on real Odisha government sites</span></div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Team SUBARNAREKHA</b> · Pratikshya Padhi · OAV Jamdhar</span><span>Odiapreneur 3.0 · Smart Odisha Hackathon</span></div>
+</div>
+
+</body>
+</html>

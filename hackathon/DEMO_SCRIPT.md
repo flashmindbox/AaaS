@@ -13,9 +13,9 @@ fails twice in rehearsal, cut the scene, not the honesty.
 ## Setup before judges arrive
 
 1. Laptop plugged in, 100% battery, notifications silenced.
-2. Start the stack: run `start-dev.bat` from the repo root (or the USB bundle's
-   `start.bat`). Wait for the four service windows: gateway :8000, TTS :8001,
-   STT :8002, translate :8003.
+2. Start the stack: double-click `START-DEMO.bat` in `C:\SUBARNAREKHA` (from
+   the repo: `start-dev.bat`). Wait for "DEMO IS READY" — about 1 minute;
+   gateway :8000, TTS :8001, STT :8002, translate :8003.
 3. **Pre-warm the caches**: open `http://127.0.0.1:8000/demo/ssepd-odisha/`
    and run one Read-aloud, one Translate, and one Read-document pass.
    First-time synthesis takes seconds; cached replays are instant. Judges get
@@ -52,8 +52,8 @@ fails twice in rehearsal, cut the scene, not the honesty.
 ## The one-liner (say it before touching anything)
 
 > "Every Odisha government site is written in English, for sighted people who
-> type. Four crore Odias, twenty-one lakh of them with disabilities, live on
-> the other side of that wall. AaaS is one button that tears the wall down —
+> type. Four crore Odias — the elderly, the blind, those who can't read
+> English — live on the other side of that wall. AaaS is one button that tears the wall down —
 > on any website, in Odia, by voice. Watch."
 
 ---

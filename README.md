@@ -5,8 +5,13 @@
 > by voice, and navigates by voice — backed by on-prem Indic AI services.
 > Built for Odisha, designed for every Indian public institution.
 
-**Team:** SUBARNAREKHA · **License:** Apache-2.0 · **Status:** working demo —
+**Team:** SUBARNAREKHA — Pratikshya Padhi (Class XI), Odisha Adarsha Vidyalaya,
+Jamdhar · **Guide teacher:** Somali Priyadarshini Mohanty ·
+**Event:** Odiapreneur 3.0 (Smart Odisha Hackathon), theme *Accessibility,
+Ecommerce & Cyber Security* · **License:** Apache-2.0 · **Status:** working demo —
 widget + extension + four services, verified on real Odisha government sites
+
+![AaaS banner](banner/AaaS-Hackathon-Banner-3x2ft.png)
 
 ## Why this exists
 
@@ -106,7 +111,7 @@ node apps/widget/tests/dyslexia_smoke.js     # + ruler, voice_match, ocr_pick, f
 cd services/translate && python -m pytest    # same for tts, stt, gateway
 ```
 
-236 checks at last count: 119 widget smoke checks + 117 service tests (gateway 34, TTS 36, translate 45, STT 2).
+243 checks at last count: 119 widget smoke checks + 124 service tests (gateway 34, TTS 36, translate 52, STT 2).
 
 ## Read more
 
