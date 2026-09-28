@@ -20,6 +20,11 @@ fails twice in rehearsal, cut the scene, not the honesty.
    and run one Read-aloud, one Translate, and one Read-document pass.
    First-time synthesis takes seconds; cached replays are instant. Judges get
    the cached experience.
+   Translations persist on disk (`services/translate/cache/translations.sqlite3`),
+   so pages warmed in rehearsal stay instant across restarts — a cold
+   whole-page translate of SSEPD takes ~2 min on CPU, a warm one 0.2 s.
+   **Never delete that file the night before.** If you edit a demo page's
+   text, re-run Translate on it once to re-warm.
 4. Browser tabs, in order:
    - **Tab 1:** `http://127.0.0.1:8000/demo/ssepd-odisha/` — the flagship:
      SSEPD department (pensions, UDID, disability schemes). Scenes 1–4 and 6

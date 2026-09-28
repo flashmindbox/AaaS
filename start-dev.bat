@@ -17,6 +17,13 @@ REM checkpoints, ~150 MB each, loaded on demand. See services\tts\README.md.
 setlocal
 set ROOT=%~dp0
 
+REM All model weights live under services\*\models, so never touch the
+REM network at load time - a flaky venue Wi-Fi would otherwise stall
+REM startup on Hugging Face lookups. Unset these to download new models.
+set HF_HUB_OFFLINE=1
+set TRANSFORMERS_OFFLINE=1
+set PYTHONIOENCODING=utf-8
+
 REM Resolve the interpreter per service: the service's own .venv first,
 REM then the portable env from SETUP-FRIEND.bat, then bare `python`.
 call :resolve_py PY_TTS       "%ROOT%services\tts"

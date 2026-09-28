@@ -106,7 +106,7 @@ node apps/widget/tests/dyslexia_smoke.js     # + ruler, voice_match, ocr_pick, f
 cd services/translate && python -m pytest    # same for tts, stt, gateway
 ```
 
-222 checks across five suites at last count.
+236 checks at last count: 119 widget smoke checks + 117 service tests (gateway 34, TTS 36, translate 45, STT 2).
 
 ## Read more
 
