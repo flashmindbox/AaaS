@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from pathlib import Path
 
 import structlog
@@ -40,6 +41,37 @@ _ISO_TO_INDICTRANS: dict[str, str] = {
 # Indic↔Indic is done as Indic->English->Indic if ever needed.
 _INDIC_TO_EN = "ai4bharat/indictrans2-indic-en-dist-200M"
 _EN_TO_INDIC = "ai4bharat/indictrans2-en-indic-dist-200M"
+
+
+# Any whitespace-delimited token containing a digit — dates (05.04.2026),
+# reference codes (EX-II/886), amounts (Rs.1000) — minus trailing sentence
+# punctuation. On long inputs the model rewrites these ("2026" came back as
+# "2021" on a BSE circular), so they never reach it: each is swapped for a
+# "#n" placeholder, which the model copies through verbatim.
+_NUMERIC_TOKEN = re.compile(r"\S*\d\S*?(?=[.,;:!?)\]]*(?:\s|$))")
+# The model sometimes emits the placeholder back as "# 1" — accept both.
+_PLACEHOLDER = re.compile(r"#\s?(\d+)")
+
+
+def mask_numbers(text: str) -> tuple[str, list[str]]:
+    """Replace digit-bearing tokens with ``#1``, ``#2``…; returns (masked, originals)."""
+    if "#" in text:  # our marker already in use — leave the text alone
+        return text, []
+    originals: list[str] = []
+
+    def _sub(m: re.Match[str]) -> str:
+        originals.append(m.group(0))
+        return f"#{len(originals)}"
+
+    return _NUMERIC_TOKEN.sub(_sub, text), originals
+
+
+def unmask_numbers(text: str, originals: list[str]) -> str | None:
+    """Put the original tokens back. None if the model lost or invented a placeholder."""
+    found = [int(n) for n in _PLACEHOLDER.findall(text)]
+    if sorted(found) != list(range(1, len(originals) + 1)):
+        return None
+    return _PLACEHOLDER.sub(lambda m: originals[int(m.group(1)) - 1], text)
 
 
 class IndicTrans2Engine(TranslateEngine):
@@ -90,6 +122,20 @@ class IndicTrans2Engine(TranslateEngine):
         logger.info("translate.indictrans2.load_ok")
 
     async def translate(
+        self, text: str, *, src_lang: str, tgt_lang: str
+    ) -> Translation:
+        masked, originals = mask_numbers(text)
+        if originals:
+            out = await self._translate_raw(masked, src_lang=src_lang, tgt_lang=tgt_lang)
+            restored = unmask_numbers(out.text, originals)
+            if restored is not None:
+                return Translation(
+                    text=restored, src_lang=out.src_lang, tgt_lang=out.tgt_lang, engine=self.name
+                )
+            logger.warning("translate.indictrans2.placeholder_lost", n=len(originals))
+        return await self._translate_raw(text, src_lang=src_lang, tgt_lang=tgt_lang)
+
+    async def _translate_raw(
         self, text: str, *, src_lang: str, tgt_lang: str
     ) -> Translation:
         if self._indic_en is None:
