@@ -981,6 +981,79 @@
   const OCR_MIN_IMG_W = 200;
   const OCR_MIN_IMG_H = 150;
 
+  // What a notice is, from the words in its title — the chooser's
+  // category chips. Order matters: "Tender notice" is a Tender and
+  // "Admit card notification" an Admit card, so specific kinds come
+  // before the catch-all Notice.
+  const DOC_KINDS = [
+    ["Admit card", /admit|hall ?ticket|ପ୍ରବେଶ ?ପତ୍ର/i],
+    ["Result", /\bresults?\b|ଫଳାଫଳ/i],
+    ["Answer key", /scoring key|answer key|model answer|ଉତ୍ତର ?ସଙ୍କେତ/i],
+    ["Tender", /tender|quotation|e-?bid|ଟେଣ୍ଡର/i],
+    ["Form", /form fill|application form|online application|ଆବେଦନ ?ପତ୍ର/i],
+    ["Notice", /notification|notice|circular|press release|advertisement|\border\b|memo|ବିଜ୍ଞପ୍ତି|ଅଧିସୂଚନା/i],
+  ];
+  function docKindOf(name) {
+    const hit = DOC_KINDS.find(([, re]) => re.test(name || ""));
+    return hit ? hit[0] : "Other";
+  }
+
+  // Dates sites print beside a notice: 2026-09-22, 22.09.2026,
+  // 22/09/2026, 22-09-2026, 22 Sep 2026. Returns a Date or null; years
+  // outside 2000..next year are rejected so reference numbers
+  // ("No. 2198") never read as dates.
+  const DOC_MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+  function parseDocDate(text) {
+    const t = toWesternDigits(text || "");
+    let y, m, d, hit;
+    if ((hit = t.match(/\b(20\d\d)-(\d{1,2})-(\d{1,2})\b/))) [, y, m, d] = hit;
+    else if ((hit = t.match(/\b(\d{1,2})[./-](\d{1,2})[./-](20\d\d)\b/))) [, d, m, y] = hit;
+    else if ((hit = t.match(/\b(\d{1,2})(?:st|nd|rd|th)?[\s.-]+([A-Za-z]{3})[a-z]*[\s.,-]+(20\d\d)\b/))) {
+      d = hit[1];
+      m = DOC_MONTHS[hit[2].toLowerCase()];
+      if (m === undefined) return null;
+      m += 1;
+      y = hit[3];
+    } else return null;
+    const date = new Date(Number(y), Number(m) - 1, Number(d));
+    const maxYear = new Date().getFullYear() + 1;
+    if (Number.isNaN(date.getTime()) || date.getMonth() !== Number(m) - 1) return null;
+    if (date.getFullYear() < 2000 || date.getFullYear() > maxYear) return null;
+    return date;
+  }
+  // The date printed nearest the link: the link text first, then its
+  // row / list item / small container (never a whole page section).
+  function docDateNear(el) {
+    let node = el;
+    for (let i = 0; node && i < 4; i++, node = node.parentElement) {
+      const text = node.textContent || "";
+      if (text.length > 400) break;
+      const date = parseDocDate(text);
+      if (date) return date;
+    }
+    return null;
+  }
+  // The site's own "new" marker next to the link (blinking new.gif and
+  // friends), checked in the same small container.
+  function docMarkedNew(el) {
+    const box = el.closest ? el.closest("li, tr, p, div") : null;
+    if (!box || (box.textContent || "").length > 400) return false;
+    return !!box.querySelector('img[src*="new" i], img[alt*="new" i], .new, .blink, blink');
+  }
+
+  // A notice scan vs a photo or logo. Portraits of officials and shots of
+  // the building are big enough to pass the size filter, so an image only
+  // counts as a notice when its name says so or it is tall like a page and
+  // shown large.
+  const DOC_IMAGE_WORDS = /notice|circular|notification|scan|order|letter|advt|advertis|press|memo|gazette|ବିଜ୍ଞପ୍ତି/i;
+  function isNoticeImage(img, name, url) {
+    if (DOC_IMAGE_WORDS.test(name) || DOC_IMAGE_WORDS.test(url)) return true;
+    const w = img.naturalWidth || img.width || 0;
+    const h = img.naturalHeight || img.height || 0;
+    const shown = img.getBoundingClientRect ? img.getBoundingClientRect().width : 0;
+    return w > 0 && h / w >= 1.25 && shown >= 240;
+  }
+
   function collectOcrCandidates() {
     const out = [];
     const seen = new Set();
@@ -993,11 +1066,18 @@
       const url = img.currentSrc || img.src || "";
       if (!url || seen.has(url)) return;
       seen.add(url);
-      out.push({ kind: "image", url, name: ocrCandidateName(img, "image"), element: img });
+      const name = ocrCandidateName(img, "image");
+      out.push({
+        kind: "image", url, name, element: img,
+        group: isNoticeImage(img, name, url) ? "notice" : "photo",
+        docKind: "Image", date: null, isNew: false,
+      });
     });
+    // PDF links, including ones folded into menus and tabs: a notices
+    // page often lists most of its PDFs out of sight, and search makes
+    // a long list usable.
     document.querySelectorAll("a[href]").forEach((a) => {
       if (a.closest("[data-aaas-widget]")) return;
-      if (!isVisible(a)) return;
       let path = "";
       try {
         path = new URL(a.href, document.baseURI).pathname;
@@ -1007,9 +1087,22 @@
       if (!/\.pdf$/i.test(path)) return;
       if (seen.has(a.href)) return;
       seen.add(a.href);
-      out.push({ kind: "pdf", url: a.href, name: ocrCandidateName(a, "pdf"), element: a });
+      const name = ocrCandidateName(a, "pdf");
+      const date = docDateNear(a);
+      const recent = date && Date.now() - date.getTime() <= 14 * 864e5;
+      out.push({
+        kind: "pdf", url: a.href, name, element: a, hidden: !isVisible(a),
+        group: "notice", docKind: docKindOf(name), date,
+        isNew: !!recent || docMarkedNew(a),
+      });
     });
-    return out;
+    // Newest first where the page gives dates; undated ones keep page order after them.
+    const order = new Map(out.map((c, i) => [c, i]));
+    return out.sort((a, b) => {
+      if (a.date && b.date) return b.date - a.date || order.get(a) - order.get(b);
+      if (a.date || b.date) return a.date ? -1 : 1;
+      return order.get(a) - order.get(b);
+    });
   }
 
   /* ---------- guided voice form fill ----------
@@ -1757,6 +1850,51 @@
       padding: 1.6px 6.4px;
       margin-left: auto;
     }
+    .doc-row .doc-ico { width: 44px; height: 54px; }
+    .doc-rowtext { display: flex; flex-direction: column; gap: 3.2px; min-width: 0; }
+    .doc-name {
+      font-weight: 600;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .doc-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12.8px; color: #9fb2c8; align-items: center; }
+    .doc-new {
+      font-size: 10.88px; font-weight: 700; letter-spacing: 0.05em;
+      color: #2a1d00; background: #f2b53c; border-radius: 5px; padding: 1px 6px;
+    }
+    /* Chooser tools stay pinned while the list scrolls. */
+    .doc-tools {
+      position: sticky; top: 0; z-index: 1;
+      display: flex; flex-direction: column; gap: 8px;
+      background: #16202b; padding-bottom: 10px; margin-bottom: 2px;
+    }
+    .doc-search {
+      width: 100%; box-sizing: border-box;
+      background: #1d2938; color: #e8edf2;
+      border: 1px solid #31415a; border-radius: 10px;
+      padding: 10px 12px; font-size: 15.2px;
+    }
+    .doc-search:focus { outline: none; border-color: #4a8bff; }
+    .doc-search::placeholder { color: #8ea1b8; }
+    .doc-tabs, .doc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .doc-tab, .doc-chip-btn {
+      background: transparent; color: #b8c7d9;
+      border: 1px solid #31415a; border-radius: 999px;
+      padding: 5px 12px; font-size: 13.6px; font-weight: 600; cursor: pointer;
+    }
+    .doc-tab { font-size: 14.4px; }
+    .doc-tab[aria-selected="true"], .doc-chip-btn[aria-pressed="true"] {
+      background: #e8edf2; color: #16202b; border-color: #e8edf2;
+    }
+    .doc-tab:focus-visible, .doc-chip-btn:focus-visible, .doc-more:focus-visible { outline: 2px solid #ffcf33; outline-offset: 2px; }
+    .doc-more {
+      display: block; margin: 4px auto 8px;
+      background: transparent; color: #7fb0ff; border: 1px solid #31415a;
+      border-radius: 10px; padding: 8px 14px; font-size: 14.4px; font-weight: 600; cursor: pointer;
+    }
+    .doc-hint { font-size: 13.6px; color: #9fb2c8; text-align: center; padding: 4px 6px 8px; }
     /* Progress: big friendly step text + spinner. */
     .doc-progress {
       text-align: center;
@@ -5389,58 +5527,178 @@
     }
     ocrBtn.addEventListener("click", openDocFlow);
 
+    // One chooser row. A real thumbnail tells "banner 3" from "banner 2"
+    // at a glance; the page already loaded the image, so it comes from cache.
+    function docChooserRow(c) {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "doc-row";
+      const ico = document.createElement("span");
+      ico.className = "doc-ico";
+      ico.setAttribute("aria-hidden", "true");
+      ico.textContent = c.kind === "pdf" ? "📄" : "🖼️";
+      if (c.kind === "image" && c.url) {
+        const thumb = document.createElement("img");
+        thumb.alt = "";
+        thumb.decoding = "async";
+        thumb.onload = () => ico.replaceChildren(thumb);
+        thumb.src = c.url;
+      }
+      const text = document.createElement("span");
+      text.className = "doc-rowtext";
+      const name = document.createElement("span");
+      name.className = "doc-name";
+      name.textContent = c.name;
+      const meta = document.createElement("span");
+      meta.className = "doc-meta";
+      if (c.isNew) {
+        const badge = document.createElement("span");
+        badge.className = "doc-new";
+        badge.textContent = "NEW";
+        meta.append(badge);
+      }
+      if (c.date) {
+        const d = document.createElement("span");
+        d.textContent = c.date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        meta.append(d);
+      }
+      const kind = document.createElement("span");
+      kind.textContent = c.kind === "pdf" ? `${c.docKind} · PDF` : "Image";
+      meta.append(kind);
+      text.append(name, meta);
+      row.append(ico, text);
+      // Hovering a row shows WHICH document it is on the page.
+      row.addEventListener("mouseenter", () => {
+        clearOcrHighlights();
+        if (c.element && c.element.isConnected && !c.hidden) {
+          c.element.setAttribute("data-aaas-ocr-hover", "");
+          try { c.element.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch {}
+        }
+      });
+      row.addEventListener("mouseleave", clearOcrHighlights);
+      row.addEventListener("click", () => {
+        clearOcrHighlights();
+        runOcrPipeline(c);
+      });
+      return row;
+    }
+
+    // Notices first: PDFs and notice-like scans in one list with search
+    // and category chips, newest first; photos and logos (which used to
+    // fill the top of the list) wait on their own tab.
     function showDocChooser(candidates) {
+      const notices = candidates.filter((c) => c.group === "notice");
+      const photos = candidates.filter((c) => c.group !== "notice");
       openDocModal(
         candidates.length === 1
           ? "I found one document — tap it to hear it"
-          : "Which document should I read?",
+          : notices.length
+            ? "Which notice should I read?"
+            : "Which document should I read?",
       );
       ensureOcrHighlightStyle();
-      const MAX_ROWS = 20;
-      candidates.slice(0, MAX_ROWS).forEach((c) => {
-        const row = document.createElement("button");
-        row.type = "button";
-        row.className = "doc-row";
-        // A real thumbnail tells "banner 3" from "banner 2" at a glance;
-        // the page already loaded the image, so it comes from cache.
-        const ico = document.createElement("span");
-        ico.className = "doc-ico";
-        ico.setAttribute("aria-hidden", "true");
-        ico.textContent = c.kind === "pdf" ? "📄" : "🖼️";
-        if (c.kind === "image" && c.url) {
-          const thumb = document.createElement("img");
-          thumb.alt = "";
-          thumb.decoding = "async";
-          thumb.onload = () => ico.replaceChildren(thumb);
-          thumb.src = c.url;
-        }
-        const name = document.createElement("span");
-        name.textContent = c.name;
-        const kind = document.createElement("span");
-        kind.className = "doc-kind";
-        kind.textContent = c.kind === "pdf" ? "PDF" : "Image";
-        row.append(ico, name, kind);
-        // Hovering a row shows WHICH document it is on the page.
-        row.addEventListener("mouseenter", () => {
-          clearOcrHighlights();
-          if (c.element && c.element.isConnected) {
-            c.element.setAttribute("data-aaas-ocr-hover", "");
-            try { c.element.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch {}
-          }
+      const PAGE = 25;
+      const state = { tab: notices.length ? "notice" : "photo", kind: "All", q: "", shown: PAGE };
+
+      const tools = document.createElement("div");
+      tools.className = "doc-tools";
+      const search = document.createElement("input");
+      search.type = "search";
+      search.className = "doc-search";
+      search.placeholder = notices.length ? "Search notices, e.g. admit card" : "Search";
+      search.setAttribute("aria-label", "Search documents on this page");
+      tools.append(search);
+      const tabs = document.createElement("div");
+      tabs.className = "doc-tabs";
+      tabs.setAttribute("role", "tablist");
+      if (notices.length && photos.length) tools.append(tabs);
+      const chips = document.createElement("div");
+      chips.className = "doc-chips";
+      tools.append(chips);
+      const list = document.createElement("div");
+      list.className = "doc-list";
+      docBody.append(tools, list);
+
+      function renderTabs() {
+        tabs.textContent = "";
+        [["notice", "Notices & PDFs", notices.length], ["photo", "Images", photos.length]].forEach(([id, label, n]) => {
+          const t = document.createElement("button");
+          t.type = "button";
+          t.className = "doc-tab";
+          t.setAttribute("role", "tab");
+          t.setAttribute("aria-selected", String(state.tab === id));
+          t.textContent = `${label} ${n}`;
+          t.addEventListener("click", () => {
+            Object.assign(state, { tab: id, kind: "All", shown: PAGE });
+            render();
+          });
+          tabs.append(t);
         });
-        row.addEventListener("mouseleave", clearOcrHighlights);
-        row.addEventListener("click", () => {
-          clearOcrHighlights();
-          runOcrPipeline(c);
-        });
-        docBody.append(row);
-      });
-      if (candidates.length > MAX_ROWS) {
-        const more = document.createElement("div");
-        more.className = "doc-error";
-        more.textContent = `…and ${candidates.length - MAX_ROWS} more. If yours isn't listed, point at it on the page.`;
-        docBody.append(more);
       }
+      function renderChips(pool) {
+        chips.textContent = "";
+        if (state.tab !== "notice") return;
+        const counts = new Map();
+        pool.forEach((c) => counts.set(c.docKind, (counts.get(c.docKind) || 0) + 1));
+        const kinds = [...DOC_KINDS.map(([k]) => k), "Image", "Other"].filter((k) => counts.has(k));
+        if (kinds.length < 2) return; // one kind: chips would only repeat the list
+        ["All", ...kinds].forEach((k) => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "doc-chip-btn";
+          chip.setAttribute("aria-pressed", String(state.kind === k));
+          chip.textContent = k === "All" ? `All ${pool.length}` : `${k} ${counts.get(k)}`;
+          chip.addEventListener("click", () => {
+            Object.assign(state, { kind: k, shown: PAGE });
+            render();
+          });
+          chips.append(chip);
+        });
+      }
+      function render() {
+        renderTabs();
+        const pool = state.tab === "notice" ? notices : photos;
+        renderChips(pool);
+        const needle = state.q.trim().toLowerCase();
+        const items = pool.filter(
+          (c) =>
+            (state.kind === "All" || c.docKind === state.kind) &&
+            (!needle || c.name.toLowerCase().includes(needle)),
+        );
+        list.textContent = "";
+        items.slice(0, state.shown).forEach((c) => list.append(docChooserRow(c)));
+        if (!items.length) {
+          const none = document.createElement("div");
+          none.className = "doc-error";
+          none.textContent = needle
+            ? `Nothing here matches “${state.q.trim()}”. Try fewer words, or point at the document on the page.`
+            : "Nothing in this group.";
+          list.append(none);
+        }
+        if (items.length > state.shown) {
+          const more = document.createElement("button");
+          more.type = "button";
+          more.className = "doc-more";
+          more.textContent = `Show ${Math.min(PAGE, items.length - state.shown)} more (${items.length - state.shown} left)`;
+          more.addEventListener("click", () => {
+            state.shown += PAGE;
+            render();
+          });
+          list.append(more);
+        }
+        if (state.tab === "notice" && photos.length && !needle) {
+          const note = document.createElement("div");
+          note.className = "doc-hint";
+          note.textContent = `${photos.length} photo${photos.length === 1 ? "" : "s"} and logos are under Images.`;
+          list.append(note);
+        }
+      }
+      search.addEventListener("input", () => {
+        state.q = search.value;
+        state.shown = PAGE;
+        render();
+      });
+      render();
       docButton("Point at it on the page", "doc-secondary", () => {
         closeDocModal();
         enterOcrPick();
