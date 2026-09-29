@@ -26,6 +26,9 @@ ADDRESSES
       (takes 5 seconds; the laptop copy resets when you restart it)
   [ ] Say one sentence into "Speak to fill" on the SSEPD demo page to
       make sure the microphone works in this room.
+  [ ] Open, once, every document you will show (UDID PDF on SSEPD and
+      your BSE notice). The server remembers the translation, so on stage
+      the same document opens in seconds instead of 10-30 s.
   [ ] Test the venue Wi-Fi. No internet? Use the Offline addresses -
       everything works the same, and the extension switches to the
       laptop automatically.
@@ -48,8 +51,11 @@ DEMO RUN-ORDER  (about 6 minutes)
 
   3. ANY REAL WEBSITE, NO SITE CHANGE (browser extension)
      [ ] odisha.gov.in     -> ଅ -> Read aloud (Odia voice)
-     [ ] bseodisha.ac.in   -> ଅ -> Read document -> pick the
-         "NOTIFICATION FOR ... OSSTET" PDF  (real scanned notice)
+     [ ] bseodisha.ac.in   -> ଅ -> Read document. Point out the picker:
+         notices first (147 PDFs, photos moved to "Images"), NEW badges
+         and dates, category chips. Type "admit" in the search or tap
+         "Answer key", then open a 1-2 page notice you opened earlier.
+         (real scanned notice: scan left, Odia right, read aloud)
      [ ] odisha.gov.in     -> ଅ -> Voice command -> say "read page"
 
   4. THE PLATFORM (admin console)
@@ -72,6 +78,9 @@ AVOID ON STAGE
   - Translating very long pages live (Wikipedia takes 1-3 minutes).
     Demo sites translate in seconds.
   - Crooked or handwritten scans: OCR garbles handwriting.
+  - A notice you have not opened before: a 1-2 page notice takes
+    10-30 s, a 3-page scan about a minute. Keep talking while it works,
+    or use one you opened in the 30-minute check.
 
 
 IF SOMETHING GOES WRONG
@@ -83,6 +92,12 @@ IF SOMETHING GOES WRONG
       in-browser voice once; the next page is faster.
   Admin shows "unreachable" -> you typed the password in the address;
       open https://168-144-216-83.sslip.io/admin/ plainly.
+  Document shows "Some parts couldn't be turned into Odia" or
+      "Something went wrong" -> close it and open the same document
+      again: the server finishes the work in the background, so the
+      second open is usually complete and fast.
+  Your notice isn't in the list -> type a word from its title in the
+      search box, or press "Point at it on the page" and click it.
 
 
 AFTER THE HACKATHON
