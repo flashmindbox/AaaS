@@ -1,0 +1,20 @@
+[Unit]
+Description=AaaS gateway service
+After=network-online.target aaas-tts.service aaas-stt.service aaas-translate.service
+Wants=network-online.target
+
+[Service]
+User=aaas
+Group=aaas
+WorkingDirectory=/opt/aaas/system/services/gateway
+Environment=HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONIOENCODING=utf-8 PYTHONUNBUFFERED=1
+Environment=OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false
+Environment=AAAS_ENV=prod EXTENSION_API_KEY=aaas_live_ae7b43dd188349aa99b6e71cc8dd6b18
+ExecStart=/opt/aaas/system/services/gateway/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1 --no-access-log
+Restart=always
+RestartSec=5
+TimeoutStartSec=300
+MemoryMax=8G
+
+[Install]
+WantedBy=multi-user.target

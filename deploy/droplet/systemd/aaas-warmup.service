@@ -1,0 +1,11 @@
+[Unit]
+Description=AaaS warm-up (waits for models, primes Odia TTS)
+After=aaas-gateway.service
+Requires=aaas-gateway.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'for p in 8001 8002 8003; do for i in $(seq 150); do curl -sf -m 2 http://127.0.0.1:$p/readyz >/dev/null && break; sleep 2; done; done; curl -s -m 120 -o /dev/null -H "X-API-Key: aaas_live_33333333333333333333333333333333" -H "Content-Type: application/json" --data-binary @/opt/aaas/system/warmup-tts.json http://127.0.0.1:8000/tts/synthesise'
+
+[Install]
+WantedBy=multi-user.target

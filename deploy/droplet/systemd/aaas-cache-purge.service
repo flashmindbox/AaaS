@@ -1,0 +1,7 @@
+[Unit]
+Description=Empty the AaaS translation cache
+
+[Service]
+Type=oneshot
+User=aaas
+ExecStart=/opt/aaas/purge-cache.sh

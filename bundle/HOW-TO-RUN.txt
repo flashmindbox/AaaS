@@ -1,0 +1,115 @@
+﻿================================================================
+  AaaS - Accessibility as a Service        Team SUBARNAREKHA
+  HOW TO RUN THE DEMO
+================================================================
+
+No internet needed. Everything runs on this laptop.
+
+
+INSTALL ON ANOTHER LAPTOP  (one time, about 15 minutes)
+-------------------------------------------------------
+  Needs: Windows 10 or 11 (64-bit), Google Chrome, about 20 GB free
+  disk space, 8 GB RAM or more. Nothing else to install - Python,
+  the AI models and the OCR engine are all inside this folder.
+
+  1. Copy  SUBARNAREKHA-Setup.zip  to the other laptop.
+     (Pen drive must be exFAT or NTFS - a FAT32 drive cannot hold a
+      file bigger than 4 GB.)
+  2. Right-click the zip -> "Extract All..." -> type  C:\
+     so you get the folder  C:\SUBARNAREKHA
+  3. Open C:\SUBARNAREKHA and double-click  START-DEMO.bat
+     If Windows says "Windows protected your PC":
+        click  More info  ->  Run anyway
+     If the firewall asks: click  Allow.
+  4. For the real-website demo, set up the Chrome extension as in
+     the OPTIONAL section below.
+
+START THE DEMO  (about 1 minute)
+--------------------------------
+  1. Plug in the charger.
+  2. Double-click  START-DEMO.bat
+  3. Wait until the black window says  "DEMO IS READY".
+     Two browser tabs open by themselves:
+        Tab 1  SSEPD department   <- main demo page
+        Tab 2  BSE Odisha         <- spare page
+  4. Click the round blue  ଅ  button (bottom-right of the page).
+
+  Keep the black window open while presenting.
+
+
+STOP THE DEMO
+-------------
+  Double-click  STOP-DEMO.bat
+
+
+WHAT TO SHOW  (full script: Presentation\2-Demo-Script.pdf)
+-----------------------------------------------------------
+  All on Tab 1 (SSEPD page), after clicking the  ଅ  button:
+
+  1. Read aloud     ପଢ଼ି ଶୁଣାଅ   - page is read aloud in Odia
+  2. Translate      ଅନୁବାଦ       - page turns into Odia (↺ undoes)
+     Easy Read      ସହଜ ପଢ଼ା     - simpler wording
+  3. Read document  ଦଲିଲ ପଢ଼      - pick the "UDID ... PDF" scan:
+                                   OCR + Odia side by side, read aloud
+  4. Speak to fill  କହି ଲେଖ      - scroll to the pension form first,
+                                   answer each question by voice
+  5. Voice command  କହି ଚଲାଅ     - say a menu name, e.g. "ଯୋଗାଯୋଗ"
+  6. Reading comfort ▾ -> Comfortable letters (dyslexia font)
+
+  Operator console (live usage numbers):
+      http://127.0.0.1:8000/admin/
+  All demo sites:
+      http://127.0.0.1:8000/demo/
+
+
+OPTIONAL: THE BUTTON ON A REAL GOVERNMENT WEBSITE (needs internet)
+-------------------------------------------------------------------
+  One-time setup in Chrome:
+    1. Open  chrome://extensions
+    2. Turn ON "Developer mode" (top-right)
+    3. Click "Load unpacked" -> choose the folder
+         C:\SUBARNAREKHA\Browser-Extension
+    4. Click the AaaS extension icon -> UNTICK "On-device mode" -> Save
+       (uses the full AI models on this laptop: faster, better voice)
+
+  Use this real site:  https://ssepd.odisha.gov.in/
+    * First time, Chrome asks TWO questions - click ALLOW for both:
+        - use your microphone
+        - access other apps and services on this device
+    * Voice command: say "ବିଜ୍ଞପ୍ତି" (notifications) or "ବଜେଟ୍" (budget)
+    * During setup, do one Read aloud + one Translate there, so they are
+      instant in front of the judges.
+  Keep START-DEMO running - the extension uses it for voice, OCR, translation.
+
+  Do NOT use jajpur.odisha.gov.in for voice: that website blocks every
+  microphone on its pages (its own security setting). Read aloud,
+  Translate and Read document still work there.
+
+  After any update to the extension files: chrome://extensions -> press ↻
+  on "AaaS Accessibility Companion".
+
+
+IF SOMETHING GOES WRONG
+-----------------------
+  * Button missing / page blank  -> run STOP-DEMO.bat, then START-DEMO.bat
+  * "Service did not start"      -> same: STOP, then START again
+  * Microphone not hearing       -> use an external mic, speak close,
+                                    one short answer at a time
+  * "Mic unavailable" on a real  -> that website blocks microphones;
+    website                         use ssepd.odisha.gov.in instead
+  * Internet down                -> no problem; only the real-website
+                                    extension demo needs internet
+
+  Tips
+  * First Read-aloud of a new page can take a few seconds; repeats are instant.
+  * Translation of the demo pages is pre-loaded, so it is instant.
+    Do NOT delete  system\services\translate\cache\
+
+
+FOLDER CONTENTS
+---------------
+  START-DEMO.bat       start everything
+  STOP-DEMO.bat        stop everything
+  Presentation\        pitch deck, demo script, judge Q&A, guidebook
+  Browser-Extension\   Chrome extension (optional, see above)
+  system\              the software - do not change anything here

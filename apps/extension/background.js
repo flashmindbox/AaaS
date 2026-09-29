@@ -7,36 +7,48 @@
  *      usable state, and open the options page on install.
  *
  *   2. Act as the translation proxy. The widget runs in the page's MAIN
- *      world and therefore cannot reach a cross-origin API (page CSP +
- *      CORS both block it, and in MV3 content scripts have no cross-origin
- *      privilege either). The background service worker is the *only*
- *      context that can: with host_permissions it reads cross-origin
- *      responses regardless of the page's CSP or whether Google sends
- *      CORS headers. So the isolated-world bridge (inject-config.js)
- *      forwards translate requests here, we call Google Translate's free
- *      endpoint, and hand the text back. This is what lets read-aloud and
- *      "Translate this page" work on any English website with no local
- *      AaaS gateway running.
+ *      world, so its own fetch to the gateway is subject to the page's CSP
+ *      (strict sites such as Wikipedia block it). The background service
+ *      worker is not: with host_permissions it can reach the gateway from
+ *      any page. So when the widget's direct call fails, the isolated-world
+ *      bridge (inject-config.js) forwards the translate request here, we
+ *      call the AaaS gateway (IndicTrans2), and hand the text back.
  */
 const DEFAULTS = {
-  gateway: "http://127.0.0.1:8000",
-  apiKey: "aaas_live_00000000000000000000000000000000",
+  gateway: "https://168-144-216-83.sslip.io",
+  // Belongs to the ordinary "aaas-companion" tenant, not the operator — it
+  // ships inside the extension, so anyone can read it.
+  apiKey: "aaas_live_ae7b43dd188349aa99b6e71cc8dd6b18",
   defaultLang: "or",
   enabled: true,
   // On-device mode runs TTS + STT entirely in the browser via transformers.js
-  // + ONNX WASM. Defaults ON so read-aloud and speech work on any site with
-  // no backend running and regardless of the page's CSP — the gateway path is
-  // blocked by strict-CSP sites (e.g. Wikipedia). Translation is handled by
-  // Google Translate via this service worker, so the whole feature set works
-  // standalone. Users can switch back to the gateway path from the popup.
+  // + ONNX WASM. Defaults ON so read-aloud and speech work on any site
+  // regardless of the page's CSP — the gateway path is blocked by strict-CSP
+  // sites (e.g. Wikipedia). Translation always goes to the gateway, via this
+  // service worker when the page blocks it. Users can switch TTS/STT back to
+  // the gateway from the popup.
   onDevice: true,
 };
+
+// Defaults shipped before 0.5.0 (local demo bundle + operator seed key).
+const LEGACY_GATEWAY = "http://127.0.0.1:8000";
+// The offline demo bundle on this machine, tried when the configured
+// gateway can't be reached at all (no internet at the venue).
+const LOCAL_GATEWAY = "http://127.0.0.1:8000";
+const LEGACY_API_KEY = "aaas_live_00000000000000000000000000000000";
 
 chrome.runtime.onInstalled.addListener(async (details) => {
   const current = await chrome.storage.sync.get(DEFAULTS);
   const patch = {};
   for (const [k, v] of Object.entries(DEFAULTS)) {
     if (current[k] === undefined || current[k] === null) patch[k] = v;
+  }
+  // 0.5.0 moved the defaults from the local demo bundle to the hosted
+  // server. Only users still on the old defaults are migrated — a gateway or
+  // key someone typed in themselves is left alone.
+  if (details.reason === "update") {
+    if (current.gateway === LEGACY_GATEWAY) patch.gateway = DEFAULTS.gateway;
+    if (current.apiKey === LEGACY_API_KEY) patch.apiKey = DEFAULTS.apiKey;
   }
   if (Object.keys(patch).length) await chrome.storage.sync.set(patch);
 
@@ -45,15 +57,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   }
 });
 
-/* ---------------- Google Translate proxy ---------------- */
-
-// Our internal language codes map 1:1 to Google's (or = Odia/Oriya, hi =
-// Hindi, en = English). Anything unknown becomes "auto" so Google detects the
-// source itself — this keeps translation correct even when the page's language
-// was guessed wrong.
-function googleCode(code) {
-  return ["or", "hi", "en"].includes(code) ? code : "auto";
-}
+/* ---------------- Gateway translate proxy ---------------- */
 
 // Small session cache so re-translating the same string (repeated headings,
 // re-reads, hover then read) doesn't hit the network twice. The service
@@ -61,28 +65,28 @@ function googleCode(code) {
 const trCache = new Map();
 const TR_CACHE_MAX = 1000;
 
-// Translate one chunk via Google's free "gtx" endpoint. The response shape is
-// [ [ [translated, original, ...], [translated2, original2, ...] ], ... ]; we
-// concatenate every translated segment back into one string. One retry on a
-// rate-limit / transient 5xx, then we give up (the widget falls back to the
-// gateway, or leaves the text as-is).
-async function googleTranslateOne(text, src, tgt) {
-  const sl = googleCode(src);
-  const tl = googleCode(tgt);
-  const key = `${sl}|${tl}|${text}`;
+// Translate one chunk via the gateway's /translate/translate (IndicTrans2).
+// One retry on a rate-limit / transient 5xx, then we give up (the widget
+// leaves the text as-is).
+async function gatewayTranslateOne(text, src, tgt, cfg) {
+  const key = `${src}|${tgt}|${text}`;
   if (trCache.has(key)) return trCache.get(key);
 
-  const url =
-    "https://translate.googleapis.com/translate_a/single" +
-    `?client=gtx&sl=${encodeURIComponent(sl)}&tl=${encodeURIComponent(tl)}` +
-    `&dt=t&q=${encodeURIComponent(text)}`;
-
   let lastErr;
+  let base = cfg.gateway;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const r = await fetch(url, { cache: "no-store" });
+      const r = await fetch(`${base}/translate/translate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": cfg.apiKey,
+        },
+        body: JSON.stringify({ text, src_lang: src, tgt_lang: tgt }),
+        cache: "no-store",
+      });
       if (!r.ok) {
-        lastErr = new Error("google HTTP " + r.status);
+        lastErr = new Error("gateway HTTP " + r.status);
         // Only retry transient failures.
         if (r.status === 429 || r.status >= 500) {
           await new Promise((res) => setTimeout(res, 400));
@@ -91,35 +95,37 @@ async function googleTranslateOne(text, src, tgt) {
         throw lastErr;
       }
       const data = await r.json();
-      if (!Array.isArray(data) || !Array.isArray(data[0])) {
-        throw new Error("google: unexpected response shape");
+      if (typeof data?.text !== "string") {
+        throw new Error("gateway: unexpected response shape");
       }
-      const out = data[0].map((seg) => (seg && seg[0]) || "").join("");
       if (trCache.size >= TR_CACHE_MAX) {
         trCache.delete(trCache.keys().next().value);
       }
-      trCache.set(key, out);
-      return out;
+      trCache.set(key, data.text);
+      return data.text;
     } catch (err) {
       lastErr = err;
-      // Network blip — one short backoff before giving up.
+      // Unreachable (fetch threw, no HTTP status): retry once against the
+      // local offline bundle, otherwise one short backoff before giving up.
       if (attempt === 0) {
-        await new Promise((res) => setTimeout(res, 400));
+        if (err instanceof TypeError && base !== LOCAL_GATEWAY) base = LOCAL_GATEWAY;
+        else await new Promise((res) => setTimeout(res, 400));
         continue;
       }
     }
   }
-  throw lastErr || new Error("google translate failed");
+  throw lastErr || new Error("gateway translate failed");
 }
 
-// Google's GET endpoint chokes on very long inputs (URL length). Split long
-// text on whitespace into ~1500-char windows, translate each, and rejoin.
-// Most nodes are far shorter than this and take the fast single-request path.
-async function googleTranslate(text, src, tgt) {
+// The translate service rejects inputs over 2000 chars. Split long text on
+// whitespace into ~1500-char windows, translate each, and rejoin. Most nodes
+// are far shorter than this and take the fast single-request path.
+async function gatewayTranslate(text, src, tgt) {
   const input = (text || "").toString();
   if (!input.trim()) return input;
+  const cfg = await chrome.storage.sync.get(DEFAULTS);
   const MAX = 1500;
-  if (input.length <= MAX) return googleTranslateOne(input, src, tgt);
+  if (input.length <= MAX) return gatewayTranslateOne(input, src, tgt, cfg);
 
   const parts = [];
   let buf = "";
@@ -133,15 +139,50 @@ async function googleTranslate(text, src, tgt) {
   }
   if (buf) parts.push(buf);
   const translated = await Promise.all(
-    parts.map((p) => googleTranslateOne(p, src, tgt)),
+    parts.map((p) => gatewayTranslateOne(p, src, tgt, cfg)),
   );
   return translated.join("");
 }
 
+/* ---------------- Document download proxy ---------------- */
+
+// Read document needs the PDF/image bytes, but government sites often serve
+// them from a CDN on another domain with no CORS headers, so the page can't
+// read them. We can. Any page can ask through the bridge, so this is kept
+// narrow: HTTPS only, no cookies (the page can't read anything private to
+// the user on other sites), PDFs and images only, 15 MB cap.
+const DOC_MAX_BYTES = 15_000_000;
+
+async function fetchDocument(url) {
+  const u = new URL(url);
+  if (u.protocol !== "https:") throw new Error("only https documents can be fetched");
+  const r = await fetch(u.href, { credentials: "omit", cache: "no-store" });
+  if (!r.ok) throw new Error(`could not fetch the document (HTTP ${r.status})`);
+  const contentType = (r.headers.get("content-type") || "").split(";")[0].trim();
+  const buf = new Uint8Array(await r.arrayBuffer());
+  const isPdf = contentType === "application/pdf" || (buf[0] === 0x25 && buf[1] === 0x50); // "%P"
+  if (!isPdf && !contentType.startsWith("image/")) throw new Error("not a PDF or image");
+  if (buf.length > DOC_MAX_BYTES) throw new Error("document too large (15 MB max)");
+  // Base64 in chunks — String.fromCharCode(...buf) overflows the stack on big files.
+  let bin = "";
+  for (let i = 0; i < buf.length; i += 0x8000) {
+    bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  }
+  return { base64: btoa(bin), contentType: isPdf ? "application/pdf" : contentType };
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (!msg || msg.type !== "aaasTranslate") return false;
-  googleTranslate(msg.text, msg.src, msg.tgt)
-    .then((text) => sendResponse({ ok: true, text }))
+  if (!msg) return false;
+  let work;
+  if (msg.type === "aaasTranslate") {
+    work = gatewayTranslate(msg.text, msg.src, msg.tgt).then((text) => ({ text }));
+  } else if (msg.type === "aaasFetchDoc") {
+    work = fetchDocument(msg.url);
+  } else {
+    return false;
+  }
+  work
+    .then((res) => sendResponse({ ok: true, ...res }))
     .catch((err) => sendResponse({ ok: false, error: String(err?.message || err) }));
   // Returning true keeps the message channel open for the async sendResponse.
   return true;

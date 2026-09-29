@@ -5,8 +5,8 @@
  * them, probes the gateway /healthz on demand, and saves on click.
  */
 const DEFAULTS = {
-  gateway: "http://127.0.0.1:8000",
-  apiKey: "aaas_live_00000000000000000000000000000000",
+  gateway: "https://168-144-216-83.sslip.io",
+  apiKey: "aaas_live_ae7b43dd188349aa99b6e71cc8dd6b18",
   defaultLang: "or",
   enabled: true,
   onDevice: true,

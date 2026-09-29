@@ -1,0 +1,12 @@
+# /etc/caddy/Caddyfile on the droplet. Caddy gets the HTTPS certificate
+# automatically. Generate the admin hash with:
+#   caddy hash-password --plaintext '<password>'
+168-144-216-83.sslip.io {
+	encode gzip
+	redir / /demo/ 302
+	@admin path /admin /admin/*
+	basic_auth @admin {
+		admin <paste caddy hash-password output here>
+	}
+	reverse_proxy 127.0.0.1:8000
+}

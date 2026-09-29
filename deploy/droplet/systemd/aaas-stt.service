@@ -1,0 +1,20 @@
+[Unit]
+Description=AaaS stt service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=aaas
+Group=aaas
+WorkingDirectory=/opt/aaas/system/services/stt
+Environment=HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONIOENCODING=utf-8 PYTHONUNBUFFERED=1
+Environment=OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 TOKENIZERS_PARALLELISM=false
+
+ExecStart=/opt/aaas/system/services/stt/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8002  --no-access-log
+Restart=always
+RestartSec=5
+TimeoutStartSec=300
+MemoryMax=8G
+
+[Install]
+WantedBy=multi-user.target

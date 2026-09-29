@@ -46,6 +46,12 @@ class Settings(BaseSettings):
         default="http://localhost:8080/realms/aaas/protocol/openid-connect/certs"
     )
 
+    # Key shipped inside the public browser extension. It is readable by
+    # anyone who unzips the extension, so it belongs to its own ordinary
+    # (non-operator) tenant and can be rotated by changing this env var.
+    # Empty = no extension tenant is seeded.
+    extension_api_key: str = Field(default="")
+
     rate_limit_per_minute: int = Field(default=60)
     rate_limit_burst: int = Field(default=10)
 
