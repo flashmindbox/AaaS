@@ -138,8 +138,11 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.wcag_results = {}
     # Single shared httpx client for all upstream calls. Connection pool
     # is cheap but non-trivial to build, so we re-use it across requests.
+    # read=90: OCR of a multi-page scan, or a translation queued behind a
+    # page translation, can legitimately take longer than 30 s; cutting it
+    # off at 30 s showed citizens English text or "something went wrong".
     app.state.http_client = httpx.AsyncClient(
-        timeout=httpx.Timeout(connect=3.0, read=30.0, write=10.0, pool=3.0),
+        timeout=httpx.Timeout(connect=3.0, read=90.0, write=10.0, pool=3.0),
         follow_redirects=False,
     )
     logger.info(

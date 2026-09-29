@@ -67,12 +67,31 @@ def mask_numbers(text: str) -> tuple[str, list[str]]:
     return _NUMERIC_TOKEN.sub(_sub, text), originals
 
 
-def unmask_numbers(text: str, originals: list[str]) -> str | None:
-    """Put the original tokens back. None if the model lost or invented a placeholder."""
-    found = [int(n) for n in _PLACEHOLDER.findall(text)]
-    if sorted(found) != list(range(1, len(originals) + 1)):
-        return None
-    return _PLACEHOLDER.sub(lambda m: originals[int(m.group(1)) - 1], text)
+def unmask_numbers(text: str, originals: list[str]) -> tuple[str, bool]:
+    """Put the original tokens back; returns (text, repaired).
+
+    Greedy decoding drops, doubles or invents a placeholder in most longer
+    sentences. Re-translating without the mask doubled the time and let the
+    model rewrite the numbers (2026 -> 2021), so repair instead: every
+    placeholder it kept gets its number (doubles included), invented ones
+    are removed, and any it dropped are appended in brackets — no number is
+    ever lost or altered.
+    """
+    kept: set[int] = set()
+
+    def _sub(m: re.Match[str]) -> str:
+        i = int(m.group(1))
+        if 1 <= i <= len(originals):
+            kept.add(i)
+            return originals[i - 1]
+        return ""
+
+    out = _PLACEHOLDER.sub(_sub, text)
+    missing = [originals[i - 1] for i in range(1, len(originals) + 1) if i not in kept]
+    repaired = bool(missing) or len(_PLACEHOLDER.findall(text)) != len(originals)
+    if missing:
+        out = f"{out.rstrip()} ({', '.join(missing)})"
+    return re.sub(r"[ \t]{2,}", " ", out).strip(), repaired
 
 
 def _greedy_decode(tok: object, mod: object, texts: list[str]) -> list[str]:
@@ -99,8 +118,13 @@ def _greedy_decode(tok: object, mod: object, texts: list[str]) -> list[str]:
         n = inputs["input_ids"].shape[0]
         seqs = torch.full((n, 1), cfg.decoder_start_token_id, dtype=torch.long)
         done = torch.zeros(n, dtype=torch.bool)
+        # Per-sentence output cap. OCR junk ("Memo copy ... No. 35 ...") can
+        # make the model repeat itself up to the 512 limit — 40 s that every
+        # other sentence in the batch waits out. Real translations stay
+        # under ~1.5x the input length (longest seen: 157 -> 240 tokens).
+        limits = (inputs["attention_mask"].sum(dim=1).float() * 1.6 + 16).long()
         past = None
-        for _ in range(512):
+        for step in range(512):
             out = mod(  # type: ignore[operator]
                 encoder_outputs=enc,
                 attention_mask=inputs["attention_mask"],
@@ -113,7 +137,7 @@ def _greedy_decode(tok: object, mod: object, texts: list[str]) -> list[str]:
             nxt = out.logits[:, -1, :].argmax(-1)
             nxt = torch.where(done, torch.full_like(nxt, cfg.pad_token_id), nxt)
             seqs = torch.cat([seqs, nxt[:, None]], dim=1)
-            done |= nxt == cfg.eos_token_id
+            done |= (nxt == cfg.eos_token_id) | (step + 1 >= limits)
             if bool(done.all()):
                 break
     return tok.batch_decode(seqs, skip_special_tokens=True)  # type: ignore[attr-defined]
@@ -241,12 +265,12 @@ class IndicTrans2Engine(TranslateEngine):
         masked, originals = mask_numbers(text)
         if originals:
             out = await self._translate_raw(masked, src_lang=src_lang, tgt_lang=tgt_lang)
-            restored = unmask_numbers(out.text, originals)
-            if restored is not None:
-                return Translation(
-                    text=restored, src_lang=out.src_lang, tgt_lang=out.tgt_lang, engine=self.name
-                )
-            logger.warning("translate.indictrans2.placeholder_lost", n=len(originals))
+            restored, repaired = unmask_numbers(out.text, originals)
+            if repaired:
+                logger.info("translate.indictrans2.placeholder_repaired", n=len(originals))
+            return Translation(
+                text=restored, src_lang=out.src_lang, tgt_lang=out.tgt_lang, engine=self.name
+            )
         return await self._translate_raw(text, src_lang=src_lang, tgt_lang=tgt_lang)
 
     async def _translate_raw(
