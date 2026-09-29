@@ -8,7 +8,7 @@ User=aaas
 Group=aaas
 WorkingDirectory=/opt/aaas/system/services/tts
 Environment=HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONIOENCODING=utf-8 PYTHONUNBUFFERED=1
-Environment=OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 TOKENIZERS_PARALLELISM=false
+Environment=OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OMP_WAIT_POLICY=PASSIVE TOKENIZERS_PARALLELISM=false
 
 ExecStart=/opt/aaas/system/services/tts/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8001  --no-access-log
 Restart=always
