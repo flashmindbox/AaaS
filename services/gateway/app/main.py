@@ -44,7 +44,7 @@ def _configure_logging(level: str) -> None:
     )
 
 
-def _seed_dev_repository() -> InMemoryTenantRepository:
+def _seed_dev_repository(extension_api_key: str = "") -> InMemoryTenantRepository:
     """Seed three tenants so the admin dashboard has data to show.
 
     The keys below are deliberately public in source control — they only
@@ -109,6 +109,16 @@ def _seed_dev_repository() -> InMemoryTenantRepository:
         region="IN",
     )
     repo.add(nsp, raw_key="aaas_live_" + "5" * 32, name="nsp-seed")
+
+    if extension_api_key:
+        companion = Tenant(
+            id=UUID("00000000-0000-0000-0000-000000000007"),
+            slug="aaas-companion",
+            display_name="AaaS Companion (browser extension)",
+            category="browser-extension",
+            region="IN",
+        )
+        repo.add(companion, raw_key=extension_api_key, name="extension-key")
     return repo
 
 
@@ -118,7 +128,9 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
     # Only seed a default if the caller didn't inject one (tests do).
     if not hasattr(app.state, "tenant_repository"):
-        app.state.tenant_repository = _seed_dev_repository()
+        app.state.tenant_repository = _seed_dev_repository(
+            settings.extension_api_key
+        )
     # In-memory audit log feeding the admin usage endpoint. Bounded
     # ring buffer — see app.middleware.audit.
     app.state.audit_log = AuditLog()
@@ -237,17 +249,24 @@ def _mount_demo_assets(app: FastAPI) -> None:
     widget_file: Path | None = None
     demo_dir: Path | None = None
     admin_dir: Path | None = None
+    privacy_dir: Path | None = None
+    favicon_file: Path | None = None
     for root in candidates:
+        if favicon_file is None and (root / "apps" / "favicon.svg").is_file():
+            favicon_file = root / "apps" / "favicon.svg"
         w = root / "apps" / "widget" / "dist" / "widget.js"
         d = root / "apps" / "demo-sites"
         a = root / "apps" / "admin"
+        p = root / "apps" / "privacy"
         if widget_file is None and w.is_file():
             widget_file = w
         if demo_dir is None and d.is_dir():
             demo_dir = d
         if admin_dir is None and a.is_dir():
             admin_dir = a
-        if widget_file and demo_dir and admin_dir:
+        if privacy_dir is None and p.is_dir():
+            privacy_dir = p
+        if widget_file and demo_dir and admin_dir and privacy_dir:
             break
 
     if widget_file is not None:
@@ -263,6 +282,22 @@ def _mount_demo_assets(app: FastAPI) -> None:
                 headers={"Cache-Control": "no-store"},
             )
         logger.info("gateway.mount_widget", path=str(widget_file))
+
+    if favicon_file is not None:
+        from fastapi.responses import FileResponse
+
+        icon_path = favicon_file  # freeze for closure
+
+        # Browsers ask for /favicon.ico on every page; serving the SVG there
+        # gives the demo sites, console and privacy page the ଅ tab icon.
+        @app.get("/favicon.ico", include_in_schema=False)
+        @app.get("/favicon.svg", include_in_schema=False)
+        async def _serve_favicon() -> FileResponse:
+            return FileResponse(
+                icon_path,
+                media_type="image/svg+xml",
+                headers={"Cache-Control": "public, max-age=86400"},
+            )
 
     if demo_dir is not None:
         app.mount(
@@ -284,6 +319,15 @@ def _mount_demo_assets(app: FastAPI) -> None:
             name="admin",
         )
         logger.info("gateway.mount_admin", path=str(admin_dir))
+
+    if privacy_dir is not None:
+        # Public privacy policy — the Chrome Web Store listing links here.
+        app.mount(
+            "/privacy",
+            StaticFiles(directory=str(privacy_dir), html=True),
+            name="privacy",
+        )
+        logger.info("gateway.mount_privacy", path=str(privacy_dir))
 
 
 app = create_app()

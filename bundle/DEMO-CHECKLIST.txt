@@ -1,0 +1,92 @@
+================================================================
+  AaaS - Accessibility as a Service        Team SUBARNAREKHA
+  HACKATHON DEMO CHECKLIST
+================================================================
+
+ADDRESSES
+---------
+  Online  : https://168-144-216-83.sslip.io/demo/
+  Admin   : https://168-144-216-83.sslip.io/admin/
+            (user: admin  - password is in your password manager.
+             Type it in the sign-in box, never in the address bar.)
+  Offline : http://127.0.0.1:8000/demo/      (after START-DEMO.bat)
+  Offline admin: http://127.0.0.1:8000/admin/ (no password)
+  Privacy : https://168-144-216-83.sslip.io/privacy/
+
+
+30 MINUTES BEFORE
+-----------------
+  [ ] Laptop on charger. Close every Chrome tab you don't need
+      (the offline AI models need ~5 GB of free RAM).
+  [ ] Double-click START-DEMO.bat, wait for "DEMO IS READY".
+  [ ] Open the online demo site once - check the blue  ଅ  button appears.
+  [ ] chrome://extensions -> AaaS Companion is ON, version 0.5.0.
+  [ ] Reset the admin counters so judges see a clean session:
+        in a terminal:  ssh aaas-do systemctl restart aaas-gateway
+      (takes 5 seconds; the laptop copy resets when you restart it)
+  [ ] Say one sentence into "Speak to fill" on the SSEPD demo page to
+      make sure the microphone works in this room.
+  [ ] Test the venue Wi-Fi. No internet? Use the Offline addresses -
+      everything works the same, and the extension switches to the
+      laptop automatically.
+
+
+DEMO RUN-ORDER  (about 6 minutes)
+---------------------------------
+  1. THE PROBLEM (30 s)
+     Government sites are in English, visually heavy, and full of
+     scanned PDFs - hard for elderly, low-literacy and disabled citizens.
+
+  2. ONE SCRIPT TAG ON A GOVT SITE  (demo: SSEPD Odisha)
+     Click  ଅ
+     [ ] Read aloud      - page is read in Odia (starts in ~3 s)
+     [ ] Translate       - whole page turns into Odia (~8 s);  ↺ undoes
+     [ ] Easy Read       - legal wording becomes plain words
+     [ ] Read document   - pick the UDID camp PDF: scan on the left,
+                           Odia on the right, read aloud
+     [ ] Speak to fill   - scroll to the pension form, answer by voice
+
+  3. ANY REAL WEBSITE, NO SITE CHANGE (browser extension)
+     [ ] odisha.gov.in     -> ଅ -> Read aloud (Odia voice)
+     [ ] bseodisha.ac.in   -> ଅ -> Read document -> pick the
+         "NOTIFICATION FOR ... OSSTET" PDF  (real scanned notice)
+     [ ] odisha.gov.in     -> ଅ -> Voice command -> say "read page"
+
+  4. THE PLATFORM (admin console)
+     [ ] Numbers moved while you demoed: requests, tenants, latency
+     [ ] Tenants table: one gateway serves a district, a university,
+         an exam board, a department, a hospital, a central portal
+     [ ] "Onboard a website": create a tenant live, copy the one-line
+         snippet - that is the entire integration
+     [ ] API playground: press Send on Translate / Speech
+
+  5. CLOSE
+     Open-source Indian models (AI4Bharat IndicTrans2 + IndicWav2Vec,
+     Meta MMS voices), runs fully offline on a laptop or on our own
+     server - no third-party AI APIs, privacy policy live.
+
+
+AVOID ON STAGE
+--------------
+  - india.gov.in for voice input: that site blocks the microphone.
+  - Translating very long pages live (Wikipedia takes 1-3 minutes).
+    Demo sites translate in seconds.
+  - Crooked or handwritten scans: OCR garbles handwriting.
+
+
+IF SOMETHING GOES WRONG
+-----------------------
+  Button does nothing      -> reload the page (F5), click  ଅ  again.
+  Online site not loading  -> switch to the Offline addresses.
+  Offline services down    -> STOP-DEMO.bat, then START-DEMO.bat (1 min).
+  Read aloud slow on a real site (first time) -> it is loading the
+      in-browser voice once; the next page is faster.
+  Admin shows "unreachable" -> you typed the password in the address;
+      open https://168-144-216-83.sslip.io/admin/ plainly.
+
+
+AFTER THE HACKATHON
+-------------------
+  The server costs about $0.17 per hour ($112/month) while it exists -
+  even when idle. Snapshot and destroy the droplet in DigitalOcean when
+  you no longer need it.

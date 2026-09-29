@@ -23,7 +23,7 @@
  *   <script
  *     src="/widget.js"
  *     data-gateway="http://127.0.0.1:8000"
- *     data-key="aaas_live_00000000000000000000000000000000"
+ *     data-key="aaas_live_<your tenant key>"
  *     defer
  *   ></script>
  *
@@ -90,17 +90,21 @@
   const HTML_DATASET =
     (document.documentElement && document.documentElement.dataset) || {};
   const CONFIG = {
+    // A page that embeds widget.js talks to the gateway it was served from,
+    // even when the extension is also installed — otherwise the offline
+    // laptop demo would follow the extension's hosted URL and break.
     gateway:
       CURRENT_SCRIPT?.dataset.gateway ||
       window.AAAS_GATEWAY_URL ||
-      HTML_DATASET.aaasGateway ||
       SCRIPT_ORIGIN ||
+      HTML_DATASET.aaasGateway ||
       "http://127.0.0.1:8000",
     apiKey:
       CURRENT_SCRIPT?.dataset.key ||
       window.AAAS_API_KEY ||
       HTML_DATASET.aaasKey ||
-      "aaas_live_00000000000000000000000000000000",
+      // Public extension key (non-operator "aaas-companion" tenant).
+      "aaas_live_ae7b43dd188349aa99b6e71cc8dd6b18",
     // Default read-aloud language. The extension's config bridge writes
     // data-aaas-lang from the popup's "Default language" setting; a plain
     // embed can use <script data-lang> or window.AAAS_DEFAULT_LANG. Falls
@@ -135,14 +139,18 @@
   // can dynamic-import ondevice.js from the extension origin. Empty/0 on
   // every non-extension embed, which is how the gateway-path stays the
   // default without any code-branch check.
-  const ON_DEVICE = HTML_DATASET.aaasOnDevice === "1";
+  // A page that embeds widget.js sits next to its own gateway (no CSP
+  // problem), and the server voice starts in ~1-3 s against 6-14 s for
+  // loading the in-browser model — so on-device mode only applies to the
+  // copy the extension injects, even when the extension is also installed.
+  const ON_DEVICE = HTML_DATASET.aaasOnDevice === "1" && !CURRENT_SCRIPT;
   const EXT_ROOT = HTML_DATASET.aaasExtRoot || "";
 
   // Set by the extension's isolated-world bridge (inject-config.js). When
-  // present, translation is routed through Google Translate via the background
-  // service worker (which bypasses page CSP + CORS) instead of being fetched
-  // directly. On a plain <script> embed this is empty and we fetch Google
-  // ourselves, falling back to the AaaS gateway if that's blocked/offline.
+  // present and the page's CSP blocks our direct fetch to the gateway,
+  // translation is retried through the background service worker (which
+  // isn't bound by page CSP). On a plain <script> embed this is empty and
+  // the gateway is the only translation path.
   const EXT_BRIDGE = HTML_DATASET.aaasExt === "1";
 
   // Lazy-loaded once per page. null = not tried yet, pending promise while
@@ -595,6 +603,17 @@
           if (p.length < 4 || norm.length < 4) continue;
           const sim = 1 - editDistance(norm, p) / Math.max(norm.length, p.length);
           if (sim >= 0.85) return cmd.action;
+          // Odia STT often glues the trailing verb onto the command and
+          // slips one letter: "ଅନୁବାଦ କର" came back as "ଅନୁବାଜକ". Compare
+          // the phrase against the same-length start of what was heard,
+          // allowing a single slip on phrases of 5+ letters. Only Indic
+          // phrases, and only a glued fragment of 1-2 letters, so a link
+          // like "Search Results" still opens instead of running "search".
+          const extra = norm.length - p.length;
+          if (p.length >= 5 && extra >= 1 && extra <= 2 && /[^\x00-\x7F]/.test(p) &&
+              editDistance(norm.slice(0, p.length), p) <= 1) {
+            return cmd.action;
+          }
           // Phonetic pass: "rid pej" (romanized Odia STT hearing
           // English) still finds "read page".
           const nq = phoneticSquash(norm);
@@ -1230,14 +1249,24 @@
   }
 
   async function probeGateway() {
-    try {
-      const r = await fetch(`${CONFIG.gateway}/healthz`, {
-        cache: "no-store",
-      });
-      return r.ok;
-    } catch {
-      return false;
+    const healthy = async (base) => {
+      try {
+        const r = await fetch(`${base}/healthz`, { cache: "no-store" });
+        return r.ok;
+      } catch {
+        return false;
+      }
+    };
+    if (await healthy(CONFIG.gateway)) return true;
+    // Extension only: the hosted server is unreachable (no internet at the
+    // venue) but the laptop's offline bundle may be running — use it.
+    const fallback = HTML_DATASET.aaasGatewayFallback;
+    if (EXT_BRIDGE && fallback && fallback !== CONFIG.gateway && (await healthy(fallback))) {
+      console.warn("[AaaS] gateway unreachable, using local fallback:", fallback);
+      CONFIG.gateway = fallback;
+      return true;
     }
+    return false;
   }
 
   /* ---------- styles (scoped to Shadow DOM) ---------- */
@@ -1961,7 +1990,9 @@
   const PREFIX_STRINGS = {
     en: {
       heading: (lvl) => `Heading level ${lvl}, `,
-      link: "Link, ",
+      // Links read as their text alone — government pages are mostly links,
+      // and "Link, …" before every menu item and notice drowned the content.
+      link: "",
       button: "Button, ",
       checkbox: "Checkbox, ",
       radio: "Radio button, ",
@@ -1971,7 +2002,7 @@
     },
     or: {
       heading: (lvl) => `ଶୀର୍ଷକ ସ୍ତର ${lvl}, `,
-      link: "ଲିଙ୍କ, ",
+      link: "",
       button: "ବଟନ, ",
       checkbox: "ଚେକ୍ ବକ୍ସ, ",
       radio: "ରେଡିଓ ବଟନ, ",
@@ -1981,7 +2012,7 @@
     },
     hi: {
       heading: (lvl) => `शीर्षक स्तर ${lvl}, `,
-      link: "लिंक, ",
+      link: "",
       button: "बटन, ",
       checkbox: "चेकबॉक्स, ",
       radio: "रेडियो बटन, ",
@@ -2013,11 +2044,15 @@
       return { text: name, role: "heading", level: Number(tag[1]), element: el };
     }
     if (tag === "A" || role === "link") {
-      const name = getAccessibleName(el) || (el.getAttribute("href") || "").split("/").filter(Boolean).pop() || "link";
+      // A link with no readable name (icon, empty banner) is skipped: reading
+      // out a URL fragment or the bare word "link" is just noise.
+      const name = getAccessibleName(el);
+      if (!name) return null;
       return { text: name, role: "link", element: el };
     }
     if (tag === "BUTTON" || role === "button" || tag === "SUMMARY") {
-      const name = getAccessibleName(el) || "unnamed button";
+      const name = getAccessibleName(el);
+      if (!name) return null;
       return { text: name, role: "button", element: el };
     }
     if (tag === "INPUT") {
@@ -2247,18 +2282,12 @@
     }
   }
 
-  // Map our codes to Google's (identical for or/hi/en); anything else →
-  // "auto" so Google detects the source itself.
-  function googleCode(code) {
-    return ["or", "hi", "en"].includes(code) ? code : "auto";
-  }
-
-  // Translate via the extension's background worker (Google Translate). The
-  // worker bypasses page CSP + CORS, so this works on any site. Communicates
-  // over window.postMessage because the widget runs in the page's MAIN world
-  // and can't touch chrome.runtime directly.
+  // Translate via the extension's background worker, which calls the gateway
+  // outside the page's CSP, so this works on any site. Communicates over
+  // window.postMessage because the widget runs in the page's MAIN world and
+  // can't touch chrome.runtime directly.
   let _bridgeSeq = 0;
-  function googleTranslateViaBridge(text, src, tgt, timeoutMs) {
+  function gatewayTranslateViaBridge(text, src, tgt, timeoutMs) {
     return new Promise((resolve, reject) => {
       const id = "tr-" + ++_bridgeSeq;
       const onMsg = (ev) => {
@@ -2278,39 +2307,46 @@
       }, Math.max(timeoutMs || 0, 8000));
       window.addEventListener("message", onMsg);
       window.postMessage(
-        { source: "aaas-widget", kind: "translate-req", id, text, src: googleCode(src), tgt: googleCode(tgt) },
+        { source: "aaas-widget", kind: "translate-req", id, text, src, tgt },
         "*",
       );
     });
   }
 
-  // Direct Google Translate fetch — used by plain <script> embeds (no
-  // extension bridge). Subject to the page's CSP/CORS, so it can be blocked
-  // on strict sites; callers fall back to the gateway when it throws. Bounded
-  // by a timeout so a hung connection (captive portal, flaky network) doesn't
-  // stall the fallback.
-  async function googleTranslateDirect(text, src, tgt, signal, timeoutMs) {
-    const url =
-      "https://translate.googleapis.com/translate_a/single" +
-      `?client=gtx&sl=${encodeURIComponent(googleCode(src))}&tl=${encodeURIComponent(googleCode(tgt))}` +
-      `&dt=t&q=${encodeURIComponent(text)}`;
-    const t = withTimeout(Math.max(timeoutMs || 0, 8000), signal);
-    try {
-      const r = await fetch(url, { signal: t.signal, cache: "no-store" });
-      if (!r.ok) throw new Error("google HTTP " + r.status);
-      const data = await r.json();
-      if (!Array.isArray(data) || !Array.isArray(data[0])) {
-        throw new Error("google: unexpected response shape");
-      }
-      return data[0].map((seg) => (seg && seg[0]) || "").join("");
-    } finally {
-      t.clear();
-    }
+  // Download a document through the extension's background worker, which
+  // isn't bound by the page's CORS. The bytes come back base64-encoded
+  // because extension messaging only carries JSON.
+  function fetchDocViaBridge(url, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const id = "doc-" + ++_bridgeSeq;
+      const onMsg = (ev) => {
+        if (ev.source !== window) return;
+        const d = ev.data;
+        if (!d || d.source !== "aaas-bridge" || d.kind !== "fetch-doc-res" || d.id !== id) {
+          return;
+        }
+        window.removeEventListener("message", onMsg);
+        clearTimeout(timer);
+        if (!d.ok || typeof d.base64 !== "string") {
+          reject(new Error(d.error || "document download failed"));
+          return;
+        }
+        const bin = atob(d.base64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        resolve(new Blob([bytes], { type: d.contentType || "application/octet-stream" }));
+      };
+      const timer = setTimeout(() => {
+        window.removeEventListener("message", onMsg);
+        reject(new Error("document download timed out"));
+      }, Math.max(timeoutMs || 0, 20000));
+      window.addEventListener("message", onMsg);
+      window.postMessage({ source: "aaas-widget", kind: "fetch-doc-req", id, url }, "*");
+    });
   }
 
-  // Gateway translate (IndicTrans2) — the preferred path when the gateway
-  // is reachable, and the reason the portable demo bundle keeps working
-  // with no internet.
+  // Gateway translate (IndicTrans2) — the only translation engine, and the
+  // reason the portable demo bundle keeps working with no internet.
   async function gatewayTranslate(text, srcLang, tgtLang, { signal, timeoutMs }) {
     const t = withTimeout(timeoutMs, signal);
     try {
@@ -2333,14 +2369,13 @@
     }
   }
 
-  // Translate one chunk. Strategy: prefer the AaaS gateway (IndicTrans2 — the
-  // clearest, most formal Odia) whenever it's reachable, and fall back to
-  // Google Translate so a plain standalone embed still works on any site with
-  // no local services. Reachability is cached so a no-services embed pays at
-  // most one failed gateway probe, then goes straight to Google.
+  // Translate one chunk via the AaaS gateway (IndicTrans2). In the extension,
+  // a direct fetch the page's CSP blocks is retried through the background
+  // worker; direct reachability is cached so a strict-CSP page pays at most
+  // one failed probe, then goes straight to the bridge.
   // Cache-first at both the in-memory and cross-reload (IndexedDB) layers.
   //
-  // null = gateway not yet probed; true/false = last known reachability.
+  // null = not yet probed; true/false = last known direct reachability.
   let _gatewayTranslateReachable = null;
   async function translateChunk(text, srcLang, tgtLang, { signal, timeoutMs = 6000 } = {}) {
     if (srcLang === tgtLang) return text;
@@ -2359,16 +2394,9 @@
       return out;
     };
 
-    const googleStep = async () => {
-      const out = EXT_BRIDGE
-        ? await googleTranslateViaBridge(text, srcLang, tgtLang, timeoutMs)
-        : await googleTranslateDirect(text, srcLang, tgtLang, signal, timeoutMs);
-      if (typeof out === "string" && out.trim()) return store(out);
-      throw new Error("empty translation");
-    };
-
-    // Primary: AaaS gateway (IndicTrans2), whenever it's reachable.
-    if (_gatewayTranslateReachable !== false) {
+    // Direct fetch first. A plain <script> embed has no other path, so it
+    // always tries directly and surfaces the error.
+    if (_gatewayTranslateReachable !== false || !EXT_BRIDGE) {
       try {
         const out = store(
           await gatewayTranslate(text, srcLang, tgtLang, { signal, timeoutMs }),
@@ -2376,21 +2404,25 @@
         _gatewayTranslateReachable = true;
         return out;
       } catch (err) {
+        if (!EXT_BRIDGE) {
+          throw err instanceof TranslateError ? err : new TranslateError(text, tgtLang, err);
+        }
         if (signal && signal.aborted) throw new TranslateError(text, tgtLang, err);
-        // Gateway down/unreachable — remember it so we don't retry on every
-        // chunk, and fall through to Google for this and subsequent calls.
+        // Direct fetch blocked (page CSP) or failed — remember it so we don't
+        // retry on every chunk, and use the bridge for this and later calls.
         _gatewayTranslateReachable = false;
         console.warn(
-          "[AaaS] gateway translate unavailable, using Google:",
+          "[AaaS] direct gateway translate failed, using extension bridge:",
           err?.message || err,
         );
       }
     }
 
-    // Fallback: Google Translate (also the primary once the gateway is known
-    // unreachable — e.g. a standalone extension with no services running).
+    // Extension only: the same gateway, reached from the background worker.
     try {
-      return await googleStep();
+      const out = await gatewayTranslateViaBridge(text, srcLang, tgtLang, timeoutMs);
+      if (typeof out === "string" && out.trim()) return store(out);
+      throw new Error("empty translation");
     } catch (err) {
       if (err instanceof TranslateError) throw err;
       throw new TranslateError(text, tgtLang, err);
@@ -2401,7 +2433,7 @@
   // /simplify route (reached through the gateway's /translate catch-all).
   // Cache-first like translateChunk, reusing the "translate" IndexedDB
   // store under a distinct key prefix so no schema bump is needed.
-  // Unlike translate there is no Google fallback — a failed fetch
+  // Unlike translate there is no extension-bridge retry — a failed fetch
   // throws and the caller decides what to show.
   async function simplifyChunk(text, lang, { signal, timeoutMs = 20000 } = {}) {
     const k = "simplify§" + lang + ":" + text;
@@ -2455,11 +2487,21 @@
     }
     const t = withTimeout(timeoutMs);
     try {
-      const srcResp = await fetch(url, { signal: t.signal });
-      if (!srcResp.ok) {
-        throw new Error(`could not fetch the document (HTTP ${srcResp.status})`);
+      let blob;
+      try {
+        const srcResp = await fetch(url, { signal: t.signal });
+        if (!srcResp.ok) {
+          throw new Error(`could not fetch the document (HTTP ${srcResp.status})`);
+        }
+        blob = await srcResp.blob();
+      } catch (err) {
+        // Government sites often serve documents from a CDN on another
+        // domain without CORS headers, so the page can't read them. The
+        // extension's background worker can.
+        if (!EXT_BRIDGE || (t.signal && t.signal.aborted)) throw err;
+        console.warn("[AaaS] direct document fetch failed, using extension bridge:", err?.message || err);
+        blob = await fetchDocViaBridge(url, timeoutMs);
       }
-      const blob = await srcResp.blob();
       if (blob.size > 15000000) {
         throw new Error("document too large (15 MB max)");
       }
@@ -2527,9 +2569,43 @@
   // awaits drain() to hear the whole thing. The drain loop blocks on
   // a promise when the queue is empty so we don't busy-poll while
   // synthesis catches up.
+  // Strict page CSPs (india.gov.in: `default-src 'self'`) stop <audio> from
+  // playing blob: URLs, so read-aloud would be silent. Web Audio isn't
+  // governed by media-src, so once a blob is refused we play through it
+  // instead for the rest of the page's life.
+  let _mediaBlocked = false;
+  let _playCtx = null;
+  function playbackCtx() {
+    _playCtx = _playCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (_playCtx.state === "suspended") _playCtx.resume().catch(() => {});
+    return _playCtx;
+  }
+  function isMediaBlockedError(err) {
+    return !!err && (err.name === "NotSupportedError" || err.name === "SecurityError");
+  }
+  // Plays one blob via Web Audio. Resolves when it ends or handle.stop() is
+  // called; handle.stop is set once playback has started.
+  async function playBlobViaWebAudio(blob, handle) {
+    const ctx = playbackCtx();
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    if (handle.cancelled) return;
+    const node = ctx.createBufferSource();
+    node.buffer = buf;
+    node.connect(ctx.destination);
+    await new Promise((resolve) => {
+      node.onended = () => resolve();
+      handle.stop = () => {
+        try { node.stop(); } catch {}
+        resolve();
+      };
+      node.start();
+    });
+  }
+
   class Player {
     constructor() {
       this.audio = new Audio();
+      this._web = null; // active Web Audio handle when _mediaBlocked
       this.queue = [];
       this.playing = false;
       this.stopped = false;
@@ -2566,10 +2642,17 @@
         r();
       }
     }
+    _stopWeb() {
+      if (!this._web) return;
+      this._web.cancelled = true;
+      if (this._web.stop) this._web.stop();
+      if (_playCtx && _playCtx.state === "suspended") _playCtx.resume().catch(() => {});
+    }
     stop() {
       this.stopped = true;
       this.feedDone = true;
       this.queue = [];
+      this._stopWeb();
       try {
         this.audio.pause();
         this.audio.src = "";
@@ -2583,15 +2666,24 @@
     }
     pause() {
       if (!this.playing) return false;
+      if (this._web) {
+        _playCtx && _playCtx.suspend().catch(() => {});
+        return true;
+      }
       try { this.audio.pause(); } catch {}
       return true;
     }
     resume() {
+      if (this._web) {
+        _playCtx && _playCtx.resume().catch(() => {});
+        return true;
+      }
       if (!this.audio.src) return false;
       try { this.audio.play(); } catch {}
       return true;
     }
     isPaused() {
+      if (this._web) return this.playing && !!_playCtx && _playCtx.state === "suspended";
       return this.playing && this.audio.paused;
     }
     // Stop the current blob mid-play and advance to the next enqueued
@@ -2599,6 +2691,7 @@
     skipCurrent() {
       if (!this.playing) return false;
       this._skipRequested = true;
+      this._stopWeb();
       try { this.audio.pause(); } catch {}
       // The onended/onerror-style promise resolves via the audio's
       // "pause" event fallback below.
@@ -2618,6 +2711,7 @@
       // finally must NOT append it to the rewind trail.
       this._replayRequested = true;
       this._skipRequested = true;
+      this._stopWeb();
       try { this.audio.pause(); } catch {}
       if (this._onAdvance) this._onAdvance();
       return true;
@@ -2655,13 +2749,40 @@
             try { this.onAdvance(blob); } catch {}
           }
           try {
-            await this.audio.play();
-            await new Promise((resolve) => {
-              const done = () => resolve();
-              this._onAdvance = done;
-              this.audio.onended = done;
-              this.audio.onerror = done;
-            });
+            let viaElement = !_mediaBlocked;
+            if (viaElement) {
+              try {
+                await this.audio.play();
+              } catch (err) {
+                if (!isMediaBlockedError(err)) throw err;
+                _mediaBlocked = true;
+                viaElement = false;
+                console.warn("[AaaS] page blocks <audio> blobs, using Web Audio");
+              }
+            }
+            if (viaElement) {
+              const failed = await new Promise((resolve) => {
+                this._onAdvance = () => resolve(false);
+                this.audio.onended = () => resolve(false);
+                this.audio.onerror = () => resolve(true);
+              });
+              // A CSP block usually surfaces here, as a load error with
+              // MEDIA_ERR_SRC_NOT_SUPPORTED, rather than as a play() rejection.
+              if (failed && !this._skipRequested && !this.stopped &&
+                  this.audio.error && this.audio.error.code === 4) {
+                _mediaBlocked = true;
+                viaElement = false;
+                console.warn("[AaaS] page blocks <audio> blobs, using Web Audio");
+              }
+            }
+            if (!viaElement) {
+              const web = (this._web = { cancelled: false, stop: null });
+              await new Promise((resolve) => {
+                this._onAdvance = resolve;
+                playBlobViaWebAudio(blob, web).then(resolve, resolve);
+              });
+              if (this._web === web) this._web = null;
+            }
           } finally {
             this._onAdvance = null;
             URL.revokeObjectURL(url);
@@ -2709,12 +2830,18 @@
       this.getSourceLang = getSourceLang;
       this.audio = new Audio();
       this._abort = null;
+      this._web = null;
     }
     cancel() {
       if (this._abort) {
         try { this._abort.abort(); } catch {}
       }
       this._abort = null;
+      if (this._web) {
+        this._web.cancelled = true;
+        if (this._web.stop) this._web.stop();
+        this._web = null;
+      }
       try { this.audio.pause(); this.audio.src = ""; } catch {}
     }
     async announce(atom) {
@@ -2762,11 +2889,31 @@
       try {
         const blob = await synthesise(spoken, lang, { signal: ac.signal });
         if (ac.signal.aborted) return;
+        if (_mediaBlocked) {
+          const web = (this._web = { cancelled: false, stop: null });
+          await playBlobViaWebAudio(blob, web).catch(() => {});
+          return;
+        }
         const url = URL.createObjectURL(blob);
         this.audio.src = url;
         this.audio.onended = () => URL.revokeObjectURL(url);
-        this.audio.onerror = () => URL.revokeObjectURL(url);
-        await this.audio.play().catch((e) => {
+        this.audio.onerror = () => {
+          URL.revokeObjectURL(url);
+          // CSP-blocked blob (MEDIA_ERR_SRC_NOT_SUPPORTED): replay via Web Audio.
+          if (this.audio.error && this.audio.error.code === 4 && !ac.signal.aborted) {
+            _mediaBlocked = true;
+            const web = (this._web = { cancelled: false, stop: null });
+            playBlobViaWebAudio(blob, web).catch(() => {});
+          }
+        };
+        await this.audio.play().catch(async (e) => {
+          if (isMediaBlockedError(e)) {
+            _mediaBlocked = true;
+            URL.revokeObjectURL(url);
+            const web = (this._web = { cancelled: false, stop: null });
+            await playBlobViaWebAudio(blob, web).catch(() => {});
+            return;
+          }
           console.warn(
             "[AaaS/hover] audio.play blocked — click anywhere on the page once to unlock autoplay.",
             e?.name || e?.message || "unknown",
@@ -3759,8 +3906,8 @@
     readBtn.addEventListener("click", startReadPage);
 
     // In-place full-page visual translation. Walks the DOM for text nodes,
-    // translates each through translateChunk (Google Translate via the
-    // background worker, gateway fallback), and replaces node values in place
+    // translates each through translateChunk (the gateway, via the
+    // background worker on strict-CSP pages), and replaces node values in place
     // so the user watches the page flip to Odia (or the picker's choice)
     // without a new tab or URL change. Source is the detected page language;
     // we cap concurrency and progress-report as each batch lands.
@@ -3839,7 +3986,15 @@
     // longer timeout than the read-aloud path accommodates whole-paragraph
     // nodes. Throws on failure (caller leaves the node untranslated).
     async function translateOne(text, tgt) {
-      return translateChunk(text, pageLang, tgt, { timeoutMs: 20000 });
+      // The model trims its output, but the spaces around a text node are
+      // what separate it from the next link or bold word — keep them, or
+      // "Konark Sun Temple is a" comes back as "...ମନ୍ଦିରଏହା".
+      const lead = text.match(/^\s*/)[0];
+      const trail = text.match(/\s*$/)[0];
+      const core = text.trim();
+      if (!core) return text;
+      const out = await translateChunk(core, pageLang, tgt, { timeoutMs: 20000 });
+      return out ? lead + out.trim() + trail : out;
     }
 
     /* ----- Undo for the in-place rewrites -----
@@ -3935,7 +4090,7 @@
         undoLayers.push(layer);
         statusEl.textContent =
           `Translating 0 / ${nodes.length} → ${LANG_DISPLAY[tgt] || tgt}…`;
-        const BATCH = 5;
+        const BATCH = 16; // the server batches concurrent translations
         let done = 0;
         let changed = 0;
         for (let i = 0; i < nodes.length; i += BATCH) {
@@ -5359,37 +5514,42 @@
         let untranslated = 0;
         const label = LANG_DISPLAY[tgt] || tgt;
         if (tgt !== srcLang) {
+          const pagePieces = docPages.map((p) => splitIntoSentences(p.text, DOC_PIECE_CHARS));
+          const totalParts = pagePieces.reduce((n, pieces) => n + pieces.length, 0);
           let part = 0;
-          const totalParts = docPages.reduce(
-            (n, p) => n + splitIntoSentences(p.text, DOC_PIECE_CHARS).length,
-            0,
+          const progress = () =>
+            updateDocProgress(
+              `Turning it into ${label}…`,
+              totalParts > 1 ? `part ${part} of ${totalParts}` : "",
+            );
+          progress();
+          // All pieces go out together so the server can translate them as
+          // one batch. One slow or failed piece keeps its original text; the
+          // rest still translate.
+          const translatedPages = await Promise.all(
+            pagePieces.map((pieces) =>
+              Promise.all(
+                pieces.map(async (piece) => {
+                  let out = piece;
+                  try {
+                    out = stripPassthroughAnnotation(
+                      await translateChunk(piece, srcLang, tgt, { timeoutMs: 45000 }),
+                    );
+                  } catch (err) {
+                    console.warn("[AaaS] OCR translate failed:", err);
+                    untranslated++;
+                  }
+                  part++;
+                  if (live()) progress();
+                  return out;
+                }),
+              ),
+            ),
           );
-          for (const p of docPages) {
-            const pieces = splitIntoSentences(p.text, DOC_PIECE_CHARS);
-            const translated = [];
-            for (const piece of pieces) {
-              part++;
-              updateDocProgress(
-                `Turning it into ${label}…`,
-                totalParts > 1 ? `part ${part} of ${totalParts}` : "",
-              );
-              // One slow or failed piece keeps its original text; the
-              // rest still translate.
-              try {
-                translated.push(
-                  stripPassthroughAnnotation(
-                    await translateChunk(piece, srcLang, tgt, { timeoutMs: 45000 }),
-                  ),
-                );
-              } catch (err) {
-                console.warn("[AaaS] OCR translate failed:", err);
-                translated.push(piece);
-                untranslated++;
-              }
-              if (!live()) return;
-            }
-            p.text = translated.join(" ");
-          }
+          if (!live()) return;
+          docPages.forEach((p, i) => {
+            p.text = translatedPages[i].join(" ");
+          });
         }
         if (!live()) return;
         showDocResult(docPages, result.engine === "mock", desc);

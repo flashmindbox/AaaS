@@ -27,13 +27,13 @@ On every page you visit, the extension:
      fallback). Highlights each block as it's spoken; ⏮/⏭ buttons (and
      ←/→ keys) replay or skip a section, Space pauses, Esc stops.
    - **ଅନୁବାଦ · Translate → Odia** — whole-page in-place translation
-     (IndicTrans2 via gateway, Google fallback), with a one-tap ↺ undo
+     (IndicTrans2 via the gateway), with a one-tap ↺ undo
      on the tile.
    - **ସହଜ ପଢ଼ା · Easy Read** — rule-based plain-language rewriting of
      the whole page (legalese → everyday words, long sentences split)
      **in the page's current language**: an English page stays English,
      a translated-to-Odia page gets the Odia rules. ↺ undo. Composes
-     with Translate. **Needs the gateway** — no Google fallback.
+     with Translate. **Needs the gateway.**
    - **ଦଲିଲ ପଢ଼ · Read document** — finds the scanned images and PDF
      links on the page and always asks which one to read. The document
      goes through the gateway's Tesseract OCR, then simplify +
@@ -74,17 +74,16 @@ On every page you visit, the extension:
      - **ଛୁଇଁଲେ କୁହେ · Hover to speak** — speaks what you point at;
        selecting text reads the selection.
      - A **keyboard-shortcuts overlay** (press ? with the panel open).
-4. **Translation uses Google Translate** by default. The widget runs in
-   the page's MAIN world (no cross-origin access), so requests are relayed
-   through the background service worker — the one context that can call
-   Google regardless of the page's CSP/CORS. This means read-aloud in
-   Odia/Hindi and "Translate this page" work on **any** website with no
-   local gateway running. When the local gateway is reachable, translation
-   prefers its `/translate` (IndicTrans2) for the best Odia quality.
+4. **Translation uses the AaaS gateway** (IndicTrans2). The widget runs
+   in the page's MAIN world, so on strict-CSP sites its direct fetch is
+   blocked; those requests are relayed through the background service
+   worker, which reaches the gateway regardless of the page's CSP. This
+   means "Translate this page" works on **any** website. There is no
+   third-party translation fallback.
 5. **On-device mode (default ON):** TTS and STT run entirely inside the
    browser via WebAssembly (Meta MMS-TTS voices, incl. Odia). Combined
-   with Google Translate above, the full feature set works with no backend
-   at all. Flip it off in the popup to route TTS/STT to the gateway
+   with gateway translation above, the full feature set works on any site.
+   Flip it off in the popup to route TTS/STT to the gateway
    instead. Models add ~230 MB to the extension on first install.
 
 ## Installing (unpacked, for judges and testers)
@@ -107,14 +106,15 @@ The popup opens automatically after install. Defaults:
   page — no gateway needed. First utterance in each language warms up
   the ONNX model (~2 s lag); subsequent ones are sub-second. Turn it
   off to route TTS/STT to the gateway instead.
-- **Translation:** the gateway's IndicTrans2 when reachable, otherwise
-  Google Translate (via the background worker). No setting required.
-- **Gateway URL:** `http://127.0.0.1:8000`
-  Only needed for the fallback paths: TTS/STT when on-device mode is off,
-  and translation when Google is unreachable. Point it at wherever AaaS
+- **Translation:** the gateway's IndicTrans2 (via the background worker on
+  strict-CSP pages). No setting required.
+- **Gateway URL:** `https://168-144-216-83.sslip.io` (hosted; use `http://127.0.0.1:8000` for the offline USB bundle)
+  Used for translation, Easy Read and document OCR, and for TTS/STT when
+  on-device mode is off. Point it at wherever AaaS
   is running (USB bundle, OCAC cloud deploy, Docker compose stack, etc.).
-- **API key:** seed demo key. Replace with a real tenant key in
-  production.
+- **API key:** the `aaas-companion` tenant's key (not an operator key).
+  The gateway only accepts it when `EXTENSION_API_KEY` is set to the same
+  value; rotate both together.
 - **Default language:** `auto` — the widget uses the page's `lang`
   attribute. Override for sites with missing / wrong lang tags.
 
@@ -186,7 +186,7 @@ the page's own scripts.
 | File              | Purpose                                      |
 |-------------------|----------------------------------------------|
 | `manifest.json`   | MV3 manifest, permissions, content scripts, CSP for WASM |
-| `background.js`   | Service worker — seeds defaults + Google Translate proxy |
+| `background.js`   | Service worker — seeds defaults + gateway translate proxy |
 | `inject-config.js`| Isolated-world bridge → dataset on `<html>` + translate relay |
 | `widget.js`       | The widget itself (copied from `apps/widget/dist/`) |
 | `ondevice.js`     | Lazy-loaded adapter: transformers.js + ONNX for offline TTS/STT |

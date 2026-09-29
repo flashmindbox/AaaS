@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AaaS · Operator Console</title>
   <meta name="description" content="Live operator view of the AaaS gateway — tenants, real request traffic, service health, and an API playground." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="admin.css" />
 </head>
 <body>
@@ -15,7 +16,7 @@
         <span class="mark">ଅ</span>
         <div>
           <h1>AaaS Operator Console</h1>
-          <p>One gateway · six tenants · every number below is live</p>
+          <p>One gateway · <span id="tenant-count">six</span> tenants · every number below is live</p>
         </div>
       </div>
       <div class="gwstate">
@@ -31,7 +32,7 @@
     <section aria-label="Live traffic">
       <div class="kpis">
         <div class="kpi"><b id="k-req">—</b><span>requests served<br />(live audit log)</span></div>
-        <div class="kpi"><b id="k-err">—</b><span>errors<br />(4xx + 5xx)</span></div>
+        <div class="kpi"><b id="k-err">—</b><span>server errors<br />(5xx) · <span id="k-rej">—</span> rejected</span></div>
         <div class="kpi"><b id="k-tenants">—</b><span>tenants active<br />this session</span></div>
         <div class="kpi"><b id="k-p95">—</b><span>p95 latency<br />(latest bucket)</span></div>
       </div>
@@ -228,9 +229,9 @@
           </div>
         </div>
       </div>
-      <p class="foot-note">Everything runs on this laptop — no cloud calls. Every
-      engine has a deterministic mock fallback, so a dead model degrades the demo
-      honestly instead of killing it.</p>
+      <p class="foot-note"><span id="where-runs">Everything runs on this laptop — no
+      cloud calls.</span> Every engine has a deterministic mock fallback, so a dead
+      model degrades the demo honestly instead of killing it.</p>
     </section>
 
   </main>

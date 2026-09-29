@@ -100,7 +100,11 @@ class UsageBucket(BaseModel):
 
 class UsageResponse(BaseModel):
     total_requests: int
-    total_errors: int
+    total_errors: int  # 4xx + 5xx (kept for existing clients)
+    # 5xx only: the service itself failed. 4xx is the gateway doing its job
+    # (bad/missing key, unknown path from internet scanners).
+    server_errors: int = 0
+    rejected: int = 0
     by_endpoint: dict[str, int]
     by_tenant: dict[str, int]
     buckets: list[UsageBucket]
@@ -282,6 +286,7 @@ def _summarise_usage(
 
     total = len(events)
     errors = sum(1 for e in events if isinstance(e, AuditEvent) and e.status >= 400)
+    server_errors = sum(1 for e in events if isinstance(e, AuditEvent) and e.status >= 500)
     by_endpoint: dict[str, int] = {}
     by_tenant: dict[str, int] = {}
     buckets: dict[str, list[int]] = {}
@@ -302,7 +307,9 @@ def _summarise_usage(
         b = e.ts.replace(minute=m, second=0, microsecond=0)
         key = b.isoformat().replace("+00:00", "Z")
         buckets.setdefault(key, []).append(e.latency_ms)
-        if e.status >= 400:
+        # Per-bucket errors count real failures (5xx) only, matching the
+        # dashboard's "errors" tile.
+        if e.status >= 500:
             bucket_errors[key] = bucket_errors.get(key, 0) + 1
 
     def _pct(xs: list[int], p: float) -> int:
@@ -325,6 +332,8 @@ def _summarise_usage(
     return UsageResponse(
         total_requests=total,
         total_errors=errors,
+        server_errors=server_errors,
+        rejected=errors - server_errors,
         by_endpoint=by_endpoint,
         by_tenant=by_tenant,
         buckets=bucket_objs,

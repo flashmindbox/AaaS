@@ -72,7 +72,11 @@ async function refreshUsage() {
       setTimeout(() => kReq.classList.remove("bump"), 900);
     }
     lastTotal = u.total_requests;
-    $("#k-err").textContent = u.total_errors.toLocaleString();
+    // 4xx is the gateway doing its job (wrong key, scanners probing /.env),
+    // so only 5xx counts as an error; rejections are shown alongside.
+    const serverErrors = u.server_errors ?? u.total_errors;
+    $("#k-err").textContent = serverErrors.toLocaleString();
+    $("#k-rej").textContent = (u.rejected ?? 0).toLocaleString();
     $("#k-tenants").textContent = Object.keys(u.by_tenant || {}).length;
     const buckets = u.buckets || [];
     const latest = buckets[buckets.length - 1];
@@ -88,7 +92,13 @@ async function refreshUsage() {
 }
 
 function renderEndpoints(byEndpoint) {
-  const entries = Object.entries(byEndpoint).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  // Citizen-facing traffic only — this console's own polling (admin,
+  // healthz) and browser housekeeping would otherwise top the chart.
+  const HOUSEKEEPING = new Set(["admin", "healthz", "favicon.ico", "favicon.svg", "docs", "openapi.json", "root", "privacy"]);
+  const entries = Object.entries(byEndpoint)
+    .filter(([name]) => !HOUSEKEEPING.has(name) && !name.startsWith("."))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
   const max = entries.length ? entries[0][1] : 1;
   const box = $("#endpoints");
   box.textContent = "";
@@ -127,6 +137,8 @@ async function loadTenants() {
     const r = await fetch("/admin/api/tenants", { headers: HDRS, cache: "no-store" });
     if (!r.ok) return;
     const tenants = await r.json();
+    const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+    $("#tenant-count").textContent = words[tenants.length] || String(tenants.length);
     // Real key prefixes come from the per-tenant detail endpoint.
     const details = await Promise.all(
       tenants.map((t) =>
@@ -301,7 +313,16 @@ function setSnippet(key, label) {
     `></script>`;
   $("#snippet-key-label").textContent = label || key.slice(0, 14) + "…";
 }
-setSnippet(KEY, "operator seed key");
+// Show an ordinary tenant's key in the example, never the operator key.
+setSnippet("aaas_live_33333333333333333333333333333333", "SSEPD demo key");
+
+// The footer's "where does this run" line: the laptop bundle is fully
+// offline; the hosted copy runs the same models on our own server.
+if (!["127.0.0.1", "localhost"].includes(location.hostname)) {
+  $("#where-runs").textContent =
+    "Hosted on our own server in Bangalore, India — the AI models run there, " +
+    "no third-party AI APIs.";
+}
 
 $("#copy-snippet").addEventListener("click", async () => {
   const text = $("#snippet").textContent;

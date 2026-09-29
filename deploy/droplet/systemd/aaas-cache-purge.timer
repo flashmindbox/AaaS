@@ -1,0 +1,9 @@
+[Unit]
+Description=Empty the AaaS translation cache every 30 days
+
+[Timer]
+OnCalendar=*-*-01 03:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AaaS Privacy Policy</title>
+<meta name="description" content="Privacy policy for the AaaS Companion browser extension and the AaaS accessibility service.">
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1d1b; --muted: #5d5b55; --rule: #e3e0d8;
+    --accent: #1f5fa8; --card: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614; --fg: #ecebe6; --muted: #a7a59d; --rule: #33322e;
+      --accent: #7fb0ec; --card: #1e1e1b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --fg: #ecebe6; --muted: #a7a59d; --rule: #33322e;
+    --accent: #7fb0ec; --card: #1e1e1b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Oriya", sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; padding: 2.5rem 16px 4rem; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .25rem; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 .5rem; padding-top: 1.2rem; border-top: 1px solid var(--rule); }
+  .meta { color: var(--muted); margin: 0 0 1.5rem; }
+  .summary { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem 1.25rem; }
+  .summary p { margin: .25rem 0 .5rem; }
+  .summary ul { margin: .25rem 0; padding-left: 1.2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; margin: .5rem 0; }
+  th, td { text-align: left; vertical-align: top; padding: .5rem .5rem; border-bottom: 1px solid var(--rule); }
+  th { color: var(--muted); font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  a { color: var(--accent); }
+  code { font-size: .9em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacy Policy</h1>
+  <p class="meta">AaaS Companion browser extension and the AaaS accessibility service · Team SUBARNAREKHA · Last updated 29 September 2026</p>
+
+  <div class="summary">
+    <p><strong>In short:</strong></p>
+    <ul>
+      <li>Nothing leaves your browser until you open the AaaS panel (the ଅ button) or use one of its features.</li>
+      <li>What you send (page text, a document, or your voice) is used only to give you the result, and is not kept, with one exception: translated text is cached on our server for up to one month, without any link to you.</li>
+      <li>We don't use accounts, cookies, advertising or analytics. We don't record which websites you visit, and we never sell or share your data.</li>
+    </ul>
+  </div>
+
+  <h2>Who we are</h2>
+  <p>AaaS (Accessibility as a Service) is built by Team SUBARNAREKHA. It reads web pages aloud, translates them into Odia, Hindi or English, simplifies difficult text, reads scanned documents, and lets you fill forms by voice. The AaaS Companion extension adds these features to any website you choose to use them on.</p>
+
+  <h2>What is sent to the AaaS server, and when</h2>
+  <p>The extension sends data only to the AaaS server (currently <code>168-144-216-83.sslip.io</code>, or another server you enter in the extension's settings), and only when you do something:</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>When you…</th><th>What is sent</th></tr>
+    <tr><td>Open the AaaS panel</td><td>A health check with no content. If <em>on-device mode</em> is off, the first paragraph of the page is also translated in advance so that <em>Read aloud</em> starts faster.</td></tr>
+    <tr><td>Use <em>Translate</em> or <em>Easy Read</em></td><td>The visible text of the current page.</td></tr>
+    <tr><td>Use <em>Read document</em></td><td>The image or PDF you pick from the page.</td></tr>
+    <tr><td>Use <em>Read aloud</em>, <em>Hover to speak</em>, <em>Speak to fill</em> or <em>Voice command</em></td><td>With <strong>on-device mode on</strong> (the default), nothing: speech and voice are processed entirely inside your browser. With it off, the text to be spoken or the recording of your voice is sent.</td></tr>
+  </table>
+  </div>
+  <p>Every request also includes the extension's shared access key, which identifies the extension, not you. Like any website you visit, the server sees your IP address and the address of the site you are on when a request arrives. We don't store either.</p>
+  <p>Your microphone is used only while you are using <em>Speak to fill</em> or <em>Voice command</em>, after your browser asks for your permission.</p>
+
+  <h2>What the server keeps</h2>
+  <ul>
+    <li><strong>Page text, documents and voice recordings:</strong> processed in memory to produce your result, then discarded. They are not saved.</li>
+    <li><strong>Translation cache:</strong> to avoid translating the same sentence twice, the server stores each piece of source text with its translation. The cache holds no IP address, account, website address or anything else that links it to you, and it is emptied on the first day of every month. Avoid translating pages that contain private information you don't want stored temporarily.</li>
+    <li><strong>Usage statistics:</strong> for each request, the server keeps the feature used, whether it succeeded, how long it took and the time. This record contains no content and no IP address, is held in memory only, and is lost whenever the server restarts.</li>
+    <li><strong>Web server access logs:</strong> turned off.</li>
+  </ul>
+
+  <h2>What stays in your browser</h2>
+  <ul>
+    <li><strong>Settings</strong> (server address, access key, language, on/off switches) are saved with Chrome's storage. If you use Chrome sync, Chrome syncs them to your Google account.</li>
+    <li><strong>Local cache:</strong> translations and generated speech are cached in your browser so that pages you revisit load faster. You can clear it by clearing site data in your browser.</li>
+    <li>The speech and voice models for on-device mode come bundled with the extension. They never send your voice anywhere.</li>
+  </ul>
+
+  <h2>Sharing</h2>
+  <p>We don't sell, rent or share your data with anyone. We don't use it for advertising, credit decisions or any purpose other than providing the features above. The server is hosted on DigitalOcean in their Bangalore (India) data centre; DigitalOcean provides the machine and does not receive your content for any other purpose.</p>
+  <p>The use of information received from Chrome extension APIs complies with the <a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq">Chrome Web Store User Data Policy</a>, including its Limited Use requirements.</p>
+
+  <h2>Security</h2>
+  <p>All traffic between the extension and the AaaS server is encrypted with HTTPS. The server's AI services are not reachable from the internet directly, and its administration pages are password-protected.</p>
+
+  <h2>Children</h2>
+  <p>AaaS is an accessibility tool for the general public. It collects no personal details from anyone, including children.</p>
+
+  <h2>Changes</h2>
+  <p>If we change what data is sent or kept, we will update this page and the date at the top before the change takes effect.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <a href="mailto:flashmindbox@gmail.com">flashmindbox@gmail.com</a></p>
+</main>
+</body>
+</html>
